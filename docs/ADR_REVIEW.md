@@ -70,3 +70,44 @@ New Q4: **zero spend**; free tiers and open-source models only; no local GPU; Ka
 
 **A discrepancy you should know about:** you asked me to document IndicF5 as non-commercial. Its **Hugging Face model card states MIT**. However, the GitHub repo shows no licence file, and IndicF5 builds on F5-TTS, whose official weights are **CC-BY-NC-4.0**. The docs therefore record the MIT label **and** our conservative non-commercial treatment, rather than claiming the model is officially non-commercial.
 
+---
+
+## Independent review (2026-10-05)
+
+**Reviewer:** the `critical-reviewer` brief (`.claude/agents/critical-reviewer.md`), run as two read-only agents with fresh context. The custom agent type only loads in a new session, so the built-in read-only `Plan` agent ran the same brief.
+
+**Verdicts before fixes:**
+- Approve: 0002, 0010, 0011, THIRD_PARTY_TERMS.
+- Approve with changes: all others.
+- Reject: none.
+
+| # | Severity | Finding | Resolution |
+|---|---|---|---|
+| R1-1 | **Critical** | 0006 locked "the Consent row", but revocation *inserts* a new row, so the race wasn't closed | **Fixed:** lock the stable `IdentityOwner` row; a save succeeds only if the job's consent version is still the latest ACTIVE one; new test (0006 §4, 0014) |
+| R2-1 | **Critical** | 0014 VoiceProfile still had provider-clone fields | **Fixed:** local clip fields (0014) |
+| R1-2 | Major | Groq ASR sent source audio out with no consent check; "voice data stays on the laptop" was false | **Fixed:** faster-whisper is now the default; Groq needs `external_transcription` consent + `allow_external_audio` (new CP0) (0005, 0006, 0017) |
+| R1-3 | Major | The Django admin could un-quarantine artefacts | **Fixed:** read-only fields, audited policy changes, a test (0009) |
+| R1-4 | Major | One worker: long CPU synthesis blocks the demo | **Fixed:** two lanes, `synthesis` and `default` (0003, 0001, 0012) |
+| R1-5 | Major | Heartbeat only at checkpoints, so a live slow job could be reaped | **Fixed:** heartbeat from the 1-second loop (0003) |
+| R1-6 / R2-3 | Major | Cancellation: state or flag? The reviewers **disagreed** (R1: flag; R2: state); the diagram was also missing transitions | **Chose the flag** (simpler, one source of truth); added DISPATCHED transitions, `cancel_reason`, `dispatched_at`, `remote_ref`, nullable targets (0003, 0014). **R2's suggestion of a `CANCEL_REQUESTED` state was not adopted.** |
+| R1-7 | Major | No lock order, so deadlocks were possible | **Fixed:** IdentityOwner → Job → artefacts → AuditChainHead last (0003, 0007) |
+| R1-8 | Major | Tamil number-word parser too large for the team | **Fixed:** the model is instructed to write digits; parse Western and Tamil digits; words are `UNVERIFIABLE`; the lexicon is stretch scope (0008) |
+| R2-2 | Major | Kaggle copies were not tracked | **Fixed:** `RemoteCopy` entity, recorded before upload (0014, 0019) |
+| R2-4 | Major | No per-segment audio entity | **Fixed:** `SynthesisedSegment` (0014, 0006) |
+| R1-9 / R2-5 | Major | "Gemini only for scripted text" was not enforced | **Fixed:** `Project.data_classification`; the chain skips Gemini otherwise; audited; tested (0005, 0014, 0016) |
+| R2-6 | Major | Seeded errors written by the check authors | **Fixed:** rules frozen first; R2 writes the errors (spike M3) |
+| R2-7 | Major | 7 outputs per segment; rater hours underestimated | **Fixed:** one Groq model chosen by pre-screen (5 outputs); 5–6 h per rater (spike) |
+| R2-8 | Major | Tie margins meaningless with n = 1; trivial similarity bar | **Fixed:** count-based ties; pooled median; different-speaker clone control (spike §5, M4) |
+| R2-9 | Major | Bare-metal timings ≠ Docker; RAM exhaustion | **Fixed:** M6 runs inside Compose on the demo laptop; one model loaded at a time (0005, spike) |
+| R2-10 | Major | Plans C/D missing from 0012 | **Fixed:** 0012 references spike §6 as authoritative and lists all plans |
+| R2-11 | Major | Kaggle adopted when it *works*, not when it's *needed* | **Fixed:** adopted only if CPU fails live use **and** overnight CPU exceeds 8 h (0019, rule 6) |
+| R1-10…14, R2-12…18 | Minor | Gate `job` parameter; stale hosting text; M3→M4 reference; TRUNCATE trigger; purge timing and expiry sweep; offline fallback; mock "(tests only)"; processor list; preview models; UML actors; batch per project; Scene states | **All fixed** |
+| Honesty | — | Unlabelled "output deleted with the kernel"; past-tense "we measured"; "fine for 1–5 min"; unlabelled "stronger baseline"; "we kill the job" for Kaggle; "because our AI is hosted" | **All fixed** (now [UNVERIFIED] / [INFERRED] / future tense / corrected) |
+| Demo risks | — | Re-review step missing from the script; rehearsals destroy the demo state; live Kaggle dispatch adds risk; audit view noise | **Fixed:** scripted re-review, `demo_reset` fixture, Kaggle dispatch optional, audit filter (0012, 0007, spike §6) |
+
+**Where I disagree with the reviewers:** only on the state-vs-flag conflict above, which is resolved in favour of reviewer 1. Every other finding was accepted.
+
+**Still open after fixes (reviewer-flagged, can't be resolved by editing):**
+- Some external facts can't be verified by the reviewer (Groq free-plan limits and ZDR availability, the Kaggle quota, Gemini and ElevenLabs terms quotes). They are labelled; re-check before the final evaluation.
+- Every threshold marked [PROPOSED] needs your confirmation.
+

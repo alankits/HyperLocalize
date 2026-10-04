@@ -1,6 +1,6 @@
 # ADR 0014: Core data model (UML-ready)
 
-**Status:** Proposed (2026-10-05). Not yet approved.
+**Status:** Proposed (2026-10-05; revised the same day after independent review). Not yet approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §7; ADRs 0003, 0005–0008, 0011, 0013
 
 ## Context
@@ -34,52 +34,58 @@ classDiagram
   Localization "1" --> "*" SegmentTranslation
   Segment "1" --> "*" SegmentTranslation : versions
   SegmentTranslation "1" --> "*" CheckResult
+  Segment "1" --> "*" SynthesisedSegment : versions
+  SynthesisedSegment "*" --> "0..1" Consent : produced under
   Localization "1" --> "*" RenderedScene
   Scene "1" --> "*" RenderedScene : versions
+  RenderedScene "*" --> "*" SynthesisedSegment : mixes
   IdentityOwner "1" --> "*" Consent : versions
   IdentityOwner "1" --> "*" VoiceProfile
   VoiceProfile "*" --> "1" Consent
-  RenderedScene "*" --> "*" Consent : produced under
+  VoiceProfile "1" --> "*" RemoteCopy
+  Job "1" --> "*" RemoteCopy
   Scene "1" --> "*" Review
   Scene "1" --> "*" RegenerationRequest
   Localization "1" --> "*" Approval
   Approval "1" --> "0..1" Export
-  Job "*" --> "0..1" Scene
   AuditRecord "*" --> "0..1" Project
 ```
 
 | Entity | Key fields | Rules |
 |---|---|---|
-| **Project** | name, source_language (`en`), domain, status, created_by | |
+| **Project** | name, source_language (`en`), domain, status, **data_classification** (`SCRIPTED_TEAM` / `PERSONAL`), **allow_external_audio** (default false), created_by | `data_classification` decides whether the Gemini free tier may receive text (ADR 0005); `allow_external_audio` is used by CP0 (ADR 0006) |
 | AudienceProfile | locale (`ta-IN`), formality, reading_level, unit_conversions, cultural_notes | Context input (ADR 0016) |
-| GlossaryTerm | source_term, target_term, **accepted_forms[]**, do_not_translate, note | Used by the hard checks (ADR 0008) |
+| GlossaryTerm | source_term, target_term, accepted_forms[], do_not_translate, note | Hard checks (ADR 0008) |
 | ProjectMembership | user, project, role | ADR 0011 |
-| **Video** | storage_key, sha256, duration, container, codecs, size, status | Validated with ffprobe (ADR 0004) |
+| **Video** | storage_key, sha256, duration, container, codecs, size, status | ffprobe-validated (ADR 0004) |
 | SpeakerTrack | video, label, identity_owner (nullable), assigned_by | Human-corrected |
-| **Scene** | video, index, start_ms, end_ms, status | Unit of rendering, review and regeneration |
+| **Scene** | video, index, start_ms, end_ms, **status** | States: `PENDING → TRANSLATED → IN_REVIEW → CHANGES_REQUESTED → REGENERATING → IN_REVIEW → ACCEPTED`; any state → `NEEDS_REGENERATION` (consent revoked or upstream edit) |
 | Segment | scene, speaker_track, start_ms, end_ms, source_text, asr_confidence | Unit of translation |
 | **Localization** | project, target_locale, status | One per project in the MVP |
-| SegmentTranslation | segment, localization, **version**, subtitle_text, speech_text, adaptation_type, rationale, origin (AI/HUMAN), provider, model, prompt_version | **Append-only versions** |
-| CheckResult | segment_translation, kind (HARD / AI_FLAG), check_type, status (PASS / FAIL / UNVERIFIABLE / FLAGGED), detail, resolution (FIXED / OVERRIDDEN / ACKNOWLEDGED), resolved_by, reason | Unresolved HARD failures block approval |
-| RenderedScene | scene, localization, **version**, audio_key, video_key, rendering_modes, consent_versions (M2M), status (ACTIVE / QUARANTINED) | ADR 0006 |
-| IdentityOwner | name, user (nullable) | |
-| **Consent** | identity_owner, **version**, uses[], project, languages[], expires_at, processors[], status (ACTIVE / REVOKED / EXPIRED), evidence_key, granted_by, revoked_at, revoked_by | **A new row for every change** |
-| VoiceProfile | identity_owner, consent, provider, provider_voice_id, status (ACTIVE / DELETION_PENDING / DELETED), deletion_confirmed_at | ADR 0005 / 0006 |
+| SegmentTranslation | segment, localization, **version**, subtitle_text, speech_text, adaptation_type, rationale, origin (AI/HUMAN), adapter, model, prompt_version, is_fallback | Append-only versions |
+| CheckResult | segment_translation, kind (HARD / AI_FLAG), check_type, status (PASS / FAIL / UNVERIFIABLE / FLAGGED / CHECK_UNAVAILABLE), detail, resolution (FIXED / OVERRIDDEN / ACKNOWLEDGED), resolved_by, reason | Unresolved results block approval |
+| **SynthesisedSegment** *(added after review)* | segment, localization, **version**, audio_key, sha256, rendering_mode, consent (nullable), consent_version, adapter, model, runtime (LOCAL / KAGGLE), is_fallback, is_mock, status (ACTIVE / QUARANTINED / PURGED) | Saved at CP5 under the IdentityOwner lock |
+| RenderedScene | scene, localization, **version**, audio_key, video_key, synthesised_segments (M2M), consent_versions, is_mock, status (ACTIVE / QUARANTINED / PURGED) | Saved at CP7 |
+| IdentityOwner | name, user (nullable) | **The lock row for consent** (ADR 0006 §4) |
+| **Consent** | identity_owner, **version**, uses[] (`voice_synthesis`, `remote_voice_processing`, `external_transcription`), project, languages[], expires_at, processors[], status (ACTIVE / REVOKED / EXPIRED), evidence_key, granted_by, revoked_at, revoked_by | A new row for every change. "Current" = the latest version for the owner and scope. |
+| **VoiceProfile** *(corrected after review)* | identity_owner, consent, storage_key (reference clip), transcript, language (`en` / `ta`), sha256, duration_ms, status (ACTIVE / DELETED), deleted_at | Our own stored clip; no provider-side clone |
+| **RemoteCopy** *(added after review)* | voice_profile, job, kind (DATASET / KERNEL), slug, created_at, deleted_at, status (PRESENT / DELETION_PENDING / DELETED) | Every Kaggle copy is recorded, so purge can find it after a crash |
 | **Review** | scene, localization, reviewer, decision (ACCEPT / CHANGES_REQUESTED), issues (MQM category, severity), comment, reviewed_versions | |
 | RegenerationRequest | scene, requested_by, reason, instruction, job | |
-| **Approval** | localization, approver, approved_at, **snapshot** (exact SegmentTranslation and RenderedScene versions), status (VALID / INVALIDATED), invalidated_reason | Immutable once VALID |
-| **Export** | approval, package_key, manifest (JSON), manifest_sha256, status (ACTIVE / CONSENT_REVOKED) | Only from a VALID approval |
-| Job | type, scene/video, status, attempts, run_after, heartbeat_at, cancel_requested, error, consent_versions | ADR 0003 |
+| **Approval** | localization, approver, approved_at, snapshot (exact SegmentTranslation, SynthesisedSegment and RenderedScene versions), status (VALID / INVALIDATED), invalidated_reason | Immutable once VALID |
+| **Export** | approval, package_key, manifest (JSON), manifest_sha256, status (ACTIVE / CONSENT_REVOKED) | Only from a VALID approval; **refused if any artefact has is_mock** |
+| **Job** *(expanded after review)* | type, lane, status (QUEUED / RUNNING / DISPATCHED / SUCCEEDED / FAILED / CANCELLED), cancel_requested (flag), cancel_reason, attempts, run_after, heartbeat_at, dispatched_at, remote_ref, error, consent_versions; targets (all nullable): video, scene, localization, identity_owner | ADR 0003 |
 | **AuditRecord** / AuditChainHead | seq, actor, action, entity, project, scene, consent_version, timestamp, details, prev_hash, hash | ADR 0007 |
-| ProviderConfig, ProviderUsage, Policy | provider settings; free-quota usage units per call; provider chain order, quota warnings, retention, cloning allowed, separation of duties | ADR 0005, UC8 |
+| ProviderConfig, ProviderUsage, Policy | provider chain order per stage; free-quota usage units per call; quota warnings, retention, cloning allowed, separation of duties | ADR 0005, UC8 |
 
 **Invariants (each becomes a test):**
-1. Every `CLONED_VOICE` RenderedScene references the Consent versions it was produced under, and they were ACTIVE when it was saved.
-2. An Export references a VALID Approval, and every consent version in it was ACTIVE at export time.
-3. Any new SegmentTranslation or RenderedScene version for an approved Localization invalidates its Approval.
+1. Every `CLONED_VOICE` SynthesisedSegment and RenderedScene references the Consent version it was produced under, and that version was the latest and ACTIVE when it was saved (checked under the IdentityOwner lock).
+2. An Export references a VALID Approval; every consent version in it was the latest and ACTIVE at export time; no artefact in it has `is_mock`.
+3. Any new SegmentTranslation, SynthesisedSegment or RenderedScene version for an approved Localization invalidates its Approval.
 4. Translations, renders, consents and audit records are never updated in place (only status fields that are explicitly defined change).
-5. Approval is impossible while any HARD CheckResult is FAIL or UNVERIFIABLE without a resolution, or any AI_FLAG is unacknowledged.
-6. Every state change writes exactly one AuditRecord in the same transaction.
+5. Approval is impossible while any HARD CheckResult is FAIL or UNVERIFIABLE without a resolution, or any AI_FLAG or CHECK_UNAVAILABLE result is unacknowledged.
+6. Every audited action (ADR 0007: consent, approval, regeneration, export, job state changes; not heartbeats or polls) writes exactly one AuditRecord in the same transaction.
+7. Every Kaggle upload has a RemoteCopy row **before** the upload starts, so nothing remote is ever untracked.
 
 ## Consequences
 

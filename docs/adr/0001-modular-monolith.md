@@ -19,7 +19,7 @@ HyperLocalize needs a web API for interactive work (projects, review, approval, 
 
 ## Decision
 
-One codebase and one database, deployed as two process types: a **web process** that never blocks on long work, and **one worker process** that runs jobs (ADR 0003). The framework is Django (ADR 0009). Each module is a **Django app**:
+One codebase and one database, deployed as a **web process** that never blocks on long work and **two worker processes** (lanes `synthesis` and `default`, ADR 0003) running the same code. The framework is Django (ADR 0009). Each module is a **Django app**:
 
 | App | Owns | Main use cases |
 |---|---|---|
@@ -45,4 +45,4 @@ Module rules:
 - **+** One deployable unit; easy to run with Docker Compose and to explain.
 - **−** Module boundaries depend on discipline, not network isolation. Mitigation: code review and the `services.py` convention. No extra tooling, because the team is small.
 - **−** The single database is the scaling limit. That's acceptable for the demo scope and must be stated in the viva.
-- **Viva in 2 minutes:** "One app, one database, one worker. Nine Django apps named after the use cases. Consent and audit each have exactly one owner."
+- **Viva in 2 minutes:** "One app, one database, two worker lanes. Nine Django apps named after the use cases. Consent and audit each have exactly one owner."

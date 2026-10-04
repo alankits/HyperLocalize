@@ -14,13 +14,13 @@ The pipeline needs Tamil speech: `STOCK_VOICE` and, if viable, `CLONED_VOICE`. *
 | **IndicF5** | `CLONED_VOICE` | Model card MIT; **treated as non-commercial**; gated; explicit voice-owner permission required | Kaggle GPU (batch) or local CPU | Needs reference clip + transcript; 24 kHz. CPU speed **unknown** (spike M6). |
 | **MMS-TTS Tamil** (`facebook/mms-tts-tam`) | `STOCK_VOICE` | **CC-BY-NC-4.0** | Local CPU | VITS, 36.3M parameters, single speaker; fixed seed needed |
 | **Indic Parler-TTS** | `STOCK_VOICE` | **Apache-2.0**; gated | Local CPU (speed unknown) or Kaggle | 0.9B parameters; Tamil speakers "Jaya" (recommended), "Kavitha"; prompt-controlled style |
-| ElevenLabs free plan | `STOCK_VOICE` (last resort) | Non-commercial; attribution required; no cloning on free | Hosted | 10K credits/month |
+| ElevenLabs free plan | **Dropped after review** | Non-commercial; attribution required | Hosted | Two local stock voices already exist |
 | Paid cloning (ElevenLabs Starter, Sarvam), Google ICV, Azure Personal Voice | — | — | — | **Excluded**: paid or restricted |
 
 ## Decision (provisional)
 
-- **Stock voice chain:** (MMS-TTS ↔ Indic Parler-TTS, order decided by spike M4/M6) → ElevenLabs free plan → `MockSpeechSynthesisProvider`.
-- **Cloned voice chain:** IndicF5 (Kaggle batch ↔ local CPU, order decided by spike M6) → **mode fallback to `STOCK_VOICE`** → `MockSpeechSynthesisProvider` (tests only).
+- **Stock voice chain:** MMS-TTS ↔ Indic Parler-TTS (order decided by spike M4/M6). `MockSpeechSynthesisProvider` is **for tests only**, never in the live chain (ADR 0005).
+- **Cloned voice chain:** IndicF5 on local CPU (live or overnight) → IndicF5 on Kaggle batch (**only if needed**, per spike rule 6 and ADR 0019) → **mode fallback to `STOCK_VOICE`**. `MockSpeechSynthesisProvider` is for tests only.
 - **Voice profile** = reference clip + transcript in our media storage. Uploaded to Kaggle only for a batch run, then deleted (ADR 0006, 0019).
 - The demo plan depends on IndicF5's CPU speed (ADR 0012, spike §6).
 

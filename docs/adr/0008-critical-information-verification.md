@@ -1,6 +1,6 @@
 # ADR 0008: Critical-information verification: rule-based hard checks + AI flags
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05 for English → Tamil after the ADR review). Not yet approved.
+**Status:** Proposed (2026-10-04; revised 2026-10-05: English → Tamil, ADR review, independent review, which scaled down the number parser). Not yet approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §4.3, §9
 
 ## Context
@@ -29,13 +29,12 @@ HyperLocalize targets high-stakes information (health, food, water, energy), whe
 
 The **source normaliser** handles digits, decimals, ranges, times and English number words.
 
-The **target normaliser** handles:
-1. Western digits, with both Western (1,000,000) and Indian (10,00,000) digit grouping;
-2. Tamil digits ௦–௯, converted to their values;
-3. the Tamil numerals ௰ ௱ ௲, parsed as non-positional multipliers;
-4. Tamil number words, using a **bounded lexicon**: units, tens, hundreds, thousand, lakh, crore, their common combined (sandhi) forms, and common case-suffixed forms. The decimal word is புள்ளி.
+**MVP scope** *(reduced after independent review: a full Tamil number-word parser is too much for 4 students in 5 months, and pays off little)*:
+1. The translation prompt **instructs the model to write all numbers as digits** in `subtitle_text`.
+2. The target normaliser parses **Western digits** (with Western 1,000,000 and Indian 10,00,000 grouping, and decimals) and **Tamil digits ௦–௯**.
+3. **Any Tamil number word**, and any of the non-positional numerals ௰ ௱ ௲, is **not parsed**. The result is **`UNVERIFIABLE`**, which a reviewer must resolve. This is the **fail-safe rule**: nothing that looks like a number is ever passed silently.
 
-**Fail-safe rule:** if a token looks like a number but can't be parsed with confidence, the result is **`UNVERIFIABLE`**, which must be resolved by the reviewer. It never passes silently.
+**Stretch scope** (only if time allows, and measured against the raters' labels): a bounded Tamil number-word lexicon (units to crore, common combined and case-suffixed forms; decimal word புள்ளி).
 
 **Units.** A per-language unit lexicon maps Latin and Tamil forms to one canonical unit (`mg`, `ml`, `°C`, `km`, `L`, …). The checks are:
 - every source unit must appear in the target;
@@ -63,7 +62,7 @@ This remains mandatory. A segment with no flags is not assumed correct.
 
 ### Speech script vs. subtitle script
 
-Subtitles keep digits, because they are easier to read. Whether the Tamil TTS reads digits, decimals and units correctly is **measured in the spike (M3)**. If it doesn't, a deterministic number-to-Tamil-words step produces the **speech script**, and the number check runs on **both** scripts.
+Subtitles keep digits, because they are easier to read. Whether the Tamil TTS reads digits, decimals and units correctly is **measured in the spike (M4)**. If it doesn't, a deterministic number-to-Tamil-words step produces the **speech script**, and the number check runs on **both** scripts.
 
 ### Wording rule
 
@@ -73,7 +72,9 @@ In the UI, docs and viva, "rule-checked" applies only to numbers, units, glossar
 
 - **+** A precise claim that can be defended, and that is measurable per layer with seeded errors: rule-check catch rate, AI-flag catch rate, reviewer catch rate (`docs/SPIKE_PLAN.md`, `PHASE0_DISCOVERY.md` §8.4).
 - **+** The fail-safe `UNVERIFIABLE` result means gaps in the Tamil normaliser cost reviewer time rather than silently letting errors through.
-- **−** The Tamil number-word lexicon and the accepted-forms lists are manual work and will be incomplete. Scope: values up to crore, plus common inflections. Coverage is measured against the raters' labels.
+- **+** The MVP parser is small (digits only), so it can be fully unit-tested.
+- **−** If the model ignores the digits instruction, there will be more `UNVERIFIABLE` results. That rate is measured in spike M3.
+- **−** The glossary accepted-forms lists are manual work and will be incomplete.
 - **−** False alarms cost reviewer time. Overrides with reasons exist for this.
 - **−** The AI flagger adds cost and latency per segment. It uses free-tier quota, is measured in the spike, and has a fail-safe `CHECK_UNAVAILABLE` flag when no checker is available (ADR 0005).
-- **Viva in 2 minutes:** "Numbers, units and glossary terms are checked by code, including Tamil digits and number words, and anything the code can't parse is flagged instead of passed. Tamil negation lives in the verb, so a rule can't check it reliably. An AI flags possible reversals, and a human must look at every flag and every segment."
+- **Viva in 2 minutes:** "Numbers, units and glossary terms are checked by code, including Tamil digits. Anything the code can't parse, such as numbers written as words, is flagged for a human instead of passed. Tamil negation lives in the verb, so a rule can't check it reliably. An AI flags possible reversals, and a human must look at every flag and every segment."

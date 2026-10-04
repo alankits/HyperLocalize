@@ -27,7 +27,7 @@ The only free Tamil voice-cloning model in scope is **IndicF5** (AI4Bharat). It 
 "Identity" means:
 - an **IdentityOwner**;
 - a **VoiceProfile**, which is our stored, consented **reference clip + transcript** (no provider-side clone);
-- a versioned **Consent** listing uses, project, languages, expiry and named processors (Kaggle; Groq for transcription audio).
+- a versioned **Consent** listing uses (`voice_synthesis`, `remote_voice_processing`, optionally `external_transcription`), project, languages, expiry, and the **same named processors as ADR 0006 §8** (Kaggle; Google Gemini free tier for script text; Groq only if external transcription is granted).
 
 Rendering mode per speaker, resolved by the backend:
 
@@ -48,4 +48,4 @@ Rendering mode per speaker, resolved by the backend:
 - **+** Identity data never sits with a voice-cloning company. Deletion is ours to do, except the temporary Kaggle copy (ADR 0006).
 - **−** Cross-lingual prompting (an English reference clip driving Tamil speech) may preserve timbre poorly. The spike also tests a **Tamil** reference clip read by the same speaker.
 - **−** Licensing ambiguity means a strictly non-commercial scope.
-- **Viva in 2 minutes:** "Identity is the speaker's voice, reproduced by an open-source Tamil model from a clip they consented to, only while that consent is active. Revoke it and we kill the job, refuse any late output, delete the clip, and fall back to a labelled stock voice that needs review again."
+- **Viva in 2 minutes:** "Identity is the speaker's voice, reproduced by an open-source Tamil model from a clip they consented to, only while that consent is active. Revoke it and we kill a local job, or refuse a Kaggle job's output and delete its remote copies. Then we delete the clip and fall back to a labelled stock voice that needs review again."

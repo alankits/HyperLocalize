@@ -16,11 +16,17 @@ There is no local GPU and no budget. Kaggle Notebooks give free GPU time (about 
 | Terms and risk | — | Uses the official CLI | — | Likely against the platform's intended use [UNVERIFIED]; fragile |
 | Explainability | High | High: "upload, run, download, check consent on import" | Medium | Low |
 
-## Decision (provisional; adopted only if spike M6 shows CPU is too slow for the MVP)
+## Decision (provisional; adopted **only if needed**, changed after independent review)
 
-- `synthesise_scene_remote` job (ADR 0003):
+Adopted only if **both** hold:
+- (a) IndicF5 on CPU fails the live-use threshold (spike rule 6);
+- (b) **overnight CPU rendering can't produce the demo project's cloned-voice previews within 8 hours** [PROPOSED].
+
+Otherwise Plan C (overnight CPU) covers the need **without any Kaggle integration**, and this ADR is deferred. That saves the team the CLI integration, RemoteCopy tracking and the phone-verification risk.
+
+- `synthesise_project_remote` job (ADR 0003), **batched per project** so the kernel start-up and model-load overhead is paid once:
   1. consent check at CP3/CP4;
-  2. create a **private** dataset with the scene's texts and the reference clip and transcript;
+  2. record `RemoteCopy` rows **first**, then create a **private** dataset with all pending segments' texts and the reference clip and transcript;
   3. push a **private** GPU kernel from a versioned notebook in `kaggle/`;
   4. poll status;
   5. download the output;

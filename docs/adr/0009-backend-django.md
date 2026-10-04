@@ -25,6 +25,9 @@ Django (the current supported release; the docs consulted were version 6.1), wit
 The Django admin is used for Administrator tasks (users, provider configuration, policies such as provider chain order, quota warnings and retention), **with restricted permissions**:
 - Consent records can't be created or edited in the admin; consent changes only through the `identity` services.
 - Audit records are read-only in the admin.
+- **Artefact `status` and `consent_*` fields** (SynthesisedSegment, RenderedScene, Export, VoiceProfile, RemoteCopy) and **Job state** are **read-only** in the admin, so the admin can't un-quarantine anything or bypass checkpoint CP10. *(Added after independent review.)*
+- Changes to the provider chain and policies made through the admin are **audited** (a custom `save_model`).
+- A test checks that an admin user **cannot** change a quarantined artefact back to ACTIVE.
 
 ## Consequences
 

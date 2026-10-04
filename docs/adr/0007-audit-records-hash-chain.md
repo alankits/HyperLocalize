@@ -1,6 +1,6 @@
 # ADR 0007: Append-only, hash-chained audit records
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05 after the ADR review). Not yet approved.
+**Status:** Proposed (2026-10-04; revised 2026-10-05: ADR review, independent review). Not yet approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.10; CLAUDE.md §5
 
 ## Context
@@ -25,11 +25,12 @@ Every consent grant and revocation, approval, regeneration and export must produ
 
 **Writing.**
 - Records are written only through `audit.services.record(...)`, **inside the same transaction** as the action they describe.
-- Appends are serialised by `select_for_update()` on a single `AuditChainHead` row, so the chain stays linear.
+- Appends are serialised by `select_for_update()` on a single `AuditChainHead` row, so the chain stays linear. **`AuditChainHead` is always locked last** (the global lock order is in ADR 0003), which prevents deadlocks with consent and job locks.
+- **What is audited:** consent grants, revocations and expiries; approvals and invalidations; regeneration requests; exports; check overrides and acknowledgements; provider-chain and policy changes; provider fallbacks and Gemini skips; job state changes. **Not audited:** heartbeats and status polls (they would bury the evidence).
 
-**Append-only.** A PostgreSQL trigger, created in a Django migration, rejects `UPDATE` and `DELETE` on the table. *(Changed in the review: a separate restricted database role is now **optional hardening**, not part of the MVP, because it adds database administration the team hasn't done before. The threat model below reflects this.)*
+**Append-only.** PostgreSQL triggers, created in a Django migration, reject `UPDATE` and `DELETE` (row-level) and **`TRUNCATE`** (statement-level; added after review) on the table. *(Changed in the review: a separate restricted database role is now **optional hardening**, not part of the MVP, because it adds database administration the team hasn't done before. The threat model below reflects this.)*
 
-**Verification.** `python manage.py verify_audit_chain` recomputes the chain and reports the first mismatch. The Auditor screen (UC9) shows the last verification result and time.
+**Verification.** `python manage.py verify_audit_chain` recomputes the chain and reports the first mismatch. The Auditor screen (UC9) shows the last verification result and time, and **filters records by action type and project**, so the demo isn't buried in job events.
 
 **Chain head in every export.**
 - Inside the export transaction, the evidence manifest records the latest chain head (`seq`, `hash`, `timestamp`).

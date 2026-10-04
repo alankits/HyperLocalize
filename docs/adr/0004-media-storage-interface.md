@@ -5,7 +5,7 @@
 
 ## Context
 
-The system stores source videos, extracted audio, reference voice samples, synthesised audio, rendered previews and export packages. These are sensitive personal data (CLAUDE.md §5). Revocation must be able to quarantine and delete identity-derived media (ADR 0006). Hosting is still undecided (group B2, Q4/Q18).
+The system stores source videos, extracted audio, reference voice samples, synthesised audio, rendered previews and export packages. These are sensitive personal data (CLAUDE.md §5). Revocation must be able to quarantine and delete identity-derived media (ADR 0006). Hosting is a laptop with Docker Compose (ADR 0012).
 
 ## Options Considered
 

@@ -1,6 +1,6 @@
 # ADR 0017: Transcription (English ASR) provider
 
-**Status:** Pending spike results (provisional decision recorded 2026-10-05; revised the same day for zero budget). Not approved.
+**Status:** Pending spike results (provisional decision recorded 2026-10-05; revised the same day for zero budget and after independent review). Not approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.7; ADR 0005; `docs/SPIKE_PLAN.md` M1
 
 ## Context
@@ -17,10 +17,10 @@ The source is English spoken by team members (likely Indian-accented [INFERRED])
 
 ## Decision (provisional)
 
-Chain: Groq `whisper-large-v3` → faster-whisper (local CPU; model size picked by the spike) → `MockTranscriptionProvider` (tests only). Spike rule 2 may make faster-whisper the primary if its accuracy and speed are acceptable, because it has no quota at all. Speakers are assigned by a human in the UI.
+**Chain (changed after independent review):** **faster-whisper on local CPU** is the primary, so source audio never leaves the laptop by default and there's no quota. Groq `whisper-large-v3` is the alternative, used **only** when the project's `allow_external_audio` is on **and** consent checkpoint CP0 passes (every linked IdentityOwner has `external_transcription` consent naming Groq; ADR 0006). `MockTranscriptionProvider` is for tests only. Speakers are assigned by a human in the UI.
 
 ## Consequences
 
 - **+** Transcription can never be blocked by a quota.
-- **−** CPU transcription is slower. Fine for 1–5 minute clips, measured in M1.
-- **Viva in 2 minutes:** "English transcription uses free hosted Whisper, with the same model running locally as a backup. We measured error rates on numbers and terms, because those errors would carry into the Tamil."
+- **−** CPU transcription is slower. Expected to be acceptable for 1–5 minute clips [INFERRED]; measured in M1.
+- **Viva in 2 minutes:** "English transcription runs on the laptop, so the speaker's audio doesn't leave it unless they consent to an external service. We will measure error rates on numbers and terms, because those errors would carry into the Tamil."

@@ -1,6 +1,6 @@
 # ADR 0005: AI provider abstraction: free provider chains, mock providers, zero-spend policy
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05 after the ADR review; **revised again 2026-10-05 for the zero-budget Q4 answer**). Not yet approved.
+**Status:** Proposed (2026-10-04; revised 2026-10-05: ADR review, zero-budget Q4, independent review). Not yet approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.7, CLAUDE.md §2 and §4, `docs/THIRD_PARTY_TERMS.md`
 
 ## Context
@@ -30,10 +30,10 @@ Free tiers change without notice and have rate limits. Local open-source models 
 
 | Stage | Free primary (provisional; spike decides) | Free alternative | Mock |
 |---|---|---|---|
-| Transcription (English) | Groq `whisper-large-v3` (free plan) | **faster-whisper on local CPU** (MIT) | `MockTranscriptionProvider` |
-| Translation (context-aware) | Gemini Flash (**free tier**, with the data-use rule below) | Groq-hosted open LLM (free plan) → last resort **IndicTrans2 on local CPU** (context-free, marked) | `MockTranslationProvider` |
-| Meaning-check (AI flags) | An LLM from a different family to the translator (Groq or Gemini) | The other one. If both are unavailable, every segment gets a **`CHECK_UNAVAILABLE`** flag that needs manual acknowledgement (fail-safe). | `MockMeaningCheckProvider` |
-| Stock Tamil voice | MMS-TTS Tamil or Indic Parler-TTS (**local CPU**) | The other local model → ElevenLabs free plan (non-commercial, attribution) | `MockSpeechSynthesisProvider` |
+| Transcription (English) | **faster-whisper on local CPU** (MIT). Source audio stays on the laptop. | Groq `whisper-large-v3` (free plan), **only** if the project's `allow_external_audio` is on and consent checkpoint CP0 passes (ADR 0006) | `MockTranscriptionProvider` |
+| Translation (context-aware) | Gemini Flash (**free tier**), only when `Project.data_classification = SCRIPTED_TEAM` | One Groq-hosted open LLM (free plan; production model only) → last resort **IndicTrans2 on local CPU** (context-free, marked) | `MockTranslationProvider` |
+| Meaning-check (AI flags) | An LLM, same or different family to the translator (decided by spike rule 7) | The other one. If both are unavailable, every segment gets a **`CHECK_UNAVAILABLE`** flag that needs manual acknowledgement (fail-safe). | `MockMeaningCheckProvider` |
+| Stock Tamil voice | MMS-TTS Tamil or Indic Parler-TTS (**local CPU**) | The other local model *(ElevenLabs dropped after review: two local voices already exist, and it would add a hosted dependency with attribution terms)* | `MockSpeechSynthesisProvider` |
 | Cloned Tamil voice | **IndicF5 on Kaggle GPU** (batch, ADR 0019) or **IndicF5 on local CPU** (spike decides which is primary) | The other IndicF5 runtime. If both are unavailable, the **rendering mode falls back to `STOCK_VOICE`** (ADR 0015); no other free Tamil cloning model is in scope. | `MockSpeechSynthesisProvider`, `MockVoiceProfileProvider` |
 
 There is honestly **no second independent free Tamil cloning model** in this plan. For cloning, the "free alternative" is a second *runtime* of the same model, plus the governed stock-voice fallback.
@@ -49,20 +49,20 @@ There is honestly **no second independent free Tamil cloning model** in this pla
 - Providers that need a payment method even for their free tier are **ineligible** (e.g. Google Cloud TTS and Translation; see `THIRD_PARTY_TERMS.md` §3).
 - The `ProviderUsage` ledger now tracks **free-quota consumption** (requests, tokens, audio seconds, Kaggle GPU hours). It warns the Administrator at 80% of each known daily or weekly limit, so the team can switch to the alternative *before* a demo, not during it.
 
-**Data-use rule for free tiers.** Content may be sent to a free tier only if that tier's terms are compatible with it:
-- **Gemini free tier:** only team-authored, scripted, non-personal **text**; never audio; never third-party content (the terms say not to submit personal information).
-- **Voice data** (reference clips, cloned speech) goes only to local models or to Kaggle private datasets, never to a free-tier LLM.
+**Data-use rule for free tiers.** This is **enforced in code**, not just stated as a policy:
+- **Gemini free tier:** the chain **skips Gemini** unless `Project.data_classification = SCRIPTED_TEAM` (set by the Manager, who attests that the content is team-authored and scripted). Only text is sent, never audio. Each skip is audited, and there is a test. Note: segment text comes from ASR, so it can include ad-libs. The attestation covers the recording session, not just the script.
+- **Voice data:** reference clips and cloned speech go only to local models or Kaggle private datasets (with `remote_voice_processing` consent). Source audio goes to Groq **only** with `external_transcription` consent (CP0). By default, all audio stays on the laptop.
 
 The processors used are recorded in the Consent and in the evidence manifest.
 
-**Local model runtime.** Local models (faster-whisper, IndicTrans2, MMS-TTS, Indic Parler-TTS, IndicF5 on CPU) run in a **separate inference subprocess** owned by the worker. The model stays loaded between calls. The worker can **kill** the subprocess to cancel immediately (ADR 0006) and restarts it on the next call.
+**Local model runtime.** Local models (faster-whisper, IndicTrans2, MMS-TTS, Indic Parler-TTS, IndicF5 on CPU) run in a **separate inference subprocess** owned by the worker. **One model is loaded at a time** *(added after review, because of laptop RAM)*: switching model type unloads the previous one. The worker can **kill** the subprocess to cancel immediately (ADR 0006) and restarts it on the next call.
 
 **Recorded on every call:** adapter, model identifier and version, prompt or template version, parameters, timings, usage units, and whether it was a fallback.
 
 ## Consequences
 
 - **+** A free-tier change degrades quality visibly instead of blocking work, and the demo can't silently show mock output.
-- **+** Voice data stays on the laptop or in private Kaggle datasets that we delete.
+- **+** By default, all audio stays on the laptop. Reference clips leave only for consented Kaggle runs, which are tracked and deleted. Source audio leaves only with explicit `external_transcription` consent.
 - **−** Fallbacks can be clearly worse (e.g. IndicTrans2 has no rationale or audience adaptation). That's shown to the reviewer, and the evaluation reports which adapter produced each output.
 - **−** Local CPU models compete with the web app for laptop RAM and CPU. Peak RAM is measured in the spike.
 - **−** Free-tier limits aren't always published (Gemini's are only visible in AI Studio), so the ledger's warnings use observed limits.

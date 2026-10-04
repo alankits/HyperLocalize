@@ -1,97 +1,120 @@
 # ADR 0006: Consent gate, checks at each stage boundary, revocation cascade
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05 after the ADR review; **revised again 2026-10-05 for the zero-budget runtimes: local CPU and Kaggle batch**). Not yet approved.
-**Source:** `docs/PHASE0_DISCOVERY.md` §3.4, §6.8; CLAUDE.md §5; ADRs 0005, 0019
+**Status:** Proposed (2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, and **independent review, which found a critical locking flaw, now fixed**). Not yet approved.
+**Source:** `docs/PHASE0_DISCOVERY.md` §3.4; CLAUDE.md §5; ADRs 0003, 0005, 0014, 0019
 
 ## Context
 
 Consent must be enforced in the backend before any operation that uses a Speaker / Identity Owner's identity. Revocation must actually stop things, including **jobs that are already running** (CLAUDE.md §5). The live revocation demo must work **mid-job**.
 
-After the zero-budget decision, cloned-voice synthesis (IndicF5) runs in one of two places:
-- **local CPU:** an inference subprocess on the laptop. Slow, but fully under our control.
-- **Kaggle GPU batch:** a private dataset plus a pushed kernel. Fast, but **the Kaggle CLI has no cancel command** for a running kernel, only `kernels delete` and `datasets delete`.
+Identity-related processing now happens in three places:
+- **local CPU:** an inference subprocess that we can kill;
+- **Kaggle GPU batch:** the Kaggle CLI has **no cancel command**, only `kernels delete` and `datasets delete`;
+- **optional external transcription:** Groq, if enabled (ADR 0017). That is the source speaker's audio leaving the laptop.
 
-A "voice profile" is now **our own stored reference clip plus its transcript**. No third-party voice-clone object exists, except the temporary copy uploaded to Kaggle for a batch run.
-
-Faces are not processed (Q5). Q6 allows external processing of the team's own voices.
+Consent records are **versioned**: each change inserts a new Consent row (ADR 0014).
 
 ## Options Considered
 
 | Criterion | UI-only checks | Check once at job claim | Gate at every stage boundary + locked check-and-save + runtime-specific stop | Signed capability tokens per job |
 |---|---|---|---|---|
 | Meets CLAUDE.md §5 | No | No | Yes | Yes |
-| Stops a running local job | No | No | **Yes: the subprocess is killed** | Needs the same mechanism |
-| Remote batch (Kaggle) | — | No | **Output never accepted; remote inputs and outputs deleted** | Same limits |
-| Race between revoke and save | — | Present | Closed by row locks | Needs the same locking |
+| Stops a running local job | No | No | Yes: subprocess killed | Needs the same mechanism |
+| Race between revoke and save | — | Present | Closed by locking a stable row (§4) | Needs the same locking |
 | Explainability | — | High | High | Medium |
 
 ## Decision
 
-**1. One gate.** `require_active_consent(identity_owner, use, project, language)` in the `identity` app is the only code that decides whether identity may be used. It also checks the job's `cancel_requested` flag. It returns a `ConsentCheck`, which identity-using methods require (ADR 0005).
+**1. One gate.** `require_active_consent(identity_owner, use, project, language, job=None)`. It returns a `ConsentCheck` (consent id + version) only if:
+- the **latest** Consent version for that owner and scope is ACTIVE;
+- it is not expired (`expires_at` is in the future);
+- it covers the use, project and language;
+- if a `job` is given, its `cancel_requested` flag is not set.
 
-**2. What counts as identity use.** Using the reference clip to synthesise speech in `CLONED_VOICE` mode (locally or on Kaggle), uploading the reference clip to Kaggle, rendering or mixing a scene with cloned audio, approving a snapshot containing it, exporting it, and serving it. `STOCK_VOICE` and `SUBTITLES_ONLY` don't use identity.
+Identity-using methods require a `ConsentCheck` (ADR 0005).
+
+**2. Uses** (the `use` values):
+
+| Use | Meaning |
+|---|---|
+| `voice_synthesis` | Synthesise speech in `CLONED_VOICE` mode, locally or on Kaggle. This also covers rendering, approving, exporting and serving artefacts that contain it. |
+| `remote_voice_processing` | Upload the reference clip to Kaggle |
+| `external_transcription` | Send source audio to an external ASR (Groq). The MVP default is local transcription, which needs no such consent (ADR 0017). |
+
+`STOCK_VOICE` and `SUBTITLES_ONLY` don't use identity.
 
 **3. Checkpoints, one at every stage boundary.**
 
 | # | Stage boundary | On failure |
 |---|---|---|
+| CP0 | **Before source audio leaves the laptop** (external ASR only): every IdentityOwner linked to the project must have `external_transcription` consent naming that processor, **and** the project's `allow_external_audio` policy must be on. Otherwise the chain uses local ASR. | Local ASR is used; audited |
 | CP1 | API request that would use identity | Refuse; audit `CONSENT_DENIED` |
 | CP2 | Job claim (same transaction) | `CANCELLED` |
-| CP3 | **Before the reference clip leaves the laptop** (Kaggle dataset upload) | `CANCELLED`; nothing uploaded |
+| CP3 | Before the reference clip is uploaded to Kaggle | `CANCELLED`; nothing uploaded |
 | CP4 | **Before synthesis.** Local: before *each segment*. Kaggle: before dispatching the batch. | Stop; `CANCELLED` |
-| CP5 | Saving synthesised audio, **including importing Kaggle output** (locked) | Discard; delete temp files |
+| CP5 | Saving a `SynthesisedSegment`, including Kaggle output imports (locked) | Discard; delete temp files |
 | CP6 | **Before scene render / mix** | `CANCELLED` |
-| CP7 | Saving the rendered scene (locked) | Discard |
-| CP8 | Approval (every consent version in the snapshot still active) | Refuse approval |
+| CP7 | Saving a `RenderedScene` (locked) | Discard |
+| CP8 | Approval: every consent version in the snapshot is still the latest and ACTIVE | Refuse approval |
 | CP9 | **Before export build, and when saving the export (locked)** | `CANCELLED` |
 | CP10 | Serving previews and export downloads | `410 Gone`, with an explanation |
 
-**4. Race-free saving.**
-- Revocation and every save checkpoint (CP5, CP7, CP9) run `select_for_update()` on the same Consent row. Django's ORM doesn't provide `FOR SHARE` (verified in the Django 6.1 docs).
-- The save re-checks ACTIVE and inserts the artefact with its `consent_id` and `consent_version` in the same transaction.
-- So either the artefact is saved first and the revocation that follows quarantines it, or the revocation goes first and the save aborts.
+**4. Race-free saving: lock the person, not the consent version.** *(Fixed after independent review.)* The previous design locked "the Consent row". But revocation **inserts a new row**, so a save that locked the old version could still see it as ACTIVE.
+- Revocation and every save checkpoint (CP5, CP7, CP9) run `select_for_update()` on the **`IdentityOwner` row**, which is stable and always the same row. This is the first lock in the global lock order (ADR 0003).
+- Under that lock, a save re-reads the **latest** Consent version for the scope. It saves the artefact only if that version is ACTIVE, not expired, **and the same version as the job's `ConsentCheck`**.
+- So either the save commits first and the revocation that follows quarantines the artefact, or the revocation commits first and the save sees a newer REVOKED version and aborts.
+- Test: a save attempted after revocation that still carries version N must be refused.
 
-**5. Revocation transaction.** Write a new REVOKED consent version. Then:
+**5. Revocation transaction** (under the IdentityOwner lock). Insert a new REVOKED Consent version. Then:
 - cancel QUEUED jobs;
 - set `cancel_requested` on RUNNING and DISPATCHED jobs;
-- quarantine every artefact recorded under the consent;
+- quarantine every `SynthesisedSegment` and `RenderedScene` recorded under that owner's consent;
 - invalidate affected approvals;
 - mark affected exports `CONSENT_REVOKED`;
-- queue a `purge_identity_data` job (delete the local reference clip, plus Kaggle datasets and kernels that hold it);
+- queue `purge_identity_data`;
 - write the audit record.
+
+**Purge** (runs **immediately**; no 7-day wait, *changed after independent review*):
+- deletes the quarantined cloned audio, the VoiceProfile reference clip, and every `RemoteCopy` on Kaggle;
+- keeps only hashes and identifiers for audit;
+- shows any deletion that hasn't succeeded yet as **"deletion pending"**, retries it, and audits it.
+
+**Expiry:** a periodic sweep in the `default` lane runs the same cascade for consents whose `expires_at` has passed.
 
 **6. How a running job stops, by runtime.**
 
 | Runtime | How it stops | Time to stop | What may remain outside our control |
 |---|---|---|---|
-| **Local inference subprocess** (IndicF5 on CPU, MMS-TTS, Parler-TTS) | The worker checks `cancel_requested` about once a second while it waits on the subprocess. On revocation it **kills the subprocess**, deletes temp audio, and marks the job `CANCELLED (CONSENT_REVOKED)`. | Seconds (measured in spike M9) | Nothing |
-| **Kaggle batch** (IndicF5 on GPU) | The worker stops polling, marks the job `CANCELLED (CONSENT_REVOKED)`, and runs `kaggle kernels delete` and `kaggle datasets delete`. Its output is **never imported**: CP5 fails under the lock even if a late import is attempted. | Immediate on our side. **Whether `kernels delete` stops remote compute is [UNVERIFIED]** (spike M9). | Remote compute may run to completion. Its output is deleted with the kernel. Kaggle's own retention of deleted data is beyond our control and stated as such. |
-| **Hosted API call** (e.g. a stock voice from a free tier) | Not identity use, so not subject to this gate. A cancelled job discards in-flight results. | One call | — |
+| **Local inference subprocess** | The worker checks the flag and the gate about once a second and **kills the subprocess**. Temp audio is deleted. The job ends `CANCELLED (CONSENT_REVOKED)`. | Seconds (measured in spike M9) | Nothing |
+| **Kaggle batch** | Polling stops. The job ends `CANCELLED (CONSENT_REVOKED)`. `kaggle kernels delete` and `kaggle datasets delete` are run. Output is **never imported**: CP5 fails under the lock. | Immediate on our side | Remote compute may run to completion. **Whether `kernels delete` stops it, and whether it removes the kernel's output, are both [UNVERIFIED]** (spike M9). Kaggle's retention after deletion is outside our control. |
 
 After any stop:
 - the job is never retried;
-- segments saved earlier are quarantined;
+- segments saved earlier are quarantined, then purged;
 - the scene becomes `NEEDS_REGENERATION`;
-- a fallback render (`STOCK_VOICE` / `SUBTITLES_ONLY`) is queued that **requires review again**;
-- the Localization Manager sees a notice;
-- any deletion that hasn't succeeded yet shows as **"deletion pending"**, never as done.
+- a fallback render (`STOCK_VOICE` / `SUBTITLES_ONLY`) is queued and **requires review again**;
+- the Localization Manager sees a notice.
 
 **7. Exports already downloaded cannot be recalled.** This is stated in the UI and the docs.
 
-**8. Consent evidence.** Each Consent version stores who granted it, when, the scope, the **named processors** (Groq for transcription audio, Kaggle for reference audio and cloned output, Google Gemini free tier for script text, with its training and human-review terms), and the signed consent form.
+**8. Consent evidence.** Each Consent version stores who granted it, when, the scope, the uses, the **named processors** (Kaggle for reference audio and cloned output; Google Gemini free tier for script text only, with its training and human-review terms; Groq **only if** `external_transcription` is granted), and the signed consent form.
 
 **9. Demo safety.**
-- The live revocation demo uses a **local** cloned-voice job. Local CPU synthesis is slow, so revocation lands mid-job without timing tricks, and killing the subprocess makes the stop visible within seconds.
-- A **deterministic integration test** covers every checkpoint, using a barrier in `MockSpeechSynthesisProvider`.
-- A **subprocess-kill test** and a **Kaggle-path test** use a mocked Kaggle CLI: revoke while DISPATCHED, then assert no import, deletion commands issued, and the right audit entries.
-- A **concurrency test** covers revoke vs. save in both orders.
-- A **test matrix** covers every identity operation × consent state.
+- **Main path:** the live revocation demo uses a **local** cloned-voice job. CPU synthesis is slow, so revocation reliably lands mid-job, and killing the subprocess is visible within seconds.
+- **Fallback, agreed in advance:** if spike M6 shows IndicF5 can't run on the demo laptop, the demo instead revokes during a **Kaggle-dispatched** job and shows the import being refused and the remote copies being deleted. It also **runs the deterministic checkpoint tests on screen**.
+- **Tests:**
+  - a barrier test for each checkpoint (`MockSpeechSynthesisProvider`);
+  - a subprocess-kill test;
+  - a Kaggle-path test with a mocked CLI;
+  - concurrency tests (revoke vs. save in both orders; the save-carries-old-version case);
+  - a deadlock test using the lock order;
+  - an expiry-sweep test;
+  - a matrix of every use × consent state.
 
 ## Consequences
 
-- **+** Locally, revocation stops synthesis within seconds, which is stronger than before because we control the process.
-- **+** No third-party voice-clone object exists, so deletion is mostly ours to do and verify.
-- **−** Kaggle runs can't be cancelled. The guarantee there is "nothing produced after revocation is ever accepted, and remote copies are deleted", **not** "remote compute stops". It must be described exactly like this.
+- **+** Locally, revocation stops synthesis within seconds. The lock is on a stable row, so the race argument holds.
+- **+** By default no source audio leaves the laptop. External ASR needs explicit consent.
+- **−** Kaggle runs can't be cancelled. The guarantee there is "nothing produced after revocation is accepted, and remote copies are deleted". It must be described exactly like this.
 - **−** A missing checkpoint is a bypass. Mitigated by the required `ConsentCheck` parameter and one test per checkpoint.
-- Retention for quarantined media: deleted after 7 days [PROPOSED default].
-- **Viva in 2 minutes:** "One function decides consent, at every stage boundary. Revocation and saving take the same lock. A local synthesis job is killed within seconds. A Kaggle job can't be cancelled, so its output is refused at import and its remote files are deleted, and we say exactly that."
+- **Viva in 2 minutes:** "One function decides consent at every stage boundary. Revocation and saving both lock the person's row, and a save only succeeds if the consent version it was given is still the latest and active. Local synthesis is killed within seconds. Kaggle output is refused at import and the remote copies are deleted."
