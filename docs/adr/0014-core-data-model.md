@@ -71,7 +71,7 @@ classDiagram
 | **Export** | approval, package_key, manifest (JSON), manifest_sha256, status (ACTIVE / CONSENT_REVOKED) | Only from a VALID approval |
 | Job | type, scene/video, status, attempts, run_after, heartbeat_at, cancel_requested, error, consent_versions | ADR 0003 |
 | **AuditRecord** / AuditChainHead | seq, actor, action, entity, project, scene, consent_version, timestamp, details, prev_hash, hash | ADR 0007 |
-| ProviderConfig, ProviderUsage, Policy | provider settings; usage units and ₹ estimate per call; budget cap, retention, cloning allowed, separation of duties | ADR 0005, UC8 |
+| ProviderConfig, ProviderUsage, Policy | provider settings; free-quota usage units per call; provider chain order, quota warnings, retention, cloning allowed, separation of duties | ADR 0005, UC8 |
 
 **Invariants (each becomes a test):**
 1. Every `CLONED_VOICE` RenderedScene references the Consent versions it was produced under, and they were ACTIVE when it was saved.

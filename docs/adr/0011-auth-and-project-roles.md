@@ -29,7 +29,7 @@ Six actors are confirmed. Permissions differ per project (someone can be a Revie
 | Reviewer / Linguist | Edit segments, resolve or override checks (with a reason), acknowledge AI flags, review scenes, request regeneration |
 | Media Operator | Upload source video, start and monitor jobs, retry failed jobs, assign speakers. **[PROPOSED default for Q12]** |
 | Speaker / Identity Owner | View, grant and revoke **their own** consent; see where their identity was used. No access to project content. **[PROPOSED default for Q10: a normal account with the identity-owner link, invited by the Manager; no magic links.]** |
-| Administrator | Users, provider configuration, policies (budget cap, retention, whether cloning is allowed). **Cannot grant consent on anyone's behalf.** |
+| Administrator | Users, provider configuration, policies (provider chain order, quota warnings, retention, whether cloning is allowed). **Cannot grant consent on anyone's behalf.** |
 | Auditor | Read-only access to audit records, check results, reviews, approvals and evidence manifests (UC9) |
 
 **Separation of duties [PROPOSED default for Q13]:** a policy, on by default, that the approver must not be the last editor of any segment in the snapshot. With a 4-person team, a demo typically uses one Reviewer and a different Manager.

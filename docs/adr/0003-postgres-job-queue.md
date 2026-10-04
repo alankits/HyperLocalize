@@ -1,11 +1,11 @@
 # ADR 0003: Postgres-backed job queue with explicit job states
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05 after the ADR review). Not yet approved.
+**Status:** Proposed (2026-10-04; revised 2026-10-05 after the ADR review; revised again 2026-10-05 for zero-budget runtimes). Not yet approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.5
 
 ## Context
 
-Video processing is slow and must never block a web request (CLAUDE.md §6). Jobs must survive restarts, report clear states, retry provider errors, and be **cancellable mid-run** when consent is revoked (ADR 0006). Scene regeneration must re-run only that scene's work. The team has little DevOps experience (Q2), and every provider is a hosted API with rate limits (Q4).
+Video processing is slow and must never block a web request (CLAUDE.md §6). Jobs must survive restarts, report clear states, retry provider errors, and be **cancellable mid-run** when consent is revoked (ADR 0006). Scene regeneration must re-run only that scene's work. The team has little DevOps experience (Q2), and Q4 (revised) allows only free tiers, local open-source models on a CPU-only laptop, and Kaggle GPU notebooks run in batch.
 
 ## Options Considered
 
@@ -28,15 +28,19 @@ States:
 QUEUED → RUNNING → SUCCEEDED
                  → FAILED              (attempts < max_attempts → QUEUED after a back-off delay)
 QUEUED  → CANCELLED                    (e.g. consent revoked before the job started)
-RUNNING → CANCEL_REQUESTED → CANCELLED (worker stops at its next checkpoint)
+RUNNING → CANCEL_REQUESTED → CANCELLED (worker stops at its next checkpoint, or kills its inference subprocess)
+RUNNING → DISPATCHED → RUNNING        (remote Kaggle batch: dispatched, polled, then imported)
+DISPATCHED → CANCELLED                (consent revoked or cancelled: stop polling, delete remote kernel and dataset)
 ```
 
 - **Claiming** a job uses `select_for_update(skip_locked=True)` on the oldest QUEUED job whose `run_after` time has passed.
 - **One worker process** in the MVP. The design still allows more workers later.
-- **Heartbeat:** a RUNNING job updates `heartbeat_at` at every checkpoint. On startup, and every minute after that, the worker returns jobs whose heartbeat is older than a timeout (default 5 minutes [PROPOSED]) to QUEUED if they are retryable, or marks them FAILED.
-- **Job types:** `transcribe`, `segment`, `translate`, `verify`, `synthesise_scene`, `render_scene`, `build_export`, `delete_voice_profile`. Regeneration re-queues only the jobs for that scene.
-- Synthesis processes **one segment at a time** and checks consent and cancellation between segments (ADR 0006).
-- **Provider rate limits** (e.g. free-tier requests-per-minute limits) are handled by the provider adapter. It waits and retries with a back-off and does not fail the job (ADR 0005).
+- **Heartbeat:** a RUNNING job updates `heartbeat_at` at every checkpoint. On startup, and every minute after that, the worker returns jobs whose heartbeat is older than a timeout (default 5 minutes [PROPOSED]) to QUEUED if they are retryable, or marks them FAILED. DISPATCHED jobs are not subject to the heartbeat. They have a dispatch timeout instead: the Kaggle 12-hour session limit plus a margin. After that they are marked FAILED and their remote files are deleted.
+- **Job types:** `transcribe`, `segment`, `translate`, `verify`, `synthesise_scene` (local) / `synthesise_scene_remote` (Kaggle batch, ADR 0019), `render_scene`, `build_export`, `purge_identity_data`.
+- **Local models run in an inference subprocess** owned by the worker (ADR 0005). The worker polls the cancel flag about once a second while it waits, and kills the subprocess on cancel.
+- **Remote batch jobs** release the worker while DISPATCHED. A periodic poll (every 60 s [PROPOSED]) checks `kaggle kernels status`, then imports outputs through the normal locked save checkpoint. Regeneration re-queues only the jobs for that scene.
+- Local synthesis processes **one segment at a time** and checks consent and cancellation between segments. A Kaggle batch is checked at dispatch and at import (ADR 0006).
+- **Provider rate limits** (e.g. free-tier requests-per-minute limits) are handled by the provider adapter. It waits and retries with a back-off. When a quota is exhausted, the adapter chain moves to the free alternative (ADR 0005).
 - **Retries** are only for transient errors: timeouts, rate limits and 5xx responses. Validation errors and `CONSENT_REVOKED` are terminal.
 - **Idempotent stages:** each job writes new versioned rows, so a retried job never overwrites or duplicates committed output.
 - **Progress in the UI:** the page polls job status every 2 seconds (ADR 0010) and shows the current state, segment progress and the last error message.

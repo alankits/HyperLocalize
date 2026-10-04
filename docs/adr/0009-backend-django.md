@@ -22,7 +22,7 @@ Up to 4 students with **intermediate Python**, basic JavaScript/React and little
 
 Django (the current supported release; the docs consulted were version 6.1), with server-rendered templates (ADR 0010). **No Django REST Framework in the MVP.** The few JSON endpoints needed for job polling and the review player are plain Django views. DRF is added only if a real API consumer appears.
 
-The Django admin is used for Administrator tasks (users, provider configuration, policies such as the budget cap and retention), **with restricted permissions**:
+The Django admin is used for Administrator tasks (users, provider configuration, policies such as provider chain order, quota warnings and retention), **with restricted permissions**:
 - Consent records can't be created or edited in the admin; consent changes only through the `identity` services.
 - Audit records are read-only in the admin.
 

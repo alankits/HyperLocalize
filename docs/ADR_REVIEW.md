@@ -47,3 +47,26 @@ None of ADRs 0001–0008 claims novelty. The classifications in `docs/PHASE0_DIS
 ## Viva check (criterion 7)
 
 Every ADR now ends with a "Viva in 2 minutes" line. The reviewer's judgement is that ADR 0006 (locking) and ADR 0007 (what the hash chain does and does not detect) are the two that need **rehearsal**. Both have exact one-paragraph explanations in their ADRs.
+
+---
+
+## Addendum: Q4 changed to zero budget (2026-10-05)
+
+New Q4: **zero spend**; free tiers and open-source models only; no local GPU; Kaggle Notebooks (free, about 30 GPU h/week) may run GPU-heavy steps. Requirements:
+1. every AI provider has a free alternative and a named mock;
+2. document the Gemini free-tier training terms and IndicF5's non-commercial status;
+3. measure IndicF5 on CPU vs. Kaggle GPU, and have a demo plan for slow CPU synthesis.
+
+| ADR | Verdict | Changes made | Remaining risks |
+|---|---|---|---|
+| 0003 Job queue | Approve with changes | Added the `DISPATCHED` state for Kaggle batch jobs (with a dispatch timeout instead of the heartbeat), an inference subprocess for local models (killable), and `purge_identity_data`. | Remote poll logic and subprocess management need tests. |
+| 0005 Providers | Approve with changes (**rewritten**) | Replaced the ₹ cap with a **zero-spend policy** (providers needing a payment method are ineligible). Added a **provider chain per stage** (free primary → free alternative), with the adapter that ran shown to the reviewer. **Mocks are never in a live chain, and export is refused if any artefact came from a mock.** Free-quota ledger with 80% warnings. Free-tier data-use rule (Gemini: script text only). | No second independent free Tamil cloning model exists; resilience there comes from two runtimes plus the stock-voice fallback (stated honestly). |
+| 0006 Consent | Approve with changes (**rewritten**) | Runtime-specific stop behaviour. **Local:** the inference subprocess is killed (stops in seconds). **Kaggle:** no cancel command exists (verified in the Kaggle CLI docs), so the guarantee is "output never imported; remote kernel and dataset deleted", not "remote compute stops". The voice profile is now our own reference clip (no third-party clone object). Kaggle is named as a processor. | Whether `kernels delete` stops a running kernel is [UNVERIFIED] (spike M9). Kaggle's retention after deletion is outside our control. |
+| 0008 Verification | Minor change | Removed the budget-cap reference; the meaning-check has a fail-safe `CHECK_UNAVAILABLE` flag. | — |
+| 0009, 0011, 0013, 0014 | Minor change | "Budget cap" policy replaced by provider chain order and quota warnings. | — |
+| 0012 Deployment | Approve with changes | The worker hosts the local inference subprocess; model weights are kept in a volume; the laptop's RAM and CPU are now a constraint; **demo plans A/B/C** added; quota check before the demo. | Laptop specs are unknown (spike P8). |
+| 0015–0018 | Rewritten, still pending | Paid providers removed. IndicF5 for cloning; MMS-TTS / Indic Parler-TTS / ElevenLabs free for stock voice; Gemini free / Groq / IndicTrans2 for translation; Groq / faster-whisper for ASR. Each has a free alternative and a mock. | Tamil quality of every option is unmeasured. |
+| **0019** Kaggle batch runtime | New, pending | Automated private dataset + private GPU kernel through the official CLI; consent checked at dispatch and at import; remote copies deleted. | Depends on one phone-verified account and on Kaggle's free quota. |
+
+**A discrepancy you should know about:** you asked me to document IndicF5 as non-commercial. Its **Hugging Face model card states MIT**. However, the GitHub repo shows no licence file, and IndicF5 builds on F5-TTS, whose official weights are **CC-BY-NC-4.0**. The docs therefore record the MIT label **and** our conservative non-commercial treatment, rather than claiming the model is officially non-commercial.
+

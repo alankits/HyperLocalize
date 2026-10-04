@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `docs/SPIKE_PLAN.md`.
+Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `docs/SPIKE_PLAN.md`. Licences and data terms: `docs/THIRD_PARTY_TERMS.md`.
 
 ## Group A: can be approved now
 
@@ -10,7 +10,7 @@ Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `d
 | [0002](0002-postgresql-database.md) | PostgreSQL as the primary database | Proposed |
 | [0003](0003-postgres-job-queue.md) | Hand-written Postgres job queue with explicit job states | Proposed |
 | [0004](0004-media-storage-interface.md) | Media storage behind an interface, local filesystem for the MVP | Proposed |
-| [0005](0005-provider-abstraction-and-mocks.md) | AI provider abstraction, mock providers, usage ledger and budget cap | Proposed |
+| [0005](0005-provider-abstraction-and-mocks.md) | AI provider abstraction: free provider chains, mock providers, zero-spend policy | Proposed |
 | [0006](0006-consent-gate-and-revocation.md) | Consent gate, checks at each stage boundary, revocation cascade | Proposed |
 | [0007](0007-audit-records-hash-chain.md) | Append-only, hash-chained audit records | Proposed |
 | [0008](0008-critical-information-verification.md) | Critical-information verification: rule-based hard checks + AI flags (Tamil-aware) | Proposed |
@@ -28,4 +28,5 @@ Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `d
 | [0015](0015-identity-definition.md) | Identity definition: consent-governed voice identity with fallback | Pending spike results |
 | [0016](0016-translation-method-and-provider.md) | Context-aware translation method and provider (English → Tamil) | Pending spike results |
 | [0017](0017-transcription-provider.md) | Transcription (English ASR) provider | Pending spike results |
-| [0018](0018-speech-synthesis-and-voice-provider.md) | Tamil speech synthesis and voice-profile provider | Pending spike results |
+| [0018](0018-speech-synthesis-and-voice-provider.md) | Tamil speech synthesis: stock voice and cloned voice (open source) | Pending spike results |
+| [0019](0019-kaggle-remote-gpu-batch.md) | Kaggle Notebooks as a remote GPU batch runtime | Pending spike results |

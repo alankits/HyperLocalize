@@ -1,30 +1,32 @@
-# ADR 0018: Tamil speech synthesis and voice-profile provider
+# ADR 0018: Tamil speech synthesis: stock voice and cloned voice
 
-**Status:** Pending spike results (provisional decision recorded 2026-10-05). Not approved.
-**Source:** `docs/PHASE0_DISCOVERY.md` §6.7; ADRs 0005, 0006, 0015; `docs/SPIKE_PLAN.md` M3–M6
+**Status:** Pending spike results (provisional decision recorded 2026-10-05; revised the same day for zero budget). Not approved.
+**Source:** ADRs 0005, 0006, 0015, 0019; `docs/THIRD_PARTY_TERMS.md`; `docs/SPIKE_PLAN.md` M4–M6, M9
 
 ## Context
 
-The pipeline needs Tamil (`ta-IN`) speech: a **stock voice** (`STOCK_VOICE`) and, if the spike passes, a **cloned voice** (`CLONED_VOICE`) made from an English reference recording. Hosted only, ₹2,000/month. ADR 0005 requires a deletion API for voice profiles and no training on identity data. Facts below were checked on 2026-10-05; sources are in `docs/SPIKE_PLAN.md` §3.
+The pipeline needs Tamil speech: `STOCK_VOICE` and, if viable, `CLONED_VOICE`. **Zero budget**, CPU-only laptop, Kaggle GPU in batch (about 30 h/week). Every option needs a free alternative and a mock (ADR 0005).
 
 ## Options Considered
 
-| Candidate | Tamil | Cloning | Deletion | Price | Data / terms |
-|---|---|---|---|---|---|
-| **Sarvam Bulbul v3** (stock) + **Sarvam voice cloning** | Yes (`ta-IN`) | Yes. `ta-IN` is in the cloning language list, and the docs say a reference clip in any supported language can be used (an English reference is OK). Reference clip 10–30 s. | Delete Voice endpoint is listed in the API reference | TTS ₹3 per 1,000 chars. Cloning ₹30 per 10K chars (from a search result on Sarvam's pages; **confirm on the dashboard**). ₹100 free credits. Cloning limit 10 requests/min on Starter. | A consent acknowledgement is mandatory when saving a clone. Training-use statements **conflict** between the privacy policy and the Trust Center: opt out and confirm. |
-| **ElevenLabs** Instant Voice Cloning | Yes in Multilingual v2, Flash v2.5, Eleven v4. **Not listed for Eleven v3.** | IVC included from the **Starter** plan (not Free) | `DELETE /v1/voices/{voice_id}` | Starter is listed at **$6/month** (a $1 first-month figure also appears; confirm on purchase), 30,000 credits/month. API list prices: v2 $0.08 per 1K chars; v4 shown at $0.022 per 1K chars as a temporary discount. | The prohibited-use policy forbids cloning without consent or legal right. A data-use opt-out toggle exists. Zero Retention Mode is enterprise-only. |
-| **Google Chirp 3 HD** (stock) | `ta-IN`, GA. Pace 0.25×–2×. | Instant Custom Voice supports `ta-IN` but is **allowlist-only** (contact sales) and requires a recorded consent statement | — | 1M chars/month free, then $30 per 1M | **Cloning excluded** (access restricted); stock voice OK |
-| Azure Speech | Tamil TTS voices not confirmed in the page fetched **[UNVERIFIED]**. Personal Voice is limited access. | Excluded (limited access) | — | F0: 0.5M chars/month free | Not pursued |
+| Option | Use | Licence / terms | Runtime | Known facts |
+|---|---|---|---|---|
+| **IndicF5** | `CLONED_VOICE` | Model card MIT; **treated as non-commercial**; gated; explicit voice-owner permission required | Kaggle GPU (batch) or local CPU | Needs reference clip + transcript; 24 kHz. CPU speed **unknown** (spike M6). |
+| **MMS-TTS Tamil** (`facebook/mms-tts-tam`) | `STOCK_VOICE` | **CC-BY-NC-4.0** | Local CPU | VITS, 36.3M parameters, single speaker; fixed seed needed |
+| **Indic Parler-TTS** | `STOCK_VOICE` | **Apache-2.0**; gated | Local CPU (speed unknown) or Kaggle | 0.9B parameters; Tamil speakers "Jaya" (recommended), "Kavitha"; prompt-controlled style |
+| ElevenLabs free plan | `STOCK_VOICE` (last resort) | Non-commercial; attribution required; no cloning on free | Hosted | 10K credits/month |
+| Paid cloning (ElevenLabs Starter, Sarvam), Google ICV, Azure Personal Voice | — | — | — | **Excluded**: paid or restricted |
 
 ## Decision (provisional)
 
-- **Stock voice:** Google Chirp 3 HD `ta-IN` (generous free tier, GA, pace control) vs. Sarvam Bulbul v3, decided by spike M3 and M4.
-- **Cloned voice:** Sarvam voice cloning (Tamil-focused provider, cheapest, delete endpoint, mandatory consent acknowledgement) vs. ElevenLabs IVC on Starter. Decided by spike M3 and decision rule 4, **after** the training-use opt-out is confirmed for whichever is chosen.
-- Saved voice IDs are used (not sending the reference audio with every request), so revocation has exactly one provider-side object to delete.
+- **Stock voice chain:** (MMS-TTS ↔ Indic Parler-TTS, order decided by spike M4/M6) → ElevenLabs free plan → `MockSpeechSynthesisProvider`.
+- **Cloned voice chain:** IndicF5 (Kaggle batch ↔ local CPU, order decided by spike M6) → **mode fallback to `STOCK_VOICE`** → `MockSpeechSynthesisProvider` (tests only).
+- **Voice profile** = reference clip + transcript in our media storage. Uploaded to Kaggle only for a batch run, then deleted (ADR 0006, 0019).
+- The demo plan depends on IndicF5's CPU speed (ADR 0012, spike §6).
 
 ## Consequences
 
-- **+** At least two documented Tamil cloning options and two stock options; none needs a GPU.
-- **−** The rate limit on Sarvam cloning (10 requests/min on Starter) means a 30-segment scene takes at least about 3 minutes to synthesise. That's acceptable for previews (and it makes the mid-job revocation demo easy), but it is a UX cost to measure.
-- **−** Provider deletion can be shown at the API level only; what the provider actually keeps can't be verified by us.
-- **Viva in 2 minutes:** "We compared Tamil voices from providers whose docs confirm Tamil, deletion APIs and consent rules. We excluded those with restricted access, then let measured intelligibility, pronunciation of numbers and terms, and similarity decide."
+- **+** No paid service, and no third-party voice-clone object.
+- **−** The whole stack is non-commercial (MMS-TTS; IndicF5 by our conservative reading). A future commercial version would need different models; stated.
+- **−** There is no second independent free Tamil cloning model. Resilience comes from two runtimes plus the governed stock-voice fallback.
+- **Viva in 2 minutes:** "Stock Tamil voices come from open-source models running on our laptop. Cloned voices come from IndicF5, on a free Kaggle GPU in advance or on our CPU live. When neither is possible, the system falls back to a labelled stock voice rather than failing."

@@ -5,6 +5,7 @@
 | **Date** | 2026-10-04 |
 | **Phase** | 0 — Discovery and Design |
 | **Status** | DRAFT, revision 2, awaiting review. Nothing in this document is approved. |
+| **Revision 4** (2026-10-05) | **Q4 changed to zero budget:** free tiers and open-source models only; Kaggle free GPU for heavy steps. The provider ADRs were rewritten, ADR 0019 (Kaggle batch) was added, and the terms are in `docs/THIRD_PARTY_TERMS.md`. The cost figures in revision 3 are **superseded**: the spike now costs ₹0. Earlier sections of this report that mention paid providers or a ₹ budget are superseded by the ADRs. |
 | **Revision 3** (2026-10-05) | Q1–Q8 answered (§11). ADRs 0001–0008 reviewed and revised (`docs/ADR_REVIEW.md`). ADRs 0009–0014 written as *Proposed*, and 0015–0018 as *Pending spike results* (`docs/adr/README.md`). **Changed recommendation:** frontend is now Django templates + HTMX instead of React (ADR 0010, because of Q2). Where this report and an ADR differ, **the ADR takes precedence.** |
 | **Revision 2** | Applies review points R1–R5: consent checks at each stage boundary and mid-job cancellation (§6.8), audit threat model (§6.10), rule-based checks vs. AI flags (§4.3), novelty reclassification (§9), and spike before the provider ADRs (§10). Adds the ADR grouping (§12). Answers to Q1–Q8 **were not received** (the template placeholders came back unfilled), so the ADRs that depend on them are marked blocked. |
 | **Sources read** | `CLAUDE.md`, `docs/context/01`–`05`, `docs/STATUS.md` |
@@ -664,7 +665,7 @@ Nothing is [IMPLEMENTED NOVELTY] yet, because nothing is implemented.
 > - **Q1:** none exist; `docs/context/` plus approved ADRs are the source of truth, and UML will be produced from the design.
 > - **Q2:** ≤4 students; intermediate Python, basic JS/React, little DevOps; about 5 months.
 > - **Q3:** English → Tamil.
-> - **Q4:** free tiers + ₹2,000/month; no GPU; hosted APIs only.
+> - **Q4 (revised):** **zero budget**; free tiers and open-source models only; no local GPU; Kaggle Notebooks (about 30 GPU h/week) allowed for GPU-heavy steps.
 > - **Q5:** no lip-sync; faces are future scope.
 > - **Q6:** external APIs allowed; team's own voices and videos only.
 > - **Q7:** 2 bilingual raters.
@@ -699,6 +700,6 @@ Nothing is [IMPLEMENTED NOVELTY] yet, because nothing is implemented.
 
 The live index is in `docs/adr/README.md`.
 - **Group A (can be approved now):** 0001–0014.
-- **Group B (pending spike results):** 0015 identity, 0016 translation, 0017 transcription, 0018 speech and voice.
+- **Group B (pending spike results):** 0015 identity, 0016 translation, 0017 transcription, 0018 speech and voice, 0019 Kaggle batch runtime.
 
 The spike plan is `docs/SPIKE_PLAN.md`.

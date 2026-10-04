@@ -75,5 +75,5 @@ In the UI, docs and viva, "rule-checked" applies only to numbers, units, glossar
 - **+** The fail-safe `UNVERIFIABLE` result means gaps in the Tamil normaliser cost reviewer time rather than silently letting errors through.
 - **−** The Tamil number-word lexicon and the accepted-forms lists are manual work and will be incomplete. Scope: values up to crore, plus common inflections. Coverage is measured against the raters' labels.
 - **−** False alarms cost reviewer time. Overrides with reasons exist for this.
-- **−** The AI flagger adds cost and latency per segment. It is measured in the spike and covered by the ADR 0005 budget cap.
+- **−** The AI flagger adds cost and latency per segment. It uses free-tier quota, is measured in the spike, and has a fail-safe `CHECK_UNAVAILABLE` flag when no checker is available (ADR 0005).
 - **Viva in 2 minutes:** "Numbers, units and glossary terms are checked by code, including Tamil digits and number words, and anything the code can't parse is flagged instead of passed. Tamil negation lives in the verb, so a rule can't check it reliably. An AI flags possible reversals, and a human must look at every flag and every segment."

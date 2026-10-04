@@ -1,52 +1,51 @@
 # ADR 0015: Identity definition: consent-governed voice identity with fallback
 
-**Status:** Pending spike results (provisional decision recorded 2026-10-05). Not approved.
-**Source:** `docs/PHASE0_DISCOVERY.md` §3; Q5 and Q6 answers; `docs/SPIKE_PLAN.md` M3 and decision rule 4
+**Status:** Pending spike results (provisional decision recorded 2026-10-05; revised the same day for zero budget). Not approved.
+**Source:** `docs/PHASE0_DISCOVERY.md` §3; Q4 (revised), Q5, Q6 answers; `docs/THIRD_PARTY_TERMS.md`; `docs/SPIKE_PLAN.md`
 
 ## Context
 
 "Identity" was [UNKNOWN] (CLAUDE.md §5). Answers:
-- Q5: lip-sync is not expected; faces stay out of scope.
-- Q6: external APIs may process voice; only team members' voices are used.
-- Q3: the target language is Tamil.
+- Q5: no lip-sync; faces are future scope.
+- Q6: external processing allowed for the team's own voices.
+- Q3: Tamil.
+- Q4 (revised): **zero budget**, so every paid cloning service is excluded.
 
-Hosted voice cloning with documented Tamil support exists from at least two providers (`docs/SPIKE_PLAN.md` §3), but **quality in Tamil is unmeasured**.
+The only free Tamil voice-cloning model in scope is **IndicF5** (AI4Bharat). It is a prompt-based model: it takes a reference clip **and its transcript** and speaks new Tamil text in that voice. It runs on CPU (slow, speed unmeasured) or on Kaggle GPU in batch (ADR 0019). Licence: the model card says MIT, but **we treat it as non-commercial** (`THIRD_PARTY_TERMS.md` §2). Its model card requires explicit permission from the voice owner.
 
 ## Options Considered
 
-| Criterion | Consent records only (no cloned voice) | **Consent-governed cloned voice with automatic fallback** | Voice + face / lip-sync | Subtitles only |
+| Criterion | Consent records only | **Consent-governed IndicF5 cloned voice with automatic fallback** | Voice + face | Subtitles only |
 |---|---|---|---|---|
 | Matches "identity-preserving" | Weak | **Strong for voice** | Strongest | None |
-| Ethical risk | Low | Medium, governed by ADR 0006 | High | Very low |
-| Feasible with no GPU, ₹2,000/month | Yes | **Yes, if spike M3 passes** | No (and out of scope per Q5) | Yes |
-| Viva | "Where is the identity?" | **The identity owner controls how they are rendered** | — | Contradicts the project name |
+| Zero-budget feasible | Yes | **Yes** (local CPU or Kaggle) | No (out of scope, Q5) | Yes |
+| Where identity data lives | — | **Laptop + temporary private Kaggle dataset** (no third-party clone object) | — | — |
+| Viva | Weak | **The identity owner controls how they are rendered** | — | Contradicts the project name |
 
 ## Decision (provisional)
 
-"Identity" means three things:
-- an **IdentityOwner** (a real person);
-- a **VoiceProfile** created from consented reference audio at a hosted provider;
-- a versioned **Consent** that lists uses, project, languages, expiry and named processors.
+"Identity" means:
+- an **IdentityOwner**;
+- a **VoiceProfile**, which is our stored, consented **reference clip + transcript** (no provider-side clone);
+- a versioned **Consent** listing uses, project, languages, expiry and named processors (Kaggle; Groq for transcription audio).
 
-For each speaker, the backend resolves a rendering mode at render time:
+Rendering mode per speaker, resolved by the backend:
 
-| Consent / policy state | Mode |
+| State | Mode |
 |---|---|
-| Active consent for `voice_synthesis`, this project, `ta-IN`; cloning allowed by policy | `CLONED_VOICE` |
-| No consent, expired or revoked | `STOCK_VOICE` (labelled as synthetic, not the speaker) |
+| Active consent for `voice_synthesis`, this project, `ta-IN`; cloning allowed by policy | `CLONED_VOICE` (IndicF5) |
+| No consent, expired or revoked; **or both IndicF5 runtimes unavailable** | `STOCK_VOICE` (labelled synthetic: MMS-TTS / Indic Parler-TTS) |
 | Policy forbids synthesis | `SUBTITLES_ONLY` |
 
-**Future scope (Q5):** lip-sync, face processing, on-screen text replacement.
+**Future scope (Q5):** lip-sync, faces, on-screen text replacement.
 
-**The spike decides whether `CLONED_VOICE` is in the MVP** (`docs/SPIKE_PLAN.md` decision rule 4). If no cloning candidate passes:
-- the MVP ships `STOCK_VOICE` + `SUBTITLES_ONLY`;
-- consent governance is still built, because it also covers the use of the speaker's recorded voice;
-- the identity claim in the docs and viva is narrowed;
-- you are told before this ADR is finalised.
+**Non-commercial scope:** because of IndicF5 (conservative reading) and MMS-TTS (CC-BY-NC-4.0), the cloned- and stock-voice outputs are for **academic, non-commercial** demonstration only. The export manifest says so.
+
+**The spike decides** (rule 4) whether IndicF5's Tamil quality is good enough for `CLONED_VOICE` in the MVP. If not, the MVP ships with stock voice and subtitles, the identity claim is narrowed, and you are told first.
 
 ## Consequences
 
-- **+** Identity becomes a governed, revocable capability rather than a fixed feature.
-- **−** Cross-lingual cloning (English reference → Tamil speech) may preserve timbre poorly. That's exactly what M3 measures.
-- **−** Mixing cloned and stock voices in one video can sound uneven; the UI labels each speaker's mode.
-- **Viva in 2 minutes:** "Identity here means the speaker's voice, used only under a current consent version. If consent goes, the system switches that speaker to a labelled stock voice or subtitles and requires review again. We don't touch faces."
+- **+** Identity data never sits with a voice-cloning company. Deletion is ours to do, except the temporary Kaggle copy (ADR 0006).
+- **−** Cross-lingual prompting (an English reference clip driving Tamil speech) may preserve timbre poorly. The spike also tests a **Tamil** reference clip read by the same speaker.
+- **−** Licensing ambiguity means a strictly non-commercial scope.
+- **Viva in 2 minutes:** "Identity is the speaker's voice, reproduced by an open-source Tamil model from a clip they consented to, only while that consent is active. Revoke it and we kill the job, refuse any late output, delete the clip, and fall back to a labelled stock voice that needs review again."

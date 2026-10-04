@@ -29,7 +29,7 @@ Q1 (answered): there is no official UML, requirements document or rubric. UML di
 | UC5 Review and Regenerate a Scene | Reviewer / Linguist | Edit segments, resolve checks, acknowledge flags, accept a scene or request changes; regeneration re-runs UC3 and/or UC4 **for that scene only** | Scene accepted |
 | UC6 Approve and Export Localization Package | Localization Manager | Approval of an immutable snapshot (all scenes accepted, no unresolved hard checks, consent active); export package with evidence manifest | Export available |
 | UC7 Revoke Consent and Stop Identity | Speaker / Identity Owner | Revocation and its cascade (ADR 0006) | Cascade complete; provider deletion confirmed or "pending" |
-| UC8 Administer Users, Providers and Policies | Administrator | Users, provider configuration, policies (budget cap, retention, cloning allowed, separation of duties) | — |
+| UC8 Administer Users, Providers and Policies | Administrator | Users, provider configuration, policies (provider chain order, free-quota warnings, retention, cloning allowed, separation of duties) | — |
 | UC9 Inspect Quality, Audit and Evidence | Auditor / Faculty Evaluator | Read-only access to check results, reviews, approvals, audit chain verification, evidence manifests | — |
 
 **Consent grant [PROPOSED, needs your confirmation]:** model **"Record Consent"** as an *included* use case (Identity Owner as actor), used by UC1 when a speaker is linked to an identity, and as the counterpart of UC7. This doesn't add a top-level use case. It makes visible a step that already has to exist.
