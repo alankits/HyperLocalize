@@ -1,6 +1,6 @@
 # ADR 0002: PostgreSQL as the primary database
 
-**Status:** Proposed (2026-10-04). Not yet approved.
+**Status:** Proposed (2026-10-04; reviewed 2026-10-05, no change to the decision). Not yet approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.4
 
 ## Context
@@ -25,6 +25,7 @@ Use PostgreSQL for all application data, the job queue, and audit records. **Tes
 
 - **+** Locking semantics support ADR 0003 and ADR 0006 directly.
 - **+** Triggers and role privileges support the append-only audit table (ADR 0007).
-- **−** Developers and CI need a running Postgres (Docker).
+- **−** Developers and CI need a running Postgres. With little DevOps experience on the team, this is limited to one `db` service in Docker Compose (ADR 0012), and the README gives a single start command.
 - **−** The team must understand basic locking and isolation (`READ COMMITTED`) well enough to explain ADR 0006 in a viva.
 - Encryption at rest and backups are [UNKNOWN] and must not be claimed until configured and documented.
+- **Viva in 2 minutes:** "Our data is relational, and our consent safety depends on row locks. Postgres gives both, and we test against it rather than SQLite."

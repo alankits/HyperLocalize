@@ -5,6 +5,7 @@
 | **Date** | 2026-10-04 |
 | **Phase** | 0 — Discovery and Design |
 | **Status** | DRAFT, revision 2, awaiting review. Nothing in this document is approved. |
+| **Revision 3** (2026-10-05) | Q1–Q8 answered (§11). ADRs 0001–0008 reviewed and revised (`docs/ADR_REVIEW.md`). ADRs 0009–0014 written as *Proposed*, and 0015–0018 as *Pending spike results* (`docs/adr/README.md`). **Changed recommendation:** frontend is now Django templates + HTMX instead of React (ADR 0010, because of Q2). Where this report and an ADR differ, **the ADR takes precedence.** |
 | **Revision 2** | Applies review points R1–R5: consent checks at each stage boundary and mid-job cancellation (§6.8), audit threat model (§6.10), rule-based checks vs. AI flags (§4.3), novelty reclassification (§9), and spike before the provider ADRs (§10). Adds the ADR grouping (§12). Answers to Q1–Q8 **were not received** (the template placeholders came back unfilled), so the ADRs that depend on them are marked blocked. |
 | **Sources read** | `CLAUDE.md`, `docs/context/01`–`05`, `docs/STATUS.md` |
 | **Sources missing** | UML diagrams, official requirements, official problem statement. Under `04_source_of_truth_policy.md` these outrank this report. See Question Q1. |
@@ -659,7 +660,17 @@ Nothing is [IMPLEMENTED NOVELTY] yet, because nothing is implemented.
 
 ## 11. Questions for you, ordered by importance
 
-> **Answer status (revision 2):** no answers received yet. The message contained the unfilled template.
+> **Answer status (revision 3, 2026-10-05):**
+> - **Q1:** none exist; `docs/context/` plus approved ADRs are the source of truth, and UML will be produced from the design.
+> - **Q2:** ≤4 students; intermediate Python, basic JS/React, little DevOps; about 5 months.
+> - **Q3:** English → Tamil.
+> - **Q4:** free tiers + ₹2,000/month; no GPU; hosted APIs only.
+> - **Q5:** no lip-sync; faces are future scope.
+> - **Q6:** external APIs allowed; team's own voices and videos only.
+> - **Q7:** 2 bilingual raters.
+> - **Q8:** academic project with a live demo and viva.
+>
+> Q9 is covered by the Q2 answer. **Q10–Q18 are still open.** ADRs 0004, 0011, 0012, 0013 and 0014 contain *proposed defaults* for them, marked as such.
 
 | # | Question | Why it matters |
 |---|---|---|
@@ -684,43 +695,10 @@ Nothing is [IMPLEMENTED NOVELTY] yet, because nothing is implemented.
 
 ---
 
-## 12. ADR grouping (revision 2)
+## 12. ADR grouping (revision 3)
 
-### Group A: can be approved now (written to `docs/adr/`, status *Proposed*)
+The live index is in `docs/adr/README.md`.
+- **Group A (can be approved now):** 0001–0014.
+- **Group B (pending spike results):** 0015 identity, 0016 translation, 0017 transcription, 0018 speech and voice.
 
-These hold whatever the language pair, team skills, budget or spike results turn out to be.
-
-| ADR | Title | Report section |
-|---|---|---|
-| 0001 | Modular monolith with a separate worker process | §6.1 |
-| 0002 | PostgreSQL as the primary database | §6.4 |
-| 0003 | Postgres-backed job queue with explicit job states | §6.5 |
-| 0004 | Media storage behind an interface, local filesystem for the MVP | §6.6 |
-| 0005 | AI provider abstraction with clearly named mock providers | §6.7 (abstraction only) |
-| 0006 | Consent gate, checks at each stage boundary, revocation cascade | §3.4, §6.8 |
-| 0007 | Append-only, hash-chained audit records (with threat model) | §6.10 |
-| 0008 | Critical-information verification: rule-based hard checks + AI flags | §4.3 |
-
-Caveat: ADRs 0001–0004 are written to be framework-neutral. If the framework ADR (B2) picks something unusual, they may need small wording changes, but their decisions stand.
-
-### Group B: depends on something not yet available
-
-**B1: decided by spike results** (`docs/SPIKE_PLAN.md`)
-
-| Pending ADR | What decides it |
-|---|---|
-| Identity definition: is `CLONED_VOICE` viable in the target language, or does the MVP fall back to stock voice only? (§3.3) | Spike: TTS and cloning quality, speaker similarity, provider deletion API, plus Q5 |
-| Translation method: LLM with context vs. NMT, and which provider (§4.3) | Spike: translation quality, cost, latency, plus Q6 |
-| Transcription (ASR) provider: local vs. hosted (§6.7) | Spike: accuracy, latency, plus Q4 (GPU) and Q6 |
-| Speech synthesis and voice-profile providers (§6.7) | Spike: quality, deletion API, licence, cost |
-
-**B2: decided by your answers**
-
-| Pending ADR | Blocked on |
-|---|---|
-| Backend framework (Django vs. FastAPI) (§6.2) | Q2, Q9 (team skills) |
-| Frontend (React vs. HTMX) (§6.3) | Q2, Q9 |
-| Authentication and authorisation, Identity Owner access (§6.9) | Q9, Q10, Q13 |
-| Hosting and deployment, GPU (§6.11) | Q4, Q18 |
-| Core data model (§7) | Q1 (official UML), Q14 |
-
+The spike plan is `docs/SPIKE_PLAN.md`.

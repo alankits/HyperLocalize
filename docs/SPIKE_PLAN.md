@@ -1,173 +1,266 @@
-# HyperLocalize: Technical Spike Plan
+# HyperLocalize: Technical Spike Plan (English → Tamil)
 
 | | |
 |---|---|
-| **Date** | 2026-10-04 |
-| **Status** | PLAN ONLY. **Not run.** Needs your approval. |
-| **Purpose** | Produce measured evidence to decide the group B1 ADRs (`PHASE0_DISCOVERY.md` §12) before they are finalised |
-| **Language pair** | `{SOURCE_LANG} → {TARGET_LANG}`: **[UNKNOWN], waiting on Q3** |
-| **Budget cap** | `{SPIKE_BUDGET}`: **[UNKNOWN], waiting on Q4** |
+| **Date** | 2026-10-05 (revision 2) |
+| **Status** | PLAN ONLY. **Not run.** Needs your approval, including the spending cap. |
+| **Purpose** | Produce measured evidence to decide ADRs 0015–0018 (status "Pending spike results") and to check the limits of ADR 0008 for Tamil |
+| **Language pair** | English (`en`) → Tamil (`ta-IN`) (Q3) |
+| **Spike spending cap** | **₹1,500** hard cap, inside the ₹2,000/month AI budget (Q4). Estimate: about ₹1,170 (§7). |
+| **Raters** | 2 bilingual English–Tamil raters (Q7), called R1 and R2 |
+| **Hardware** | Team laptop, no GPU; hosted APIs only (Q4) |
 
-All results from this spike are **MEASURED RESULTS on one clip**. They are directional evidence for choosing providers, not proof of quality. The full evaluation (`PHASE0_DISCOVERY.md` §8, slice S4) is where quality claims come from.
+All results are **MEASURED RESULTS on one clip** (spike, n = 1 clip, about 30 segments). They are directional evidence for choosing providers, not quality claims. Quality claims come from the full evaluation (slice S4, 3–5 clips).
 
 ---
 
-## 1. Prerequisites (blocking)
+## 1. Prerequisites
 
-| # | Prerequisite | Why |
+| # | Prerequisite | Status |
 |---|---|---|
-| P1 | **Q3**: language pair | Every candidate must support it; metric choice depends on it (see M1) |
-| P2 | **Q4**: budget and GPU access | Decides whether local models are candidates at all; sets the spending cap |
-| P3 | **Q6**: may voice and video go to third-party providers? | If not, all hosted candidates are excluded |
-| P4 | **Q7**: at least one, ideally two, bilingual raters | Needed for the reference translation and the human ratings in M2/M3. Without them, M2/M3 report automatic metrics only and say so. |
-| P5 | Written consent from the team member(s) whose voice is recorded, naming each provider the audio will be sent to | Identity data is used even in a spike (CLAUDE.md §5) |
-| P6 | Your approval of this plan and of the spending cap | CLAUDE.md §3 (ongoing cost, real voices) |
+| P1 | Language pair | **Done:** English → Tamil |
+| P2 | Budget and GPU | **Done:** ₹2,000/month, no GPU |
+| P3 | Third-party processing allowed | **Done:** yes; only the team's own voices and videos |
+| P4 | Raters | **Done:** 2 raters |
+| P5 | Signed consent from each recorded team member, **naming every provider** their audio will go to (Groq, Sarvam, ElevenLabs, Google) | To do |
+| P6 | **Training opt-outs applied and confirmed** before any voice is uploaded: ElevenLabs "Improve the models for everyone" toggle off; Sarvam opt-out applied and confirmed in writing (their statements conflict, §3); Gemini used on the **paid** tier only; Groq Zero Data Retention on | To do |
+| P7 | Your approval of this plan and the ₹1,500 cap | **Waiting** |
 
 ## 2. Test material
 
-**One clip, 60–120 seconds, recorded by the team**, 1–2 consenting speakers, on a critical-information topic (e.g. a health-information explainer; final topic is Q17).
+**One clip of 90–120 seconds**, recorded by a consenting team member (optionally two speakers), on a **health-information topic** (proposed: safe use of oral rehydration salts or a similar public-health explainer [PROPOSED; confirm the topic, Q17]).
 
 The script is **written first** so that it deliberately contains:
 
-| Content | Minimum count | Used by |
+| Content | Minimum | Used by |
 |---|---|---|
-| Numbers (including a dosage, a decimal, a range, a time) | 10 | M1, M2 rule checks |
-| Units (mg, ml, °C, litres, km, …) | 5 | M1, M2 |
-| Glossary terms (domain terms with a fixed target translation) | 5 | M1, M2, M3 pronunciation |
-| Negated instructions ("do not…", "never…") | 5 | M2 meaning-reversal flags |
+| Numbers: a dosage, a decimal, a range, a time, a large number (≥ 1 lakh) | 10 | M1, M2 rule checks |
+| Units (mg, ml, L, °C, minutes, km) | 5 | M1, M2 |
+| Glossary terms (domain terms with a fixed Tamil translation, chosen by R1/R2) | 5 | M1, M2, M3 pronunciation |
+| Negated instructions ("do not…", "never…", "should not…") | 5 | M2 meaning-reversal flags |
 | Idioms or culturally specific phrases | 2 | M2 adaptation |
 | Short and long sentences | mix | M4 timing |
 
 Also prepared:
-- **Reference transcript:** the written script, corrected by hand to what was actually said.
-- **Segment boundaries:** start and end times marked by hand on the recording (for M1 timing accuracy and as segment slots for M4).
-- **Reference translation:** produced by a bilingual rater **before** seeing any system output, to avoid anchoring.
-- **Glossary file:** source term → required target term.
-- **Seeded-error set:** 5 copies of segments with deliberately reversed meaning (negation removed or flipped) plus 5 with a wrong number, unit or term, used to test the checks in M2.
-- **Clean reference voice sample** from each consenting speaker (as long as the candidate cloning providers require), for M3.
+- **Reference transcript:** the script, corrected by hand to what was actually said.
+- **Segment boundaries:** start and end times marked by hand.
+- **Reference translation:** written by **R1 before seeing any system output**; R2 checks it. Limitation: R1 knows the reference when rating, which is recorded.
+- **Glossary file:** English term → required Tamil term + **accepted inflected forms** (from R1/R2).
+- **Tamil unit lexicon:** Latin and Tamil forms for each unit used (from R1/R2, not from memory).
+- **Seeded-error set (20 items),** made by editing copies of the reference translation:
+
+  | Seeded error type | Count | Expected to be caught by |
+  |---|---|---|
+  | Wrong number (Western digits) | 3 | Hard check |
+  | Wrong number written as Tamil digits (௦–௯) | 2 | Hard check |
+  | Wrong number written as Tamil words | 3 | Hard check (or `UNVERIFIABLE`) |
+  | Wrong or missing unit | 4 | Hard check |
+  | Wrong glossary term | 4 | Hard check |
+  | Negation removed or flipped in the verb | 4 | AI flag (not a rule) |
+
+  Plus 6 extra reversal or omission errors (total 10 for the AI flags), and the **clean** reference segments to measure false alarms.
+- **Reference voice clip:** 10–30 s of clean speech from each consenting speaker (Sarvam's guideline is 10–30 s; ElevenLabs IVC uses short samples).
 
 **Data handling.**
-- Media is never committed to git (already covered by `.gitignore`).
-- Record which file was sent to which provider and when.
-- After the spike, delete uploaded voices and files at each provider using its deletion mechanism, and record that this was done.
-- Raw transcripts and audio do not go into the docs. Only metrics and short anonymised examples do.
+- Media is never committed to git.
+- A log records which file went to which provider and when.
+- After the spike, uploaded voices are deleted through each provider's delete API, and the result is recorded.
+- Only metrics and short anonymised examples go into the docs.
 
-## 3. Candidates and hard gates
+## 3. Candidates, with checked facts
 
-Candidates are listed **per stage after Q3/Q4/Q6 are answered**, so I don't name providers that may not support your language. Each candidate must pass these **hard gates** before it is measured. A candidate that fails a gate is recorded as excluded, with the reason.
+Checked on **2026-10-05** against official provider pages. Prices change. Anything not confirmed on an official page is marked **[UNVERIFIED]**.
 
-| Gate | Check (document review) |
+### Transcription (English)
+
+| Candidate | Supports source | Free tier / limits | Price | Terms relevant to us | Source |
+|---|---|---|---|---|---|
+| **Groq** `whisper-large-v3` (`-turbo` as a cheaper variant) | Multilingual Whisper (English is covered) | Free plan: 20 RPM, 2K RPD, 7.2K audio-s/hour, 28.8K audio-s/day; 25 MB file limit on the free tier | $0.111/h (turbo $0.04/h) | No training on inputs. May retain 30 days unless Zero Data Retention is enabled. | [STT docs](https://console.groq.com/docs/speech-to-text), [rate limits](https://console.groq.com/docs/rate-limits), [your data](https://console.groq.com/docs/your-data) |
+| **Sarvam Saaras v4** | 22 Indian languages + Indian English | ₹100 free credits on signup (docs) | ₹30/hour | Privacy policy says content is used for training **unless you opt out**; Trust Center says API inputs are not used. **Conflicting**; resolve before use. | [models](https://docs.sarvam.ai/api-reference-docs/getting-started/models), [pricing](https://www.sarvam.ai/api-pricing), [privacy](https://www.sarvam.ai/privacy-policy), [trust](https://www.sarvam.ai/trust-center) |
+
+### Translation (English → Tamil)
+
+| Candidate | Role | Tamil | Free tier | Price | Terms | Source |
+|---|---|---|---|---|---|---|
+| **Google Cloud Translation (NMT)** | T0 baseline | Yes [UNVERIFIED on the language page; Tamil is widely documented, but I didn't fetch the list] | 500,000 chars/month (as a $10 monthly credit) | $20 per 1M chars | Cloud terms | [pricing](https://cloud.google.com/translate/pricing) (figures from search results on the official page; the page itself was truncated when fetched) |
+| **Gemini 3.8 Flash** (paid tier) | T1/T2 candidate, meaning-check | [UNVERIFIED: Tamil quality is what the spike measures] | Free tier exists, **but free-tier content is used to improve Google's products**, so not used | $0.75 / $3.75 per 1M input/output tokens until 2026-12-31; **$1.50 / $7.50 from 2027-01-01** | Paid tier: content not used to improve products | [pricing](https://ai.google.dev/gemini-api/docs/pricing). Free-tier rate limits are only shown in AI Studio [UNVERIFIED] |
+| **Claude Sonnet 5.5** | T1/T2 candidate, meaning-check | [UNVERIFIED: measured] | Small free credits for new users | $2 / $10 per 1M input/output tokens | — | [pricing](https://platform.claude.com/docs/en/about-claude/pricing) |
+| Claude Haiku 4.5 | Cheaper fallback | [UNVERIFIED] | as above | $1 / $5 per 1M | — | as above |
+| Sarvam Mayura / Sarvam-Translate | Optional second baseline (Indic-specialised) | Yes | ₹100 shared credits | ₹0.005 per character (pay-as-you-go) | See the Sarvam conflict above | [models](https://docs.sarvam.ai/api-reference-docs/getting-started/models), [pricing](https://www.sarvam.ai/api-pricing) |
+
+### Tamil speech synthesis and voice cloning
+
+| Candidate | Tamil | Cloning | Delete API | Free tier | Price | Consent / training terms | Source |
+|---|---|---|---|---|---|---|---|
+| **Google Chirp 3 HD** (stock) `ta-IN-Chirp3-HD-*` | **Yes, GA** | Instant Custom Voice supports `ta-IN` but is **allowlist-only**, so excluded | — | 1M chars/month | $30 per 1M chars (figures from search results on the official pricing page) | — | [Chirp 3 HD](https://docs.cloud.google.com/text-to-speech/docs/chirp3-hd), [ICV](https://docs.cloud.google.com/text-to-speech/docs/chirp3-instant-custom-voice), [pricing](https://cloud.google.com/text-to-speech/pricing) |
+| **Sarvam Bulbul v3** (stock) | **Yes** (`ta-IN`) | — | — | ₹100 credits | ₹3 per 1,000 chars. Pace 0.5×–2.0×. Max 2,500 chars per request. | See the conflict above | [Bulbul](https://docs.sarvam.ai/api/getting-started/models/bulbul), [pricing](https://www.sarvam.ai/api-pricing) |
+| **Sarvam voice cloning** | **Yes** (`ta-IN` in the cloning list; any supported reference language can drive any target) | Yes; saved `voice_id` | **Delete Voice** listed in the API reference (from search results; confirm in the spike) | ₹100 credits | ₹30 per 10K chars **[UNVERIFIED: from a search summary, confirm on the dashboard]**. Limit 10 req/min sustained (Starter). | **A consent acknowledgement is mandatory** before saving a clone. You must have rights to the voice. | [languages](https://docs.sarvam.ai/api/api-guides-tutorials/voice-cloning/supported-languages), [reference audio](https://docs.sarvam.ai/api/api-guides-tutorials/voice-cloning/how-to/prepare-reference-audio), [cloning](https://docs.sarvam.ai/creative-voice-cloning), [limits](https://docs.sarvam.ai/api-reference-docs/getting-started/pricing) |
+| **ElevenLabs** IVC | Tamil in **Multilingual v2, Flash v2.5, Eleven v4**; **not listed for Eleven v3** | IVC from the **Starter** plan; **not on Free** | `DELETE /v1/voices/{voice_id}` | Free: 10K credits, no IVC, no commercial licence | Starter **$6/month** (the page also shows a $1 first-month figure; confirm at purchase), 30K credits. API: v2 $0.08 per 1K chars; v4 $0.022 per 1K chars (temporary discount). Credits consumed per character per model **[UNVERIFIED]**. | Prohibited-use policy forbids cloning "without consent or legal right". A training opt-out toggle exists. Zero Retention Mode is enterprise-only. | [models](https://elevenlabs.io/docs/models), [pricing](https://elevenlabs.io/pricing), [API pricing](https://elevenlabs.io/pricing/api), [delete](https://elevenlabs.io/docs/api-reference/voices/delete), [use policy](https://elevenlabs.io/use-policy), [data use](https://elevenlabs.io/docs/help-center/legal/is-my-data-used-to-improve-eleven-labs-ai-models) |
+| Azure Speech | Tamil TTS voices **[UNVERIFIED]** (not in the fetched page) | Personal Voice is limited access, so excluded | — | 0.5M chars/month | — | — | [pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/) |
+
+### Hard gates (any failure excludes the candidate; recorded with the reason)
+
+| Gate | Check |
 |---|---|
-| G1 Language | Officially documented support for `{SOURCE_LANG}` (ASR) / `{TARGET_LANG}` (translation, TTS) |
-| G2 Licence / terms | Permits this project's use (check for non-commercial-only model licences and for terms that allow training on our data) |
-| G3 Data policy | Allowed under Q6; data region and retention noted |
-| G4 Deletion (voice only) | Voice profiles can be deleted through an API (required by ADR 0005 / 0006) |
-| G5 Cost | Spike usage fits within `{SPIKE_BUDGET}` |
+| G1 Language | Official documentation lists English (ASR) or Tamil (translation, TTS, cloning) |
+| G2 Training | Our account settings or tier stop training on our data (paid tier, opt-out applied, or a contractual statement) |
+| G3 Access | Usable without an allowlist or sales contact (excludes Google ICV and Azure Personal Voice) |
+| G4 Deletion | Voice profiles can be deleted through the API (cloning only) |
+| G5 Cost | Fits the ₹1,500 spike cap and a realistic ₹2,000/month MVP budget (§7) |
 
-Planned comparison slots:
+**Comparison slots:**
 
 | Stage | Slots |
 |---|---|
-| Transcription | 1 local Whisper-family model (if GPU or acceptable CPU speed) · 1 hosted ASR |
-| Translation | **T0** NMT baseline · **T1** LLM without context · **T2** LLM with full textual context (transcript window, speaker, audience profile, glossary, timing budget) |
-| Meaning-reversal flagger | The T1/T2 LLM in a separate checking pass (one prompt) |
-| Speech synthesis | **V0** stock (non-cloning) TTS · **V1** hosted voice cloning · **V2** local voice cloning (only if GPU + licence pass) |
+| ASR | **A1** Groq whisper-large-v3 · **A2** Sarvam Saaras v4 |
+| Translation | **T0** Google NMT · **T1** LLM without context · **T2** LLM with full textual context. T1/T2 are run with **Gemini 3.8 Flash (paid)** and **Claude Sonnet 5.5**. |
+| Meaning-check (AI flags) | Same-family checker vs. other-family checker (e.g. Gemini translation checked by Claude, and vice versa) |
+| Stock TTS | **V0a** Google Chirp 3 HD `ta-IN` · **V0b** Sarvam Bulbul v3 |
+| Cloned voice | **V1** Sarvam voice cloning · **V2** ElevenLabs IVC (Starter) |
 
 ## 4. Measurements
 
-All spike scripts live in a `spike/` folder. They are throwaway, are never imported by the application, and are committed only for reproducibility. Each script records the provider, model identifier and version, prompt text and version, parameters, date, and hardware.
+All spike scripts live in `spike/`. They are throwaway, never imported by the app, and committed only for reproducibility. Each run records the provider, model and version, prompt text and version, parameters, date, hardware and usage units. Each measurement is run 3 times where timing matters; the median and maximum are reported.
 
-### M1: Transcription accuracy
-
-| | |
-|---|---|
-| **Metrics** | Word error rate (WER) **and** character error rate (CER) against the reference transcript. **Critical-token error rate**: % of the script's numbers, units and glossary terms transcribed wrongly. **Boundary error**: mean absolute difference (ms) between ASR segment start/end and the hand-marked boundaries. **Real-time factor**: processing time ÷ audio duration. |
-| **Method** | Normalisation rules are fixed *before* scoring (case, punctuation, numerals written as digits vs. words). Scored with a standard library (e.g. `jiwer`; verify). Each candidate is run 3 times and the median reported for timing. CER is reported alongside WER because WER over-penalises agglutinative languages, where one word carries several morphemes. |
-| **Decides** | **ASR provider ADR** (B1). The boundary error also informs scene segmentation (§6.7). |
-
-### M2: Translation quality
+### M1: Transcription accuracy → decides **ADR 0017**
 
 | | |
 |---|---|
-| **Input** | The **reference transcript**, so ASR errors don't contaminate the comparison. Optionally also the best M1 output, to see end-to-end effects. |
-| **Systems** | T0, T1, T2 |
-| **Automatic metrics** | chrF against the reference translation (e.g. via `sacreBLEU`; verify). A learned metric (e.g. COMET) **only if** its model documents support for `{TARGET_LANG}`; otherwise omitted and the omission noted. |
-| **Human metrics** | For each segment, the bilingual rater(s) label errors with MQM-style categories (accuracy, fluency, terminology, style, locale) and severity (critical / major / minor), **blind to which system produced it** (randomised order). Then a blind pairwise preference: T2 vs. T0, T2 vs. T1. |
-| **Rule checks** | Run a throwaway prototype of the hard checks (numbers, units, glossary terms; ADR 0008) on every output. Report the pass rate per system and the checks' precision and recall against the rater's labels. |
-| **AI flags** | Run the meaning-reversal flagger on the seeded-error set and on the clean outputs. Report **recall** on seeded reversals and the **false-flag rate** on clean segments. |
-| **Cost and latency** | Tokens or characters, and wall-clock time, per system (feeds M5 and M6). |
-| **Caveat** | About 20–30 segments and one or two raters. **Directional only.** If T2 doesn't beat T0 here, that is recorded honestly but doesn't end context-awareness; the S4 ablation on 3–5 clips decides. |
-| **Decides** | **Translation method and provider ADR** (B1), **MeaningCheckProvider** choice, and the realistic limits of the ADR 0008 checks for this language. |
+| **Metrics** | **WER** against the reference transcript (normalisation fixed in advance: lowercase, strip punctuation, numbers normalised to digits); **critical-token error rate** (% of the script's numbers, units and glossary terms transcribed wrongly); **boundary error** (mean absolute ms between ASR segment boundaries and the hand-marked ones); **real-time factor**. |
+| **Method** | A1 and A2 on the same audio (mono, 16 kHz). Scored with a standard WER library (e.g. `jiwer`). |
 
-### M3: Speech synthesis quality
+### M2: Translation quality, rated by R1 and R2 → decides **ADR 0016** (and the AI-flag design in ADR 0008)
 
 | | |
 |---|---|
-| **Input** | The **same fixed target text** for every system (the reference translation), so differences come only from the TTS. |
-| **Systems** | V0, V1, V2 |
-| **Intelligibility** | ASR round-trip: transcribe the synthesised audio with the best `{TARGET_LANG}`-capable ASR and compute CER against the input text. The same ASR is used for every system so the comparison is fair. This measures the ASR too, so it is a relative measure only. |
-| **Critical-content pronunciation** | A bilingual listener checks every number, unit and glossary term: correct / wrong / unclear. |
-| **Naturalness** | Mean opinion score (1–5) from available listeners. Report *n*. With a small *n* this is indicative only. |
-| **Speaker similarity (objective)** | Cosine similarity between speaker-verification embeddings (e.g. an ECAPA-TDNN model; verify) of the original speaker and the synthesised voice. **V0 (stock voice) serves as the control.** Cross-language similarity is naturally lower, so only the comparison with the control is meaningful. |
-| **Speaker similarity (subjective)** | Listeners who know the speaker answer "same person?" on a 1–5 scale. |
-| **Decides** | **Identity definition ADR** (B1): is `CLONED_VOICE` viable in `{TARGET_LANG}` for the MVP? Also the **speech synthesis and voice-profile provider ADR** (B1). |
+| **Input** | The **reference transcript**, so ASR errors don't contaminate the comparison |
+| **Systems** | T0; T1 and T2 × 2 LLMs (5 outputs per segment) |
+| **Human rating (main)** | R1 and R2 **independently** label every output segment, blind to the system (shuffled order, IDs hidden). They use MQM-style categories (accuracy, fluency, terminology, style, locale) and severities (critical / major / minor). Score = weighted error points per 100 source words (minor 1, major 5, critical 10). |
+| **Pairwise preference** | For each segment, R1 and R2 independently choose the better of T2 vs. T0 and T2 vs. T1, or "equal". |
+| **Calibration** | R1 and R2 rate 5 practice segments together beforehand (not counted) using a short written guideline. |
+| **Agreement between the 2 raters** | Cohen's κ on the per-segment binary label "has a major or critical error"; weighted κ on the highest severity; κ on the pairwise choices; plus raw % agreement. Reported **before** discussing disagreements. Then R1 and R2 discuss each disagreement and the agreed label is used for the decision. |
+| **Automatic (supporting only)** | chrF against R1's reference (e.g. `sacreBLEU`). A learned metric (e.g. COMET) only if its model documentation covers Tamil [UNVERIFIED]; otherwise left out and noted. |
+| **Caveat** | About 30 segments and 2 raters: **directional only**. |
 
-### M4: Timing fit
-
-| | |
-|---|---|
-| **Metric** | For each segment, synthesised duration ÷ source slot duration. Report the distribution and the % of segments within ±15% (the ±15% band is an **assumed working threshold**, to be revisited). |
-| **Method** | Compare T1/T2 output without vs. with the length constraint in the prompt, synthesised with V0 at normal speed and at the provider's bounded speed adjustment. |
-| **Decides** | Whether length-constrained translation plus speed adjustment is enough for the MVP, or whether isochrony needs more work (part of the translation ADR). This also sets the realistic TARGET for "timing fit" in `docs/EVALUATION.md`. |
-
-### M5: Latency
+### M3: Rule-check and AI-flag catch rate on seeded errors → validates **ADR 0008** for Tamil; feeds ADR 0016
 
 | | |
 |---|---|
-| **Metrics** | Wall-clock time per stage per minute of source audio. Real-time factor. **Longest single synthesis call** (per segment). |
-| **Method** | 3 runs each, median and max reported. First run (cold) reported separately. Hardware, network and date recorded. |
-| **Decides** | **Hosting / GPU ADR** (B2). Job sizing (ADR 0003). The **measured upper bound on how long revocation takes to stop a job** (ADR 0006 says it is bounded by the longest single provider call). |
+| **Method** | Run a throwaway prototype of the hard checks (Tamil digit, numeral and number-word normaliser; unit lexicon; glossary accepted forms) and both meaning-check configurations on the 20 seeded errors and the clean segments. |
+| **Metrics** | **Hard-check catch rate** on number, unit and term errors (counting `UNVERIFIABLE` as caught-for-review, reported separately); **hard-check false-alarm rate** on clean segments; **AI-flag catch rate** on the 10 reversal and omission errors; **AI-flag false-alarm rate**; whether the other-family checker beats the same-family one. |
+| **Decides** | The realistic scope of the Tamil normaliser and lexicon for S1, and which model runs the meaning-check |
 
-### M6: Cost per minute
-
-| | |
-|---|---|
-| **Metric** | Cost per minute of source video, per stage and in total, for each candidate combination. |
-| **Method** | Metered usage units from each provider (audio seconds, input/output tokens, characters) × the provider's published price **on the spike date**, with the price page URL and date recorded. For local models: hardware used and run time (no invented money figure). The cost of the AI-flag pass and of the context (T2's longer prompts) is shown separately. |
-| **Decides** | All B1 provider ADRs, and whether the MVP fits the Q4 budget. |
-
-### M7: Provider data handling (document review, not a measurement)
+### M4: Tamil TTS quality → decides **ADR 0018** and **ADR 0015** (is cloned voice viable?)
 
 | | |
 |---|---|
-| **Check** | Retention period, whether data is used for training (and whether you can opt out), data region, voice-deletion API and its documented behaviour, consent or attestation requirements for voice cloning |
-| **Decides** | Gates G2–G4, ADR 0005 provider eligibility, ADR 0006 provider-side deletion behaviour, and the consent form wording (Q6) |
+| **Input** | The **same fixed Tamil text** (R1's reference) for every system |
+| **Systems** | V0a, V0b, V1, V2 |
+| **Naturalness** | R1 and R2 (plus any other Tamil-speaking listeners; report *n*) rate each system 1–5, blind to the system. With a small *n* this is indicative only. |
+| **Critical-content pronunciation** | R1 and R2 mark each number, unit and glossary term: correct / wrong / unclear. Digits are tested both as digits and as words, which decides whether ADR 0008's separate speech script is needed. |
+| **Intelligibility** | ASR round-trip: transcribe the synthesised Tamil with one fixed Tamil-capable ASR (e.g. Saaras v4) and compute the character error rate against the input. **The same ASR is used for every system**, so this is a relative measure only. |
+| **Speaker similarity (cloning only)** | Objective: cosine similarity of speaker-verification embeddings (e.g. a publicly available ECAPA-TDNN model running on CPU [UNVERIFIED that it runs acceptably on our laptop]), original vs. synthesised, with **V0 as the control**. Subjective: listeners who know the speaker answer "same person?" 1–5. |
+
+### M5: Timing fit → feeds ADRs 0016 and 0018
+
+| | |
+|---|---|
+| **Metric** | Synthesised duration ÷ source slot duration, per segment. Reported as a distribution and as the % of segments within ±15% (an **assumed working threshold**, to be revisited). |
+| **Method** | T2 output **without vs. with** the length constraint in the prompt, synthesised by the best stock voice at 1.0× and with bounded pace adjustment (at most ±15%). |
+
+### M6: Latency → feeds ADR 0003 (job sizing) and ADR 0006 (time-to-stop bound); demo planning (ADR 0012)
+
+| | |
+|---|---|
+| **Metrics** | Wall-clock time per stage per minute of source; **longest single synthesis call** (this is the upper bound on how long revocation takes to stop a job); total time to synthesise a 30-segment scene **including rate-limit waits** (especially Sarvam cloning at 10 requests/min). |
+| **Method** | 3 runs; median and max; first (cold) call reported separately; network and date recorded. |
+
+### M7: Cost per video minute → decides ADRs 0016–0018 and MVP budget feasibility
+
+| | |
+|---|---|
+| **Metric** | ₹ per minute of source video, per stage and in total, for each candidate combination. Regeneration overhead is reported separately. |
+| **Method** | Metered units from each provider's usage dashboard or API (audio seconds, tokens, characters, credits) × the price on the spike date (price-page URL and date recorded) × ₹100/USD (a conservative planning rate; the observed rate was about ₹96.3 on 2026-10-04). Compared with the estimates in §7. |
+
+### M8: Provider data handling (document check, not a measurement) → gates G2–G4
+
+Confirm in writing or in account settings:
+- training opt-out status (Sarvam: resolve the conflict; ElevenLabs: toggle; Gemini: paid tier; Groq: ZDR);
+- retention periods;
+- that the delete-voice API works: create a voice, delete it, then confirm that listing voices no longer shows it.
 
 ## 5. Decision rules (fixed before seeing results)
 
-These rules are written now so that the results can't be fitted to a preferred answer afterwards.
+These rules are written now, before any results exist, so that the results can't be fitted to a preferred answer afterwards.
 
-1. **Gates before quality.** A candidate that fails G1–G5 is excluded, however good it is.
-2. **ASR:** choose the lowest critical-token error rate. If within 2 percentage points, choose the lower CER. If still tied, prefer local (privacy), then lower cost.
-3. **Translation:** choose the system with the fewest critical and major MQM errors. Ties are broken by rule-check pass rate, then cost. If T2 is not better than T0, the MVP still implements the T2 design behind the interface (it is needed for the rationale and the audience profile), and the S4 ablation decides whether the claim holds. The result is reported either way.
-4. **Identity (`CLONED_VOICE`):** adopt for the MVP only if a cloning candidate passes G1–G5 **and** its intelligibility and critical-content pronunciation are no worse than V0 by more than a small agreed margin (set with you before the spike) **and** its speaker similarity is above the V0 control. **Otherwise** the MVP uses `STOCK_VOICE` only, consent governance is still built and demonstrated (ADR 0006), and the identity claim is narrowed. That outcome is **escalated to you** before the ADR is written.
-5. **Budget:** if the cheapest acceptable combination exceeds the Q4 budget for the planned demo volume, escalate to you before choosing.
+1. **Gates first.** Any failure of G1–G5 excludes the candidate.
+2. **ASR (ADR 0017):** lowest critical-token error rate. If within 2 percentage points, lower WER. If still tied, cheaper, then the clearer no-training terms.
+3. **Translation (ADR 0016):** fewest weighted MQM points (agreed labels). Ties are broken by hard-check pass rate, then cost. If T2 does not beat T0, the result is recorded honestly. T2 is still built (it carries the rationale and audience profile), and the S4 ablation decides the claim.
+4. **Cloned voice (ADR 0015 / 0018):** `CLONED_VOICE` enters the MVP only if a cloning candidate passes G1–G5 **and**:
+   - its critical-content pronunciation errors are no more than the best stock voice's **plus 1**;
+   - its naturalness median is at least 3/5;
+   - its objective similarity is above the V0 control;
+   - its subjective "same person?" median is at least 3/5.
+
+   These thresholds are [PROPOSED]; confirm or change them before the spike. Otherwise the MVP ships `STOCK_VOICE` only, and you are told before ADR 0015 is finalised.
+5. **Stock voice (ADR 0018):** fewest critical-content pronunciation errors, then naturalness, then cost.
+6. **Meaning-check:** the configuration with the highest AI-flag catch rate, provided its false-alarm rate is ≤ 30% [PROPOSED].
+7. **Budget:** if the cheapest acceptable combination is projected to exceed ₹1,800/month at the planned development volume (§7), escalate to you.
 
 ## 6. Outputs
 
-- `docs/EVALUATION.md` (created at this point): each metric with its definition, TARGET (set after the spike), **MEASURED RESULT** (spike value, labelled "spike, 1 clip, n = …"), and method.
-- A short spike results section listing excluded candidates and why, measured values per candidate, and the decision each rule produced.
-- Group B1 ADR drafts, citing the measured values, for your approval.
-- `spike/` scripts, for reproducibility. No media and no raw transcripts are committed.
+- `docs/EVALUATION.md` (created at this point): metric, definition, TARGET (set from the spike), **MEASURED RESULT** (labelled "spike, 1 clip, n = …"), and method.
+- A spike results section: excluded candidates with reasons, measured values, and the outcome of each decision rule.
+- Updated ADRs 0015–0018 (from "Pending spike results" to "Proposed"), citing the measured values, for your approval.
+- `spike/` scripts. No media and no raw transcripts are committed.
 
-## 7. Proposed time box and risks
+## 7. Cost estimate
 
-**Time box:** about 5 working days for one person [PROPOSED]. To be adjusted once team size is known (Q2).
+**ESTIMATE only: assumptions, not measurements.** Planning rate: ₹100/USD (conservative).
+
+Assumptions:
+- 2-minute clip; about 1,800 English characters; about **3,500 Tamil characters** of output (assumed and deliberately generous, because Tamil script uses more characters; measured in M7); 30 segments.
+- LLM token use per model:
+  - T2: about 2,000 input + 400 output tokens per segment;
+  - T1: about 600 input + 400 output;
+  - meaning-check: about 800 input + 150 output per check, over about 100 checks;
+  - all × 3 runs, giving about **474K input and 117K output tokens**;
+  - **+30%** for the newer Claude tokenizer, and **+50% overall margin** on all LLM costs.
+- TTS: 5 passes of 3,500 characters per system, about **17,500 characters per system**.
+
+| Item | Calculation | Estimate |
+|---|---|---|
+| ASR: Groq (6 min audio) | free tier | ₹0 |
+| ASR: Sarvam Saaras (6 min) | 0.1 h × ₹30 | ₹3 |
+| T0 Google NMT (5.4K chars) | free tier | ₹0 |
+| Optional Sarvam Mayura (5.4K chars) | × ₹0.005 | ₹27 |
+| Gemini 3.8 Flash paid | 0.474M × $0.75 + 0.117M × $3.75 ≈ $0.80 | ₹80 |
+| Claude Sonnet 5.5 | (0.474M × $2 + 0.117M × $10) × 1.3 ≈ $2.76 | ₹276 |
+| LLM margin (+50% of the two lines above) | | ₹178 |
+| Stock TTS: Google Chirp 3 HD | 17.5K ≪ 1M free | ₹0 |
+| Stock TTS: Sarvam Bulbul v3 | 17.5K × ₹3/1K | ₹53 |
+| Cloning: Sarvam | 17.5K × ₹3/1K (price [UNVERIFIED]) | ₹53 |
+| Cloning: ElevenLabs Starter, 1 month | $6 (conservative; covers 30K credits) | ₹600 |
+| **Subtotal** | | **₹1,270** |
+| Sarvam signup credits | | −₹100 |
+| **Estimated spike total** | | **≈ ₹1,170** |
+| **Hard cap** | | **₹1,500** |
+
+The estimate is below the ₹1,500 cap, which is below the ₹2,000/month budget. **The cap is enforced by checking the provider dashboards after each stage**; the in-app cap (ADR 0005) doesn't exist yet.
+
+**Not included:** Google Cloud and Gemini paid usage need a billing account. Whether free-tier credits apply automatically is [UNVERIFIED].
+
+**Monthly running cost after the spike (estimate for planning, to be replaced by M7):** per minute of video, transcription ≈ ₹0.2, LLM translation and checking ≈ ₹8 (Gemini) to ₹25 (Claude), Tamil cloned speech ≈ ₹5 (Sarvam). That is roughly **₹15–30 per video minute** before regenerations; assuming two regenerations per minute on average, about ₹45–90. Within ₹1,800/month, that allows roughly **20–120 video minutes per month** of development and demo processing, which is enough for a 3–5 clip test set. If ElevenLabs is chosen, its $6 subscription is a fixed monthly cost on top.
+
+## 8. Time box and risks
+
+**Time box:** 5 working days, split across 2 people [PROPOSED]. One person prepares the material and runs ASR/TTS; the other runs translation and the checks. R1 and R2 need about 3–4 hours each for rating.
 
 | Risk | Mitigation |
 |---|---|
-| No candidate supports `{TARGET_LANG}` well enough | Rule 4 fallback (stock voice); escalate. This may justify changing the language pair. |
-| No bilingual rater available | Automatic metrics only, clearly labelled. Human evaluation is moved to S4, with the raters sourced by then. |
-| Provider terms forbid our use or retain voices | Excluded at gate G2/G4 |
-| Spending overrun | Hard cap `{SPIKE_BUDGET}`; usage checked after each stage |
-| One clip is not representative | Stated in every result; the full evaluation uses 3–5 clips |
+| The training opt-out for Sarvam can't be confirmed | Sarvam fails G2; ElevenLabs/Google become the candidates. |
+| No cloning candidate meets rule 4 for Tamil | Stock voice in the MVP; the identity claim is narrowed; escalate. |
+| Prices differ at purchase time (e.g. ElevenLabs Starter $1 vs. $6) | The estimate uses the higher figure; the cap still holds. |
+| Gemini price doubles on 2027-01-01 (inside the 5-month window) | The cost-per-minute projection in M7 uses the 2027 price. |
+| Rater fatigue or disagreement | Calibration round, short guideline, κ reported honestly. |
+| One clip is not representative | Stated in every result; the full evaluation uses 3–5 clips. |

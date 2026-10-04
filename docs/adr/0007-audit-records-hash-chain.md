@@ -1,11 +1,11 @@
 # ADR 0007: Append-only, hash-chained audit records
 
-**Status:** Proposed (2026-10-04). Not yet approved.
+**Status:** Proposed (2026-10-04; revised 2026-10-05 after the ADR review). Not yet approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.10; CLAUDE.md §5
 
 ## Context
 
-Every consent grant and revocation, approval, regeneration and export must produce an audit record (who, what, when, which project or scene, which consent version). Use case 9 (Inspect Quality, Audit and Evidence) requires auditors to inspect this history, and exports should carry evidence. The design must not overclaim its security properties.
+Every consent grant and revocation, approval, regeneration and export must produce an audit record (who, what, when, which project or scene, which consent version). Use case 9 (Inspect Quality, Audit and Evidence) requires auditors to inspect this history, and exports should carry evidence. The design must not overclaim its security properties. The team has little DevOps experience (Q2), so the hardening must not depend on complex database administration.
 
 ## Options Considered
 
@@ -17,31 +17,49 @@ Every consent grant and revocation, approval, regeneration and export must produ
 
 ## Decision
 
-- An `AuditRecord` table: `seq`, actor, action, entity type and id, project, scene, consent version, timestamp, details (JSON; **identifiers and hashes only, never raw transcripts or audio**), `prev_hash`, `hash` = SHA-256(canonical record ‖ `prev_hash`).
-- Each record is written **in the same transaction** as the action it describes, only through the `audit` module.
-- The application's database role has `INSERT` and `SELECT` only. A trigger rejects `UPDATE` and `DELETE`.
-- Appends are serialised by locking the chain head, so the chain stays linear.
-- A verifier recomputes the chain and reports the first mismatch.
-- **Every export's evidence manifest includes the latest chain head** (`seq`, `hash`, `timestamp`) at export time. The following `EXPORT_CREATED` record stores the manifest's SHA-256.
+**Record.** An `AuditRecord` table in the `audit` app: `seq`, actor, action, entity type and id, project, scene, consent version, timestamp (UTC), details (JSON; **identifiers and hashes only, never raw transcripts or audio**), `prev_hash`, `hash`.
+
+**Canonical hashing** *(added in the review; without it, verification would fail on formatting differences):*
+- `hash = SHA-256(prev_hash + canonical_json(record))`.
+- `canonical_json` means sorted keys, UTF-8, no whitespace, timestamps as ISO-8601 UTC strings with microseconds, and no floats (decimals as strings).
+
+**Writing.**
+- Records are written only through `audit.services.record(...)`, **inside the same transaction** as the action they describe.
+- Appends are serialised by `select_for_update()` on a single `AuditChainHead` row, so the chain stays linear.
+
+**Append-only.** A PostgreSQL trigger, created in a Django migration, rejects `UPDATE` and `DELETE` on the table. *(Changed in the review: a separate restricted database role is now **optional hardening**, not part of the MVP, because it adds database administration the team hasn't done before. The threat model below reflects this.)*
+
+**Verification.** `python manage.py verify_audit_chain` recomputes the chain and reports the first mismatch. The Auditor screen (UC9) shows the last verification result and time.
+
+**Chain head in every export.**
+- Inside the export transaction, the evidence manifest records the latest chain head (`seq`, `hash`, `timestamp`).
+- The `EXPORT_CREATED` audit record that follows stores the manifest's SHA-256.
+- Every export that leaves the system therefore carries a copy of the head, and later the verifier can show the history up to that point is unchanged.
 
 ### Threat model
 
-The hash chain is **tamper-evident, not tamper-resistant**, against anyone with database access.
+The hash chain is **tamper-evident, not tamper-resistant**, against anyone with database access. It can reveal some kinds of tampering. It cannot prevent any of them.
 
 | Threat | Prevented? | Detected? |
 |---|---|---|
-| App user modifies records through the UI or API | Yes (no endpoint; no DB privilege) | — |
+| App user modifies records through the UI or API | Yes (no such endpoint exists) | — |
 | Application bug skips a record | No | By audit-completeness tests, not by the chain |
-| DB-level edit or delete without recomputing later hashes | No | Yes (verifier) |
-| DB-level edit **with** a full chain recompute | No | Only for records before a chain head copied out earlier (e.g. in an export). Otherwise no. |
-| Forged records appended by anyone with INSERT | No | No (unkeyed hash) |
+| Someone with DB access runs `UPDATE`/`DELETE` while the trigger is active | Blocked by the trigger, but anyone who owns the table can disable the trigger | — |
+| DB-level edit or delete (trigger disabled) without recomputing later hashes | No | Yes, by the verifier |
+| DB-level edit **with** a full chain recompute | No | Only for records older than a chain head copied out earlier (e.g. inside an export). Otherwise no. |
+| Forged records appended by anyone who can insert | No | No (the hash uses no secret key) |
 | Tail truncation or backup rollback | No | Only against a later chain head held outside the database |
 | Root access to the server | No | No guarantee |
 
-Possible future strengthening, each needing its own ADR: keyed hashes (HMAC, key outside the database), periodic external anchoring of the chain head, digital signatures. None of these is part of this decision.
+Possible future strengthening, each needing its own ADR and none part of this decision:
+- a restricted database role for the app;
+- keyed hashes (HMAC, with the key outside the database);
+- publishing the chain head externally at intervals;
+- digital signatures.
 
 ## Consequences
 
-- **+** Complete, transactional history, with detection of naive tampering and a checkable link to every export.
-- **−** Not tamper-resistant. The viva and docs must describe it exactly as in the threat model above.
+- **+** Complete, transactional history; naive tampering is detected; every export carries a checkable link to the history.
+- **−** It does not resist tampering. The docs, UI and viva must describe it exactly as in the threat model.
 - **−** Serialised appends limit throughput. Acceptable at demo scale.
+- **Viva in 2 minutes:** "Each audit record includes the hash of the one before it, so editing an old record breaks the chain and the verifier finds it. Someone with database access could rebuild the whole chain, which is why every export carries a copy of the latest hash. We call this tamper-evident, and we don't claim more."
