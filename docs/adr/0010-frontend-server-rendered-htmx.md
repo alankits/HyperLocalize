@@ -1,6 +1,6 @@
 # ADR 0010: Frontend: server-rendered Django templates + HTMX, with one small review-player script
 
-**Status:** Proposed (2026-10-05). Not yet approved. **This changes the Phase 0 recommendation (React + TypeScript), because of the Q2 answer.**
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05. **This changes the Phase 0 recommendation (React + TypeScript), because of the Q2 answer.**
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.3; Q2 answer
 
 ## Context

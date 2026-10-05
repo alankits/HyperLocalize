@@ -1,6 +1,6 @@
 # ADR 0006: Consent gate, checks at each stage boundary, revocation cascade
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, and **independent review, which found a critical locking flaw, now fixed**). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, and **independent review, which found a critical locking flaw, now fixed**.
 **Source:** `docs/PHASE0_DISCOVERY.md` §3.4; CLAUDE.md §5; ADRs 0003, 0005, 0014, 0019
 
 ## Context

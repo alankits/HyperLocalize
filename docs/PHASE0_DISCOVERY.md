@@ -671,7 +671,7 @@ Nothing is [IMPLEMENTED NOVELTY] yet, because nothing is implemented.
 > - **Q7:** 2 bilingual raters.
 > - **Q8:** academic project with a live demo and viva.
 >
-> Q9 is covered by the Q2 answer. **Q10–Q18 are still open.** ADRs 0004, 0011, 0012, 0013 and 0014 contain *proposed defaults* for them, marked as such.
+> Q9 is covered by the Q2 answer. **Q10–Q18 were answered on 2026-10-05: the proposed defaults were accepted.** The answers are recorded in ADRs 0004 (Q15 retention, Q16 limits), 0011 (Q10, Q12, Q13), 0012 (Q18), 0013 (Q11), 0014 (Q14) and SPIKE_PLAN §2 (Q17).
 
 | # | Question | Why it matters |
 |---|---|---|

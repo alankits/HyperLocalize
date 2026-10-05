@@ -1,6 +1,6 @@
 # ADR 0001: Modular monolith with a separate worker process
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05 after the ADR review). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05 after the ADR review.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.1
 
 ## Context

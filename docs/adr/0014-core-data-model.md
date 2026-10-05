@@ -1,11 +1,11 @@
 # ADR 0014: Core data model (UML-ready)
 
-**Status:** Proposed (2026-10-05; revised the same day after independent review). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05; revised the same day after independent review.
 **Source:** `docs/PHASE0_DISCOVERY.md` §7; ADRs 0003, 0005–0008, 0011, 0013
 
 ## Context
 
-The core entities are listed in CLAUDE.md §9 (Project, Video, Scene, Localization, Consent, Review, Approval, Export, AuditRecord). There is no UML yet (Q1); class diagrams will be drawn **from** this model, so names, relationships and multiplicities must be explicit. The MVP uses one language pair, English → Tamil (Q3), and **one target locale per project** (Q14, proposed default).
+The core entities are listed in CLAUDE.md §9 (Project, Video, Scene, Localization, Consent, Review, Approval, Export, AuditRecord). There is no UML yet (Q1); class diagrams will be drawn **from** this model, so names, relationships and multiplicities must be explicit. The MVP uses one language pair, English → Tamil (Q3), and **one target locale per project** (Q14, confirmed 2026-10-05).
 
 ## Options Considered
 

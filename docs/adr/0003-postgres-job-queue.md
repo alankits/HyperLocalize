@@ -1,6 +1,6 @@
 # ADR 0003: Postgres-backed job queue with explicit job states
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, independent review). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, independent review.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.5
 
 ## Context

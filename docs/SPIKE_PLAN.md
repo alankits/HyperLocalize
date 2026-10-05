@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-10-05 (revision 4: independent-review fixes) |
-| **Status** | PLAN ONLY. **Not run.** Needs your approval. |
+| **Status** | **Approved 2026-10-05** (plan and §5 thresholds). **Not run**: waiting on prerequisites P3–P6 and P8. |
 | **Purpose** | Produce measured evidence to decide ADRs 0015–0019 ("Pending spike results"), to check ADR 0008's limits for Tamil, and to choose the demo plan (§6) |
 | **Language pair** | English (`en`) → Tamil (`ta-IN`) |
 | **Budget** | **₹0.** Free tiers and open-source models only; no billing-enabled accounts (ADR 0005) |
@@ -25,12 +25,12 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 | P4 | Kaggle account with **phone verification** (needed only if rule 6 calls for Kaggle; start early anyway) | To do |
 | P5 | Gemini API key from AI Studio on a project **with no Cloud Billing**; Groq free account with **Zero Data Retention on** | To do |
 | P6 | Signed consent (`docs/spike/CONSENT_FORM.md`) from each recorded team member: `voice_synthesis`; `remote_voice_processing` (Kaggle); `external_transcription` (Groq, needed only for slot A2); disclosure that the **Gemini free tier receives script text** (may be used for training and seen by human reviewers). **At least 2 speakers** are needed for the M4 similarity control. | To do |
-| P7 | Your approval of this plan and the decision thresholds (§5) | **Waiting** |
+| P7 | Your approval of this plan and the decision thresholds (§5) | Done (2026-10-05) |
 | P8 | **Demo laptop specs:** CPU model and cores, RAM, OS, and the Docker memory limit | **Waiting on you** |
 
 ## 2. Test material
 
-- A **90–120 s** health-information clip (proposed topic: safe use of oral rehydration salts [PROPOSED]), scripted to contain at least 10 numbers, 5 units, 5 glossary terms, 5 negated instructions and 2 idioms.
+- A **90–120 s** health-information clip (topic: safe use of oral rehydration salts [CONFIRMED, Q17]; script: `docs/spike/TEST_SCRIPT.md`), scripted to contain at least 10 numbers, 5 units, 5 glossary terms, 5 negated instructions and 2 idioms.
 - A reference transcript and hand-marked segment boundaries.
 - **R1's reference translation**, written before any system output is seen, and checked by R2. Known bias: R1 also rates, and may favour outputs that resemble their own reference. This is stated; chrF is supporting evidence only.
 - A glossary with accepted inflected Tamil forms, and a Tamil unit lexicon (from R1/R2).
@@ -141,7 +141,7 @@ These rules are written now, before any results exist, so that the results can't
 1. **Gates first.** Any failure of G1–G5 excludes the candidate.
 2. **ASR (ADR 0017):** faster-whisper stays the primary unless it makes **at least 2 more critical-token errors** than Groq on the clip. In that case, **escalate to you**, because using Groq means source audio leaves the laptop (with consent). Between faster-whisper `small` and `medium`: the smaller one, unless the larger makes at least 2 fewer critical-token errors.
 3. **Translation (ADR 0016):** fewest weighted MQM points (agreed labels). A difference of **≤ 5 points per 100 words** (about one major error) is a **tie**. Ties are broken by data terms (no-training preferred), then hard-check pass rate. If T2 doesn't beat T0, the result is recorded honestly; T2 is still built, and the S4 ablation decides the claim.
-4. **Cloned voice in the MVP (ADR 0015):** IndicF5 qualifies only if all of these hold [PROPOSED; confirm before the spike]:
+4. **Cloned voice in the MVP (ADR 0015):** IndicF5 qualifies only if all of these hold [CONFIRMED 2026-10-05]:
    - critical-content pronunciation errors ≤ the best stock voice's **+ 1**;
    - pooled naturalness median ≥ 3/5;
    - speaker A's clone is **more similar to A than speaker B's clone is**;
@@ -149,13 +149,13 @@ These rules are written now, before any results exist, so that the results can't
 
    The better of the English or Tamil reference is used. Otherwise the MVP uses stock voice only, and you are told first.
 
-   **If Speaker B declines the permissions the comparison needs** (consent form 3.1, 3.5, 3.6), recruit another matched speaker. If none is available, the third condition counts as **not met** [PROPOSED].
+   **If Speaker B declines the permissions the comparison needs** (consent form 3.1, 3.5, 3.6), recruit another matched speaker. If none is available, the third condition counts as **not met** [CONFIRMED].
 5. **Stock voice (ADR 0018):** fewest critical-content pronunciation errors, then naturalness, then CPU speed.
 6. **Runtime and demo plan:**
    - (a) **CPU is live-capable** if the median per-segment IndicF5 time is ≤ 20 s, a 3-segment scene takes ≤ 60 s, and peak RAM is ≤ 70% of the Docker memory limit.
    - (b) **Overnight CPU is sufficient** if the whole demo project's cloned segments render in ≤ 8 h.
-   - **Kaggle (ADR 0019) is adopted only if (a) fails AND (b) fails** [PROPOSED].
-7. **Meaning-check:** the configuration with the highest AI-flag catch rate, provided its false-alarm rate is ≤ 30% [PROPOSED].
+   - **Kaggle (ADR 0019) is adopted only if (a) fails AND (b) fails** [CONFIRMED].
+7. **Meaning-check:** the configuration with the highest AI-flag catch rate, provided its false-alarm rate is ≤ 30% [CONFIRMED].
 
 ## 6. Demo plan (authoritative; ADR 0012 references this section)
 

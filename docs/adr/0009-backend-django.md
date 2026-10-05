@@ -1,6 +1,6 @@
 # ADR 0009: Backend framework: Django
 
-**Status:** Proposed (2026-10-05). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.2; Q2 answer
 
 ## Context

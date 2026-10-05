@@ -1,6 +1,6 @@
 # ADR 0007: Append-only, hash-chained audit records
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05: ADR review, independent review). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, independent review.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.10; CLAUDE.md §5
 
 ## Context

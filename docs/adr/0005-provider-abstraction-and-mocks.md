@@ -1,6 +1,6 @@
 # ADR 0005: AI provider abstraction: free provider chains, mock providers, zero-spend policy
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05: ADR review, zero-budget Q4, independent review). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget Q4, independent review.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.7, CLAUDE.md §2 and §4, `docs/THIRD_PARTY_TERMS.md`
 
 ## Context

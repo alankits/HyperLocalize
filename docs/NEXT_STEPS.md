@@ -1,31 +1,26 @@
 # Next Steps
 
-**Updated:** 2026-10-05 · **Phase:** 0 (Discovery and Design) · **Branch:** `phase0/discovery-report`
+**Updated:** 2026-10-05 · **Phase:** 0 (Discovery and Design) · **Branch:** `master`
 
 ## Done
-- Phase 0 report (rev 4), ADRs 0001–0019, spike plan (rev 4), third-party terms, ADR self-review.
-- Independent critical review of all ADRs and the spike plan; every finding resolved (`docs/ADR_REVIEW.md`, final section).
-- Drafted spike consent form (`docs/spike/CONSENT_FORM.md`) and ORS test script (`docs/spike/TEST_SCRIPT.md`), both v1 drafts.
-- Operating mode added to CLAUDE.md §11; reviewer agent at `.claude/agents/critical-reviewer.md` (usable as `critical-reviewer` from the next session).
+- Phase 0 report (rev 4), ADRs 0001–0019, spike plan, third-party terms, ADR self-review and independent review.
+- **Approved 2026-10-05:** ADRs 0001–0014 (Accepted), spike plan and §5 thresholds, Q10–Q18 defaults, "Record Consent" use case.
+- Spike consent form and ORS test script drafted, independent review applied (`docs/spike/`).
 
 ## Waiting for user approval
-1. ADRs 0001–0014 (status Proposed). Changes to consent (0006), audit (0007) and the data model (0014) in this round especially need sign-off.
-2. Spike plan (`docs/SPIKE_PLAN.md`) and its [PROPOSED] thresholds in §5.
-3. Proposed defaults for Q10–Q18 and the included use case "Record Consent" (ADR 0013).
-4. Demo laptop specs (spike P8).
-5. Consent form v1 and test script v1 (`docs/spike/`). Fill in the form's placeholders: withdrawal contact, response time, expiry date.
+1. Consent form v1 (`docs/spike/CONSENT_FORM.md`), after its placeholders are filled in: withdrawal contact, N days, expiry, Part D end date, faculty guide.
+2. Test script v1 (`docs/spike/TEST_SCRIPT.md`), after the §4 health facts are checked and a timed read-through is done.
 
-## Waiting on user actions (accounts and people)
-- P3 Hugging Face gated access (IndicF5, IndicTrans2 dist-200M, Indic Parler-TTS); P4 Kaggle phone verification; P5 Gemini key (no billing) + Groq with ZDR.
-- Verify the TEST_SCRIPT §4 health facts against the WHO source.
-- R1 writes the Tamil reference-clip text; speakers A and B sign the consent form, then record.
+## Waiting on user actions
+- **P8:** demo laptop specs (CPU and cores, RAM, OS, Docker memory limit).
+- **P3:** Hugging Face gated access (IndicF5, IndicTrans2 En-Indic dist-200M, Indic Parler-TTS).
+- **P4:** Kaggle account with phone verification.
+- **P5:** Gemini key (project without billing); Groq account, and check whether Zero Data Retention can be enabled on the free plan (decides whether slot A2 runs).
+- **P6:** speakers A and B (matched gender and age) sign the consent form.
+- Two team members check TEST_SCRIPT §4 against WHO 2005 Plan A (with page numbers).
+- R1 writes the Tamil reference text and the Tamil digit and word versions of the 10 clone-input segments; R1 then writes the reference translation.
 
 ## Exact next action
-After approval:
-1. Set each approved ADR's status to "Accepted" and merge `phase0/discovery-report` into `master`.
-2. Complete spike prerequisites P3–P6, P8.
-3. Run the spike per `docs/SPIKE_PLAN.md`.
-4. Create `docs/EVALUATION.md` with measured results.
-5. Update ADRs 0015–0019.
-6. Phase 0 sign-off.
-7. Start slice S1.
+While the user works on the above, the assistant can write the throwaway spike code in `spike/` (local only, no external calls until P5 and P6 are done):
+the M1 WER and critical-token scorer, the ADR 0008 rule checks (frozen before R2 writes the seeded errors), the M5 timing script, and the M6 timing harness.
+Then: run the spike → `docs/EVALUATION.md` → update ADRs 0015–0019 → Phase 0 sign-off (with critical-reviewer) → slice S1.

@@ -1,6 +1,6 @@
 # ADR 0008: Critical-information verification: rule-based hard checks + AI flags
 
-**Status:** Proposed (2026-10-04; revised 2026-10-05: English → Tamil, ADR review, independent review, which scaled down the number parser). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: English → Tamil, ADR review, independent review, which scaled down the number parser.
 **Source:** `docs/PHASE0_DISCOVERY.md` §4.3, §9
 
 ## Context

@@ -1,7 +1,7 @@
 # HyperLocalize — Implementation Status
 
 **Current phase:** Phase 0: Discovery and Design. **No application code exists.**
-**Branch:** `phase0/discovery-report` (not merged to `master`).
+**Branch:** `master` (Phase 0 design merged 2026-10-05).
 **Resume a session from:** this file → `docs/NEXT_STEPS.md` → `docs/adr/README.md`.
 
 Status values: Implemented (tested) / Partial / Stubbed / Not started.
@@ -27,9 +27,9 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 | Document | State |
 |---|---|
 | `docs/PHASE0_DISCOVERY.md` | Draft, revision 4. Where it differs from an ADR, the ADR takes precedence. |
-| ADRs 0001–0014 | **Proposed**, waiting for approval |
+| ADRs 0001–0014 | **Accepted** (2026-10-05) |
 | ADRs 0015–0019 | **Pending spike results** |
-| `docs/SPIKE_PLAN.md` | Plan only, **not run**, waiting for approval |
+| `docs/SPIKE_PLAN.md` | **Approved** 2026-10-05; **not run** (waiting on P3–P6, P8) |
 | `docs/THIRD_PARTY_TERMS.md` | Reference; checked 2026-10-05 |
 | `docs/ADR_REVIEW.md` | Self-review and independent-review records (all findings resolved, 2026-10-05) |
 | `docs/spike/CONSENT_FORM.md` | Draft v1 (spike prerequisite P6), waiting for approval. Not reviewed by a lawyer or ethics committee. Independent review applied (`docs/ADR_REVIEW.md`). |
@@ -39,5 +39,6 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 ## Known issues
 
 - No measured results of any kind yet; every number in the docs is a TARGET or an ESTIMATE.
-- Open questions Q10–Q18 use the marked proposed defaults in the ADRs.
+- Q10–Q18 answered (defaults accepted 2026-10-05). Note: Q16 uses ADR 0004's 5 min / 500 MB, not the 3 min / 200 MB mentioned in chat.
+- Q1 (official UML/problem statement) is still unanswered; the data model and use cases may need to change if UML arrives.
 - The `critical-reviewer` agent type loads only in a new session; this session's independent review used a built-in read-only agent with the same brief.

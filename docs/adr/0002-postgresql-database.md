@@ -1,6 +1,6 @@
 # ADR 0002: PostgreSQL as the primary database
 
-**Status:** Proposed (2026-10-04; reviewed 2026-10-05, no change to the decision). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; reviewed 2026-10-05, no change to the decision.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.4
 
 ## Context

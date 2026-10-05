@@ -1,6 +1,6 @@
 # ADR 0012: Deployment: Docker Compose on a laptop, with a demo-resilience plan
 
-**Status:** Proposed (2026-10-05; revised 2026-10-05 for the zero-budget Q4 answer). Not yet approved. It includes a proposed default for Q18 (local laptop demo).
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05; revised 2026-10-05 for the zero-budget Q4 answer. The Q18 default (local laptop demo) was accepted with it.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.11; Q2, Q4, Q8 answers
 
 ## Context
@@ -20,7 +20,7 @@ Q4 (revised): **zero budget**, no local GPU, free tiers and open-source models o
 
 - **Docker Compose** with four services: `web` (Django), `worker-synthesis` and `worker-default` (`manage.py run_worker --lane …`, ADR 0003; the synthesis worker hosts the local inference subprocess), and `db` (PostgreSQL). Docker's memory limit must be set high enough for the largest local model; that limit is measured **inside this stack** in spike M6. Model weights are stored in a named volume, downloaded once with a Hugging Face token for the gated models; they are never committed to git. Media is in a named volume. Secrets come from a `.env` file, which is git-ignored, with a committed `.env.example`.
 - One-command start, documented in the README.
-- The demo runs on a team laptop **[PROPOSED default for Q18]**. A cloud VM is future scope.
+- The demo runs on a team laptop **[CONFIRMED, Q18]**. A cloud VM is future scope.
 - **Demo-resilience plan:**
   1. A `check_providers` management command checks reachability, API keys, remaining **free quotas** (including Kaggle GPU hours) and the local model cache before the demo.
   2. A completed "golden" project with all artefacts is prepared in advance, so review, approval, export, audit and evidence can be shown without calling any API.

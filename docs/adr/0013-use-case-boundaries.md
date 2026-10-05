@@ -1,6 +1,6 @@
 # ADR 0013: Use-case boundaries and actor responsibilities (UML-ready)
 
-**Status:** Proposed (2026-10-05). Not yet approved.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05.
 **Source:** `docs/context/02_actors_and_use_cases.md` [CONFIRMED names]; `docs/PHASE0_DISCOVERY.md` §2 (C4, C5, C10, C11)
 
 ## Context
@@ -32,7 +32,7 @@ Q1 (answered): there is no official UML, requirements document or rubric. UML di
 | UC8 Administer Users, Providers and Policies | Administrator | Users, provider configuration, policies (provider chain order, free-quota warnings, retention, cloning allowed, separation of duties) | — |
 | UC9 Inspect Quality, Audit and Evidence | Auditor / Faculty Evaluator | Read-only access to check results, reviews, approvals, audit chain verification, evidence manifests | — |
 
-**Consent grant [PROPOSED, needs your confirmation]:** model **"Record Consent"** as an *included* use case (Identity Owner as actor), used by UC1 when a speaker is linked to an identity, and as the counterpart of UC7. This doesn't add a top-level use case. It makes visible a step that already has to exist.
+**Consent grant [CONFIRMED 2026-10-05]:** model **"Record Consent"** as an *included* use case (Identity Owner as actor), used by UC1 when a speaker is linked to an identity, and as the counterpart of UC7. This doesn't add a top-level use case. It makes visible a step that already has to exist.
 
 **Actor naming:** the confirmed actor "Auditor / Faculty Evaluator" is kept as written. In the system it is the `AUDITOR` role (ADR 0011).
 
@@ -42,5 +42,5 @@ Q1 (answered): there is no official UML, requirements document or rubric. UML di
 
 - **+** UML use-case and activity diagrams can be drawn directly from this table.
 - **+** UC3 and UC4 have a clear answer: text vs. media.
-- **−** "Record Consent" is a proposal. If you reject it, consent grant must still be shown somewhere in the UML (e.g. as part of UC1).
+- **−** "Record Consent" adds one use case to the UML diagram (accepted 2026-10-05).
 - **Viva in 2 minutes:** "UC3 produces the Tamil script and checks it. UC4 turns the approved script into audio and video. Reviewers work per scene in UC5, and the Manager approves a frozen snapshot in UC6."

@@ -2,24 +2,24 @@
 
 Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `docs/SPIKE_PLAN.md`. Licences and data terms: `docs/THIRD_PARTY_TERMS.md`.
 
-## Group A: can be approved now
+## Group A: accepted 2026-10-05
 
 | ADR | Title | Status |
 |---|---|---|
-| [0001](0001-modular-monolith.md) | Modular monolith (9 Django apps) with one worker process | Proposed |
-| [0002](0002-postgresql-database.md) | PostgreSQL as the primary database | Proposed |
-| [0003](0003-postgres-job-queue.md) | Hand-written Postgres job queue with explicit job states | Proposed |
-| [0004](0004-media-storage-interface.md) | Media storage behind an interface, local filesystem for the MVP | Proposed |
-| [0005](0005-provider-abstraction-and-mocks.md) | AI provider abstraction: free provider chains, mock providers, zero-spend policy | Proposed |
-| [0006](0006-consent-gate-and-revocation.md) | Consent gate, checks at each stage boundary, revocation cascade | Proposed |
-| [0007](0007-audit-records-hash-chain.md) | Append-only, hash-chained audit records | Proposed |
-| [0008](0008-critical-information-verification.md) | Critical-information verification: rule-based hard checks + AI flags (Tamil-aware) | Proposed |
-| [0009](0009-backend-django.md) | Backend framework: Django | Proposed |
-| [0010](0010-frontend-server-rendered-htmx.md) | Frontend: server-rendered templates + HTMX | Proposed |
-| [0011](0011-auth-and-project-roles.md) | Authentication and authorisation: sessions + project-scoped roles | Proposed |
-| [0012](0012-deployment-and-demo-resilience.md) | Deployment: Docker Compose on a laptop, demo-resilience plan | Proposed |
-| [0013](0013-use-case-boundaries.md) | Use-case boundaries and actor responsibilities (UML-ready) | Proposed |
-| [0014](0014-core-data-model.md) | Core data model (UML-ready) | Proposed |
+| [0001](0001-modular-monolith.md) | Modular monolith (9 Django apps) with one worker process | **Accepted** (2026-10-05) |
+| [0002](0002-postgresql-database.md) | PostgreSQL as the primary database | **Accepted** (2026-10-05) |
+| [0003](0003-postgres-job-queue.md) | Hand-written Postgres job queue with explicit job states | **Accepted** (2026-10-05) |
+| [0004](0004-media-storage-interface.md) | Media storage behind an interface, local filesystem for the MVP | **Accepted** (2026-10-05) |
+| [0005](0005-provider-abstraction-and-mocks.md) | AI provider abstraction: free provider chains, mock providers, zero-spend policy | **Accepted** (2026-10-05) |
+| [0006](0006-consent-gate-and-revocation.md) | Consent gate, checks at each stage boundary, revocation cascade | **Accepted** (2026-10-05) |
+| [0007](0007-audit-records-hash-chain.md) | Append-only, hash-chained audit records | **Accepted** (2026-10-05) |
+| [0008](0008-critical-information-verification.md) | Critical-information verification: rule-based hard checks + AI flags (Tamil-aware) | **Accepted** (2026-10-05) |
+| [0009](0009-backend-django.md) | Backend framework: Django | **Accepted** (2026-10-05) |
+| [0010](0010-frontend-server-rendered-htmx.md) | Frontend: server-rendered templates + HTMX | **Accepted** (2026-10-05) |
+| [0011](0011-auth-and-project-roles.md) | Authentication and authorisation: sessions + project-scoped roles | **Accepted** (2026-10-05) |
+| [0012](0012-deployment-and-demo-resilience.md) | Deployment: Docker Compose on a laptop, demo-resilience plan | **Accepted** (2026-10-05) |
+| [0013](0013-use-case-boundaries.md) | Use-case boundaries and actor responsibilities (UML-ready) | **Accepted** (2026-10-05) |
+| [0014](0014-core-data-model.md) | Core data model (UML-ready) | **Accepted** (2026-10-05) |
 
 ## Group B: waiting for spike results
 
