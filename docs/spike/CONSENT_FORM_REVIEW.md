@@ -3,9 +3,9 @@
 **Reviewed:** `docs/spike/CONSENT_FORM.md` as of commit `e7bd1d5` (after the preparation-review fixes).
 **Reviewer:** the `critical-reviewer` agent (read-only, fresh context).
 **Verdict:** **Needs changes.** No major rework is needed, but the form is not ready to sign. The main problems are Part D, the scope of withdrawal, and how coercion is handled.
-**Status:** none of the fixes has been applied yet. Changes to consent need the user's approval (CLAUDE.md §11c).
+**Status:** the user approved all fixes, #1–16, on 2026-10-05, and they are **applied** in `CONSENT_FORM.md` (#14 in `SPIKE_PLAN.md` §2). Team-specific values were left as blanks, not filled in. The form is still a **draft** and is not approved.
 
-The assistant checked items 1, 2 and 14 against the files and found them accurate. The other items are the reviewer's reading and have not been re-checked yet.
+The assistant checked items 1, 2 and 14 against the files and found them accurate.
 
 ## Problems
 

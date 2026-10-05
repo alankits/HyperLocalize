@@ -35,7 +35,7 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 - A reference transcript and hand-marked segment boundaries.
 - **R1's reference translation**, written before any system output is seen, and checked by R2. Known bias: R1 also rates, and may favour outputs that resemble their own reference. This is stated; chrF is supporting evidence only.
 - A glossary with accepted inflected Tamil forms, and a Tamil unit lexicon (from R1/R2).
-- **IndicF5 reference clips:** each of the 2 consenting speakers records an English clip and a Tamil clip (10–15 s each, with exact transcripts).
+- **IndicF5 reference clips:** each of the 2 consenting speakers records an English clip and a Tamil clip (8–11 s each, with exact transcripts; matches `TEST_SCRIPT.md` §3 and the consent form, corrected 2026-10-05).
 - **Seeded-error set,** written by **R2 only after the check rules are frozen** *(changed after review, to avoid optimistic catch rates)*. Neither R2 nor R1 writes check code.
   - 20 errors that the rule checks should catch: wrong Western-digit number ×3, wrong Tamil-digit number ×2, number written as a Tamil word ×3 (expected `UNVERIFIABLE`), wrong or missing unit ×4, wrong glossary term ×4, plus 4 spare cases of R2's choosing.
   - 10 reversal or omission errors for the AI flags.
@@ -80,9 +80,9 @@ All scripts and notebooks live in `spike/` and `spike/kaggle/`. They are throwaw
 ### M2: Translation quality, rated by R1 and R2 → **ADR 0016**
 - **Input:** the reference transcript.
 - **Systems:** T0, T1-G, T2-G, T1-Q, T2-Q (**5 outputs** per segment).
-- **Human rating:** R1 and R2 rate independently and **blind** (shuffled, system hidden), using MQM-style categories and severities (minor 1, major 5, critical 10 points per 100 source words). Then a blind pairwise preference: T2 vs. T0 and T2 vs. T1 (for the better T2).
+- **Human rating:** R1 and R2 rate independently and **blind** (shuffled, system hidden), using MQM-style categories and severities (minor 1, major 5, critical 10 points per 100 source words). Then a blind pairwise preference: T2 vs. T0 and T2 vs. T1 (for the better T2). **T1 is the same provider's T1**, e.g. T2-G vs. T1-G; the better T2 is chosen by rule 3 applied to T2-G and T2-Q [CONFIRMED 2026-10-05].
 - **Calibration:** 5 practice segments, not counted.
-- **Agreement between the two raters:** report **raw % agreement and the prevalence** of the label alongside Cohen's κ, because κ is unstable when a label is rare. Labels: binary "has a major or critical error", the highest severity (weighted κ), and the pairwise choices. Agreement is reported **before** the raters discuss disagreements; the agreed labels after discussion are used for decisions.
+- **Agreement between the two raters:** report **raw % agreement and the prevalence** of the label alongside Cohen's κ, because κ is unstable when a label is rare. Labels: binary "has a major or critical error", the highest severity (**linear**-weighted κ [CONFIRMED 2026-10-05]), and the pairwise choices. Agreement is reported **before** the raters discuss disagreements; the agreed labels after discussion are used for decisions.
 - **Automatic (supporting only):** chrF against R1's reference. COMET only if its documentation covers Tamil [UNVERIFIED].
 - **Also recorded:** requests and tokens per video minute (for M7), latency, and **digit compliance** (the % of numbers the model wrote as digits, as instructed by ADR 0008).
 
@@ -141,7 +141,7 @@ These rules are written now, before any results exist, so that the results can't
 
 1. **Gates first.** Any failure of G1–G5 excludes the candidate.
 2. **ASR (ADR 0017):** faster-whisper stays the primary unless it makes **at least 2 more critical-token errors** than Groq on the clip. In that case, **escalate to you**, because using Groq means source audio leaves the laptop (with consent). Between faster-whisper `small` and `medium`: the smaller one, unless the larger makes at least 2 fewer critical-token errors.
-3. **Translation (ADR 0016):** fewest weighted MQM points (agreed labels). A difference of **≤ 5 points per 100 words** (about one major error) is a **tie**. Ties are broken by data terms (no-training preferred), then hard-check pass rate. If T2 doesn't beat T0, the result is recorded honestly; T2 is still built, and the S4 ablation decides the claim.
+3. **Translation (ADR 0016):** fewest weighted MQM points (agreed labels). A difference of **≤ 5 points per 100 words** (about one major error) is a **tie**: every system within 5 points of the best ties with it [CONFIRMED 2026-10-05]. Ties are broken by data terms (no-training preferred), then hard-check pass rate. If T2 doesn't beat T0, the result is recorded honestly; T2 is still built, and the S4 ablation decides the claim.
 4. **Cloned voice in the MVP (ADR 0015):** IndicF5 qualifies only if all of these hold [CONFIRMED 2026-10-05]:
    - critical-content pronunciation errors ≤ the best stock voice's **+ 1**;
    - pooled naturalness median ≥ 3/5;

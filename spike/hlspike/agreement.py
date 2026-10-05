@@ -30,8 +30,8 @@ def cohen_kappa(a: list, b: list) -> float | None:
 def linear_weighted_kappa(a: list[int], b: list[int], categories: int) -> float | None:
     """Weighted kappa for ordered labels 0..categories-1 with LINEAR weights:
     disagreeing by one step (minor vs major) costs less than by two.
-    Linear (not quadratic) weights were chosen by the assistant on 2026-10-05,
-    before any data existed; the plan only says "weighted kappa"."""
+    Linear (not quadratic) weights: approved by the user on 2026-10-05, before
+    any data existed (SPIKE_PLAN M2)."""
     _same_length(a, b)
     if not a:
         return None
