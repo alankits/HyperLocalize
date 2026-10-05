@@ -9,16 +9,16 @@
 - Spike tooling in `spike/` (standard library only). 51 unit tests pass on synthetic inputs; not run on real data.
 - Prerequisites: P4 done; P5 partly done; P8 partly done; P3 pending; P9 (Docker) added. Details in `SPIKE_PLAN.md` §1 and `STATUS.md`.
 
-## On hold (user, 2026-10-05)
-Fixes to `CONSENT_FORM.md` and `TEST_SCRIPT.md`, found in the preparation review. **Not applied:**
-- The media location conflict: both documents say "outside the git repository", but `spike/README.md` says `spike/work/`, which is inside the repo (git-ignored).
-- The "spike log" location and format are not defined anywhere.
-- No age (18+) confirmation in the signature block.
-- No field for the names of the "up to 4 named" listeners in consent 3.4.
-- Stale labels: the consent §4 heading says "Google Gemini" only; the script header says "Q17 proposed default"; consent 3.3 is worded as conditional on ZDR.
+## Applied 2026-10-05 (user said "do A")
+Preparation-review fixes to `CONSENT_FORM.md`, `TEST_SCRIPT.md`, `SPIKE_PLAN.md` §1–§3 and `spike/README.md`:
+- Media folder `~/hl-spike-media/` and spike log `~/hl-spike-media/spike-log.md` (append-only, timestamped, no raw content; format in `SPIKE_PLAN.md` §2). `spike/work/` is now for synthetic data only.
+- Docker memory limit 8 GB recorded in P8/P9.
+- Signature block: 18+ confirmation, fields for the 4 named listeners and for listeners who know the speaker.
+- Stale labels fixed: consent §4 heading names Gemini and Groq; script header says Q17 confirmed; consent 3.3 and slot A2 now say ZDR is on and the open check is speech-to-text coverage.
+- Both documents are still **drafts**, not approved.
 
 ## Waiting on user / team decisions and actions (in order)
-1. **Decisions:** the media folder path (outside the repo and outside cloud sync), the spike-log location, Speakers A and B (matched gender and age), the named listeners, and the **Docker memory limit (P9)**.
+1. **Decisions still open:** who Speakers A and B are (matched gender and age) and who the named listeners are. The reply on 2026-10-05 gave placeholders only. These names go on the **signed paper forms**, not in git; the repo uses only the pseudonyms. Also create `~/hl-spike-media/` (`mkdir -m 700`) and confirm no cloud-sync client covers it.
 2. **In parallel:**
    - **Faculty:** does an ethics process apply? Will they countersign? Fill in the consent blanks: withdrawal contact, N days, expiry, Part D end date, faculty guide.
    - **Facts:** two members check TEST_SCRIPT §4 independently against WHO 2005 Plan A, WHO/UNICEF 2004 and MoHFW, recording page numbers. Confirm the Indian ORS sachet size.
@@ -32,4 +32,4 @@ Fixes to `CONSENT_FORM.md` and `TEST_SCRIPT.md`, found in the preparation review
 9. **Spike runs:** need P3, P9 and the keys in `.env`.
 
 ## Exact next action
-Waiting on the user for the step 1 decisions. When asked, the assistant can apply the on-hold document fixes, or write the M2 MQM/chrF tally (no external calls). No code changes, merges or freezes until approved.
+Waiting on the user and team for steps 1–2. When asked, the assistant can write the M2 MQM/chrF tally (no external calls) or run a critical-reviewer pass on the revised consent form. No merges (user, 2026-10-05) and no freezes until approved.

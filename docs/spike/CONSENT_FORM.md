@@ -2,13 +2,13 @@
 
 | | |
 |---|---|
-| **Form ID / version** | `HL-SPIKE-CONSENT` v1 — **DRAFT, not yet approved** (revised after independent review, 2026-10-05) |
+| **Form ID / version** | `HL-SPIKE-CONSENT` v1 — **DRAFT, not yet approved** (revised after independent review and preparation-review fixes, 2026-10-05) |
 | **Implements** | Spike prerequisite P6 (`docs/SPIKE_PLAN.md` §1); consent uses from ADR 0006 §2 |
 | **Status of this form** | Written by the project team. **It has not been reviewed by a lawyer or an ethics committee.** If your institution has an ethics or data-protection process, follow it as well; it takes precedence over this form. |
 | **Who signs** | Each team member whose voice is recorded for the spike (at least 2 speakers: Speaker A and Speaker B). Speakers must be 18 or older. |
 | **Countersigned by** | The faculty guide (recommended; see §9). The speaker keeps a copy of the signed form. |
 
-One copy per speaker. Print, fill in, sign. Store the signed copy **outside git** (it contains personal data). Record only the form ID, version, speaker pseudonym and date in the spike log.
+One copy per speaker. Print, fill in, sign. Store the signed copy **outside git** (it contains personal data). Record only the form ID, version, speaker pseudonym and date in the spike log (`~/hl-spike-media/spike-log.md` on the team laptop: append-only, timestamped, no names and no recorded content).
 
 ---
 
@@ -38,8 +38,8 @@ One of the things we test is **voice cloning**: a computer model listens to a sh
 | 3.0 | **Recording and local processing** | You are recorded. The recordings are processed **on the team laptop only**: speech-to-text with a local model, hand-marking of segment boundaries, and listening by the two Tamil raters (R1, R2) to check transcripts. *Every other permission below needs this one.* | ☐ | ☐ |
 | 3.1 | **Voice synthesis** (`voice_synthesis`) | The IndicF5 model creates Tamil speech in your voice from your reference clips, **on the team laptop**. The clone only ever says **human-written, rater-checked Tamil text** listed in `TEST_SCRIPT.md` §6. Machine translations are **never** spoken in your voice. | ☐ | ☐ |
 | 3.2 | **Remote voice processing** (`remote_voice_processing`) | **Only if the laptop is too slow:** your reference clips, their transcripts and the Tamil text are uploaded to **Kaggle** (a Google-owned service) as a **private** dataset. The cloned Tamil audio is produced and temporarily stored on Kaggle, then downloaded. See §6 for what deletion on Kaggle does and does not guarantee. | ☐ | ☐ |
-| 3.3 | **External transcription** (`external_transcription`) *(Speaker A only)* | Your test-clip audio is sent to **Groq** (a US company) for speech-to-text, to compare against transcription on the laptop. Groq states it does not use inputs for training. **Your audio is sent only if Groq's Zero Data Retention setting can be turned on for our free account. If it cannot, your audio is not sent to Groq at all.** | ☐ | ☐ |
-| 3.4 | **Listening tests** | Your real voice and cloned voices are **played in person on the laptop** (no copies handed over) to: R1, R2, up to 4 other named Tamil-speaking listeners, and a few listeners **who know you**, who are asked whether the clone sounds like you. Listeners are asked not to record anything. | ☐ | ☐ |
+| 3.3 | **External transcription** (`external_transcription`) *(Speaker A only)* | Your test-clip audio is sent to **Groq** (a US company) for speech-to-text, to compare against transcription on the laptop. Groq states it does not use inputs for training. Groq's Zero Data Retention setting is turned on for our account. **Your audio is sent only after we have confirmed, with dated evidence, that this setting also covers Groq's speech-to-text service. If it does not, your audio is not sent to Groq at all.** | ☐ | ☐ |
+| 3.4 | **Listening tests** | Your real voice and cloned voices are **played in person on the laptop** (no copies handed over) to: R1, R2, up to 4 other Tamil-speaking listeners **named in §9**, and listeners **who know you, also named in §9**, who are asked whether the clone sounds like you. No one else listens. Listeners are asked not to record anything. | ☐ | ☐ |
 | 3.5 | **Voice comparison score** | A speaker-recognition model (ECAPA-TDNN) compares your real voice (the held-out clip) with cloned voices **on the laptop**. Only the resulting similarity **number** is kept; the voice "fingerprint" it computes is deleted straight after. **If the model cannot run on the laptop, this score is skipped; it is never moved elsewhere.** | ☐ | ☐ |
 | 3.6 | **Your clone as a comparison sample** | Your cloned voice is also compared with **another speaker's** real voice, by the model in 3.5 and by that speaker's listeners in 3.4. This is the "different person" check that shows whether cloning really copies a specific voice. | ☐ | ☐ |
 
@@ -52,7 +52,7 @@ One of the things we test is **voice cloning**: a computer model listens to a sh
 
 *3.4–3.6 are spike-only permissions. They are not consent `use` values in the HyperLocalize system (ADR 0006).*
 
-## 4. Disclosure: Google Gemini (no tick needed, please read)
+## 4. Disclosure: script text sent to Google Gemini and Groq (no tick needed, please read)
 
 The **written script text** (not your voice) is sent to **Google's Gemini API free tier** and to **Groq's hosted language models** for translation tests. Groq states it does not use inputs for training. Google's terms say free-tier content **may be used to improve Google's products and train its models, and may be read by human reviewers**. The script is written by the team and contains no personal information about you. **Your audio is never sent to Gemini.**
 
@@ -71,7 +71,7 @@ The **written script text** (not your voice) is sent to **Google's Gemini API fr
 
 | Item | Where it is kept | Deleted when |
 |---|---|---|
-| Your recordings and cloned audio | The team laptop only, in a folder outside the git repository and **not inside any cloud-synced folder** (OneDrive, Google Drive and so on). Accessible to the team. | At the end of the spike, and **no later than the expiry date in §8**, unless you agree to Part D |
+| Your recordings and cloned audio | The team laptop only, in the folder `~/hl-spike-media/`, which is outside the git repository and **not inside any cloud-synced folder** (OneDrive, Google Drive and so on). Accessible to the team. | At the end of the spike, and **no later than the expiry date in §8**, unless you agree to Part D |
 | A phone copy, if a phone was used to record | The phone, recorded in airplane mode with cloud backup off | Straight after transfer to the laptop by cable. The deletion is logged. |
 | Copies on Kaggle (only if 3.2 is YES) | Private Kaggle dataset and notebook output | We run Kaggle's delete commands straight after the results are downloaded, and on withdrawal. **Limits:** a job already running on Kaggle **cannot be stopped** and may finish. **Whether deleting removes its output is not yet verified.** We test this in the spike and will tell you the result. Output produced after you withdraw is **never imported**. What Kaggle keeps internally after deletion is outside our control. |
 | Copies at Groq (only if 3.3 is YES) | Groq servers | Sent only with Zero Data Retention on (see 3.3). What Groq keeps internally is outside our control. |
@@ -120,7 +120,10 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 |---|---|
 | Speaker name | |
 | Pseudonym (assigned by team) | Speaker A / Speaker B |
+| I confirm I am **18 or older** | ☐ Yes |
 | Native Tamil reader? (for the Tamil reference clip) | Yes / No |
+| Permission 3.4: the up to 4 named Tamil-speaking listeners (not R1 or R2) | 1. ______ 2. ______ 3. ______ 4. ______ |
+| Permission 3.4: listeners who know you (names) | ______ |
 | Signature | |
 | Date | |
 | Form version | `HL-SPIKE-CONSENT` v1 |

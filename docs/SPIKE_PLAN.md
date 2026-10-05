@@ -26,8 +26,8 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 | P5 | Gemini API key from AI Studio on a project **with no Cloud Billing**; Groq free account with **Zero Data Retention on** | **Partly done** (reported by user 2026-10-05). Gemini key created on a project with no billing; not yet in `.env` and not shared. Groq: Inference APIs ZDR available and enabled. **Still to check:** whether ZDR covers the speech-to-text endpoint used by slot A2 [UNVERIFIED]. **No audio is sent to Groq** until this is checked and consent 3.3 is signed. |
 | P6 | Signed consent (`docs/spike/CONSENT_FORM.md`) from each recorded team member: `voice_synthesis`; `remote_voice_processing` (Kaggle); `external_transcription` (Groq, needed only for slot A2); disclosure that the **Gemini free tier receives script text** (may be used for training and seen by human reviewers). **At least 2 speakers** are needed for the M4 similarity control. | To do |
 | P7 | Your approval of this plan and the decision thresholds (§5) | Done (2026-10-05) |
-| P8 | **Demo laptop specs:** CPU model and cores, RAM, OS, and the Docker memory limit | **Partly done** (confirmed by user 2026-10-05): Intel Core i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, x86_64, Linux kernel 7.0.0-34-generic. **Still missing:** the Ubuntu release (`lsb_release -d`) and the Docker memory limit (see P9). |
-| P9 | **Docker Engine and Docker Compose installed on the demo laptop, and the Docker memory limit chosen.** On Linux, Docker sets no memory limit by default, and ADR 0012 doesn't set one, so the limit is **your decision**, written in the Compose file. *(Added 2026-10-05.)* | **To do.** Docker is not installed. **Blocks:** M6 CPU timings (run inside Compose, §4) and rule 6a (peak RAM ≤ 70% of the limit), so it also blocks the demo-plan choice. |
+| P8 | **Demo laptop specs:** CPU model and cores, RAM, OS, and the Docker memory limit | **Partly done** (confirmed by user 2026-10-05): Intel Core i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, x86_64, Linux kernel 7.0.0-34-generic. Docker memory limit: 8 GB (see P9). **Still missing:** the Ubuntu release (`lsb_release -d`). |
+| P9 | **Docker Engine and Docker Compose installed on the demo laptop, and the Docker memory limit chosen.** On Linux, Docker sets no memory limit by default, and ADR 0012 doesn't set one, so the limit is **your decision**, written in the Compose file. *(Added 2026-10-05.)* | **Partly done.** Memory limit chosen: **8 GB** (user, 2026-10-05), written in the Compose file as `8g` (Docker reads this as 8 GiB), leaving about 6 GiB of the laptop's 14 GiB for the host. Rule 6a's 70% line is therefore about 5.6 GiB. **Docker is not installed yet. Blocks:** M6 CPU timings (run inside Compose, §4) and rule 6a (peak RAM ≤ 70% of the limit), so it also blocks the demo-plan choice. |
 
 ## 2. Test material
 
@@ -41,16 +41,16 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
   - 10 reversal or omission errors for the AI flags.
 
 **Data handling.**
-- Media is never committed to git.
-- A log records each external upload.
-- Any Kaggle datasets and kernels are deleted after the spike, and the deletion is recorded.
+- **Spike media folder:** `~/hl-spike-media/` on the demo laptop (decided by user, 2026-10-05). It is outside the git repository and must not be inside any cloud-synced folder. It holds recordings, cloned audio, raw transcripts and model outputs from real speakers. Create it with owner-only access (`mkdir -m 700`). Media is never committed to git.
+- **Spike log:** `~/hl-spike-media/spike-log.md` (decided by user, 2026-10-05). It is **append-only**: entries are never edited or deleted, and corrections are new entries. Each entry is one line: `<ISO 8601 timestamp> | <who> | <type> | <what>`. The types are `consent`, `recording`, `transfer`, `external-upload`, `deletion`, `run` and `note`. **No raw content goes in it**: no transcripts, translations, audio or real names, only pseudonyms (Speaker A/B, R1/R2), file names, durations and hashes. It is the **external-upload log** referred to elsewhere (type `external-upload`).
+- Any Kaggle datasets and kernels are deleted after the spike, and the deletion is recorded in the spike log.
 
 ## 3. Candidates (checked 2026-10-05; sources in `THIRD_PARTY_TERMS.md`)
 
 | Stage | Slot | Candidate | Runtime | Licence / terms |
 |---|---|---|---|---|
 | Transcription | **A1** | faster-whisper `small` and `medium`, int8 (**provisional primary**) | Laptop CPU | MIT |
-| | **A2** | Groq `whisper-large-v3` (needs `external_transcription` consent). **Dropped if Zero Data Retention can't be enabled on the free plan** (consent form 3.3) | Hosted, free | No training; ZDR on |
+| | **A2** | Groq `whisper-large-v3` (needs `external_transcription` consent). **Dropped if Zero Data Retention does not cover the speech-to-text endpoint** (P5; consent form 3.3) | Hosted, free | No training; ZDR on |
 | Translation | **T0** | IndicTrans2 En→Indic dist-200M (context-free baseline) | Laptop CPU | MIT, gated |
 | | **T1/T2-G** | Gemini Flash, free tier: without context / with full context | Hosted | Free tier: training + human review; script text only |
 | | **T1/T2-Q** | **One** Groq production model, chosen by a 5-segment pre-screen (run only **after** R1's reference translation is frozen) between `llama-3.3-70b-versatile` and `openai/gpt-oss-120b` (fewest critical/major errors by R1, quick read) | Hosted, free | No training |

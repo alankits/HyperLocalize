@@ -39,7 +39,9 @@ Until the Tamil forms are filled in, units written in Tamil give FAIL and glossa
 
 ## Working files
 
-Put recordings, transcripts and model outputs in `spike/work/`. That folder is git-ignored. **Never commit media or raw transcripts** (`SPIKE_PLAN.md` §7).
+**Real spike data** (recordings, cloned audio, raw transcripts and model outputs from real speakers) goes in `~/hl-spike-media/`, outside the repository, and never in `spike/work/`. The spike log is `~/hl-spike-media/spike-log.md` (`SPIKE_PLAN.md` §2, data handling).
+
+`spike/work/` is git-ignored scratch space for **synthetic** test inputs and tool output only. **Never commit media or raw transcripts** (`SPIKE_PLAN.md` §7).
 
 ## Known limitations (by design or not yet solved)
 

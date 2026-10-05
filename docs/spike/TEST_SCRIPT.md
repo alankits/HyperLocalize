@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Version** | v1 — **DRAFT, not yet approved** (revised after independent review, 2026-10-05) |
-| **Implements** | `docs/SPIKE_PLAN.md` §2 (test material); Q17 proposed default (health topic) |
+| **Version** | v1 — **DRAFT, not yet approved** (revised after independent review and preparation-review fixes, 2026-10-05) |
+| **Implements** | `docs/SPIKE_PLAN.md` §2 (test material); Q17 health topic [CONFIRMED, approved 2026-10-05] |
 | **Language** | English source (to be localized into Tamil) |
 | **Target length** | 90–120 s spoken |
 | **Speaker** | Speaker A (requires signed `HL-SPIKE-CONSENT` v1, permission 3.0) |
@@ -156,9 +156,9 @@ A row becomes [CONFIRMED] only when the source page and both checkers are filled
 4. Record **WAV**, or the phone's highest-quality setting. The spike converts to 16 kHz mono itself, so don't convert by hand.
 5. Read the 27 segments in order, with about a half-second pause between segments. **If you stumble, re-record the whole take.** If a stumble is kept, the reference transcript must include it word for word.
 6. File names: `speakerA_testclip_v1.wav`; `speakerX_ref_en.wav`, `speakerX_ref_ta.wav` and `speakerX_heldout_en.wav` for X = A and B.
-7. **Transfer by cable or USB directly to the laptop,** then **delete the phone copy** and log the deletion. Do not send the files through WhatsApp, email or cloud drives. If that becomes unavoidable, write it in the external-upload log (`SPIKE_PLAN.md` §2, data handling).
-8. Store the files in the spike media folder **outside the git repository and outside any cloud-synced folder.** Never commit them.
-9. Note the measured clip duration in the spike log.
+7. **Transfer by cable or USB directly to the laptop,** then **delete the phone copy** and log the deletion. Do not send the files through WhatsApp, email or cloud drives. If that becomes unavoidable, write it in the spike log as an `external-upload` entry (`SPIKE_PLAN.md` §2, data handling).
+8. Store the files in the spike media folder `~/hl-spike-media/`, which is **outside the git repository and outside any cloud-synced folder.** Never commit them.
+9. Note the measured clip duration in the spike log (`~/hl-spike-media/spike-log.md`; append-only, timestamped, no raw content).
 
 ## 6. Cloned-voice inputs (fixed; the consent form refers to this section)
 
