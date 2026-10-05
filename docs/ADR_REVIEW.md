@@ -111,3 +111,24 @@ New Q4: **zero spend**; free tiers and open-source models only; no local GPU; Ka
 - Some external facts can't be verified by the reviewer (Groq free-plan limits and ZDR availability, the Kaggle quota, Gemini and ElevenLabs terms quotes). They are labelled; re-check before the final evaluation.
 - Every threshold marked [PROPOSED] needs your confirmation.
 
+
+---
+
+## Independent review: spike consent form and test script (2026-10-05)
+
+**Reviewer:** `critical-reviewer` agent, with a fresh context. **Verdict:** both documents "approve with changes". All 24 findings were applied:
+
+| Findings | Change |
+|---|---|
+| Kaggle deletion and Groq ZDR overclaimed (#1, #2) | The form now states that Kaggle jobs can't be cancelled and that output deletion is [UNVERIFIED] (tested in M9). Groq audio is sent **only if** ZDR can be enabled; otherwise A2 is dropped (SPIKE_PLAN updated). |
+| Missing consent for uses (#3, #4, #9, #11, #12, #13) | New permissions: 3.0 (recording and local processing) and 3.6 (clone used as a comparison sample). Listeners are limited and named (SPIKE_PLAN M4 updated). Intelligibility uses local faster-whisper. The simulated revocation (M9) and Kaggle-stored cloned output are disclosed. |
+| Clone might speak machine output (#5) | Clone input is fixed to R1's reference translation of 10 listed segments (TEST_SCRIPT §6; SPIKE_PLAN M6 updated). |
+| Voluntariness for teammates (#10) | Statement that saying no has no effect on role or marks; faculty guide as escalation contact and countersignatory. |
+| Phone and cloud-sync leaks (#8) | Laptop recording preferred; airplane mode and backup off on phones; phone copy deleted and logged; no synced folders. |
+| Part D and expiry (#14), pseudonym traceability (#15), non-system uses (#16) | Part D split into D1–D4 and stated to extend expiry only for the ticked uses. Pseudonym caveat added. Spike-only uses marked. ECAPA row added to THIRD_PARTY_TERMS ([UNVERIFIED] licence). |
+| S17 dosing likely wrong (#6), S14 ambiguous (#7) | S17 → "teaspoonful every 1 to 2 minutes" [UNVERIFIED]; "rule of thumb" moved to a non-dosing line (S12); S14 gains "after each loose stool"; "high fever" → "fever". |
+| Rating protocol (#17–#22) | B matched to A; held-out clip for ECAPA; S24–S26 rated as one unit; critical-token list and normalisation fixed in advance; whole-take re-record; 5 separate calibration sentences. |
+| Length and reference clips (#20, #23, #24) | S28 dropped (27 segments, 251 words); timed read-through required before freezing; references shortened to 8–11 s (IndicF5 guidance [UNVERIFIED]); pack-size check added. |
+| Label misuse | `[TO VERIFY]` → `[UNVERIFIED]`. |
+
+**Not resolved, needs a human:** every health fact in TEST_SCRIPT §4 still has to be checked against the WHO source by two team members.

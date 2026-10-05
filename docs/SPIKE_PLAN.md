@@ -24,7 +24,7 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 | P3 | Hugging Face access accepted for the gated models IndicF5, IndicTrans2 and Indic Parler-TTS | To do |
 | P4 | Kaggle account with **phone verification** (needed only if rule 6 calls for Kaggle; start early anyway) | To do |
 | P5 | Gemini API key from AI Studio on a project **with no Cloud Billing**; Groq free account with **Zero Data Retention on** | To do |
-| P6 | Signed consent from each recorded team member: `voice_synthesis`; `remote_voice_processing` (Kaggle); `external_transcription` (Groq, needed only for slot A2); disclosure that the **Gemini free tier receives script text** (may be used for training and seen by human reviewers). **At least 2 speakers** are needed for the M4 similarity control. | To do |
+| P6 | Signed consent (`docs/spike/CONSENT_FORM.md`) from each recorded team member: `voice_synthesis`; `remote_voice_processing` (Kaggle); `external_transcription` (Groq, needed only for slot A2); disclosure that the **Gemini free tier receives script text** (may be used for training and seen by human reviewers). **At least 2 speakers** are needed for the M4 similarity control. | To do |
 | P7 | Your approval of this plan and the decision thresholds (§5) | **Waiting** |
 | P8 | **Demo laptop specs:** CPU model and cores, RAM, OS, and the Docker memory limit | **Waiting on you** |
 
@@ -49,7 +49,7 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 | Stage | Slot | Candidate | Runtime | Licence / terms |
 |---|---|---|---|---|
 | Transcription | **A1** | faster-whisper `small` and `medium`, int8 (**provisional primary**) | Laptop CPU | MIT |
-| | **A2** | Groq `whisper-large-v3` (needs `external_transcription` consent) | Hosted, free | No training; ZDR on |
+| | **A2** | Groq `whisper-large-v3` (needs `external_transcription` consent). **Dropped if Zero Data Retention can't be enabled on the free plan** (consent form 3.3) | Hosted, free | No training; ZDR on |
 | Translation | **T0** | IndicTrans2 En→Indic dist-200M (context-free baseline) | Laptop CPU | MIT, gated |
 | | **T1/T2-G** | Gemini Flash, free tier: without context / with full context | Hosted | Free tier: training + human review; script text only |
 | | **T1/T2-Q** | **One** Groq production model, chosen by a 5-segment pre-screen between `llama-3.3-70b-versatile` and `openai/gpt-oss-120b` (fewest critical/major errors by R1, quick read) | Hosted, free | No training |
@@ -95,11 +95,11 @@ All scripts and notebooks live in `spike/` and `spike/kaggle/`. They are throwaw
 ### M4: Tamil TTS quality → **ADR 0018**, **ADR 0015**
 - **Input:** the same fixed Tamil text (R1's reference, 10 utterances) for every system.
 - **Systems:** V0a, V0b, V1 with the English reference, V1 with the Tamil reference.
-- **Naturalness:** R1, R2 and any other Tamil listeners rate 1–5, blind. The reported value is the **median pooled over 10 utterances × all raters** (report *n*).
+- **Naturalness:** R1, R2 and up to 4 other named Tamil listeners (consent form 3.4; played in person on the laptop) rate 1–5, blind. The reported value is the **median pooled over 10 utterances × all raters** (report *n*).
 - **Critical-content pronunciation:** R1 and R2 mark each number, unit and glossary term correct / wrong / unclear, tested **with digits and with numbers written as words**. This decides whether ADR 0008's separate speech script is needed.
-- **Intelligibility (relative):** transcribe the synthesised Tamil with one fixed Whisper model and compute the character error rate against the input.
+- **Intelligibility (relative):** transcribe the synthesised Tamil with one fixed **local** faster-whisper model (cloned audio never goes to Groq) and compute the character error rate against the input.
 - **Speaker similarity (cloned voice only):**
-  - **Objective:** ECAPA-TDNN embedding cosine similarity between speaker A's real voice and (i) speaker A's clone, and (ii) **speaker B's clone**, which is the different-speaker control *(changed after review: a stock voice was a trivial bar)*. [UNVERIFIED that the embedding model runs acceptably on our CPU.]
+  - **Objective:** ECAPA-TDNN embedding cosine similarity between speaker A's real voice (the **held-out clip**, never the cloning reference; `docs/spike/TEST_SCRIPT.md` §3) and (i) speaker A's clone, and (ii) **speaker B's clone**, which is the different-speaker control *(changed after review: a stock voice was a trivial bar)*. Speaker B is matched to A in gender and rough age, with the same room and microphone. [UNVERIFIED that the embedding model runs acceptably on our CPU.]
   - **Subjective:** "same person as A?" 1–5, from listeners who know speaker A.
 
 ### M5: Timing fit → **ADRs 0016, 0018**
@@ -107,7 +107,7 @@ All scripts and notebooks live in `spike/` and `spike/kaggle/`. They are throwaw
 - **Method:** T2 output with vs. without the length constraint in the prompt, through the best stock voice at 1.0× and with a bounded tempo adjustment of ±15% (ffmpeg `atempo`).
 
 ### M6: Speed: IndicF5 on CPU (and Kaggle GPU only if needed) → **ADRs 0018, 0019, 0012**, demo plan
-On 10 segments (about 3–8 s of speech each), with the same reference clip and the same seed:
+On the 10 fixed segments of `docs/spike/TEST_SCRIPT.md` §6 (R1's reference translation; about 3–8 s of speech each), with the same reference clip and the same seed. Cloned voices never synthesise machine output:
 
 | Metric | Laptop CPU (in Compose) | Kaggle GPU (only if rule 6a fails) |
 |---|---|---|
