@@ -155,3 +155,41 @@ Phase 0 must resolve:
 - Explain simply first, then add technical depth.
 - When you are uncertain, say so. When information is missing, ask for it instead of guessing.
 - At the end of each work session, summarise what was done, what was tested and the results, open issues, and the recommended next step.
+
+---
+
+## 11. Operating mode: single assistant
+
+There is no external reviewer. The assistant is also its own strict critical reviewer.
+
+### a) Self-review is mandatory
+After any major design, ADR or feature, run an adversarial review **before** reporting. Check:
+- **Honesty:** no invented facts, metrics or claims; status labels used correctly; no "tamper-proof", "secure", "novel" or "production-ready" without evidence.
+- **Consent:** enforced in the backend, re-checked at every stage boundary, and revocation works mid-job.
+- **Demo risk:** what would fail in a live demo or a viva question?
+- **Overengineering:** is it justified for a small student team with a ₹0 budget and about 5 months?
+- **Viva test:** can a student explain and defend it in 2 minutes?
+
+Report the review results honestly. Never mark your own work as fine just because you wrote it.
+
+### b) Independent review
+Use the `critical-reviewer` subagent (`.claude/agents/critical-reviewer.md`) for ADRs, architecture changes, consent and audit code, and before each phase ends. It reviews with a fresh context, which reduces the bias of reviewing your own work. Apply its fixes, or record why you disagree.
+
+### c) Approval gates
+Wait for the user's approval before:
+- approving ADRs;
+- running the spike;
+- choosing providers;
+- starting a new slice;
+- any change to consent, audit or the data model.
+
+For everything else, proceed without asking.
+
+### d) Token efficiency
+- Keep replies short: a summary, the decisions needed, and the next step. Put long content in files, not chat.
+- Don't re-read files already read in this session unless they changed.
+- `docs/STATUS.md`, `docs/adr/` and `docs/NEXT_STEPS.md` are the project memory. A new session resumes from them without re-reading everything.
+- When asking for approval, give numbered options so the user can reply in one line (e.g. "approve 1,3; change 2: …").
+
+### e) End of every task
+Update `docs/STATUS.md` and `docs/NEXT_STEPS.md` (current phase, what's done, what's waiting for approval, and the exact next action), then commit.
