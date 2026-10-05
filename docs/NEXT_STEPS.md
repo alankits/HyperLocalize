@@ -1,6 +1,6 @@
 # Next Steps
 
-**Updated:** 2026-10-05 · **Phase:** 0 (Discovery and Design) · **Branch:** `phase0/spike-scripts`. **Do not merge to `master` yet** (user instruction, 2026-10-05). **Do not run the spike on real data and do not record yet** (user instruction, 2026-10-05).
+**Updated:** 2026-10-06 · **Phase:** 0 (Discovery and Design) · **Branch:** `phase0/spike-scripts`. **Do not merge to `master` yet** (user instruction, 2026-10-05). **Do not run the spike on real data and do not record yet** (user instruction, 2026-10-05).
 
 ## Done
 - Phase 0 report (rev 4), ADRs 0001–0019, spike plan, third-party terms, ADR self-review and independent review.
@@ -9,6 +9,9 @@
 - Spike tooling in `spike/` (standard library only), including the **M2 tally** (`hlspike.translation_eval`). 75 unit tests pass and 1 optional test is skipped; synthetic inputs only, not run on real data.
 - **M2 choices approved 2026-10-05** and recorded in `SPIKE_PLAN.md` M2 and §5: linear-weighted κ for severity; a tie means within 5 points of the best; T2 vs T1 compares the same provider.
 - **Second consent review (2026-10-05): all fixes #1–16 approved and applied** (`docs/spike/CONSENT_FORM_REVIEW.md`). The clip-length mismatch in SPIKE_PLAN §2 is fixed (8–11 s). Team-specific values are left blank, not invented.
+- **2026-10-06:**
+  - **Round-2 consent review: needs changes.** 1 blocker (P1), 4 major and 4 minor issues (P1–P9), in `CONSENT_FORM_REVIEW.md` round 2. **Not applied.**
+  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. **Not approved.**
 - Prerequisites: P4 done; P5 partly done; P8 partly done; P3 pending; P9 (Docker) added. Details in `SPIKE_PLAN.md` §1 and `STATUS.md`.
 
 ## Order change caused by the consent fixes
@@ -34,4 +37,10 @@ The form may now be signed only **after** the test script is frozen and every Ap
 9. **Spike runs:** need P3, P9 and the keys in `.env`.
 
 ## Exact next action
-Waiting on the user and team for steps 1–2. The assistant can, when asked: (a) run a critical-reviewer pass on the revised consent form; (b) propose the ADR 0006/0012 change for the `demo_reset` snapshot gap (`STATUS.md` known issues; needs approval). No merges, no spike runs on real data, no recordings and no freezes until approved.
+**User decisions:**
+1. Round-2 consent fixes P1–P8.
+2. P9: align SPIKE_PLAN P6 and M4, and choose the rule 4 outcome when ECAPA is skipped.
+3. The interim rule: no real voice in any snapshot or golden project until ADR 0020 is approved.
+4. Approve or change ADR 0020.
+
+Then the assistant applies the approved items. Steps 1–2 above are still waiting on the team. No merges, no spike runs on real data, no recordings and no freezes until approved.

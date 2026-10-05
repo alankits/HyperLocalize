@@ -30,3 +30,9 @@ Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `d
 | [0017](0017-transcription-provider.md) | Transcription (English ASR) provider | Pending spike results |
 | [0018](0018-speech-synthesis-and-voice-provider.md) | Tamil speech synthesis: stock voice and cloned voice (open source) | Pending spike results |
 | [0019](0019-kaggle-remote-gpu-batch.md) | Kaggle Notebooks as a remote GPU batch runtime | Pending spike results |
+
+## Group C: proposed, waiting for approval
+
+| ADR | Title | Status |
+|---|---|---|
+| [0020](0020-demo-reset-and-identity-withdrawal.md) | Demo reset by rebuild, offline-copy register, identity withdrawal (amends 0006, 0012, 0014) | **Proposed** (2026-10-06) |

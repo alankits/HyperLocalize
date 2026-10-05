@@ -1,4 +1,6 @@
-# Consent Form v1: Independent Review (2026-10-05)
+# Consent Form v1: Independent Reviews
+
+## Round 1 (2026-10-05)
 
 **Reviewed:** `docs/spike/CONSENT_FORM.md` as of commit `e7bd1d5` (after the preparation-review fixes).
 **Reviewer:** the `critical-reviewer` agent (read-only, fresh context).
@@ -7,7 +9,7 @@
 
 The assistant checked items 1, 2 and 14 against the files and found them accurate.
 
-## Problems
+### Problems
 
 | # | Severity | Section | Problem | Proposed fix |
 |---|---|---|---|---|
@@ -38,3 +40,35 @@ The assistant checked items 1, 2 and 14 against the files and found them accurat
 - "Your form promised no machine text in the clone." (fixed by #1)
 
 **What the reviewer found good:** the Kaggle limits are stated precisely and match ADR 0006 §6; the permissions are separate and not bundled; the form says "pseudonymised, not anonymous"; Groq audio is gated on evidence, and cloned audio never goes to Groq.
+
+---
+
+## Round 2: final review of the revised form (2026-10-06)
+
+**Reviewed:** `CONSENT_FORM.md` as of commit `ecf0116`, after fixes #1–16.
+**Reviewer:** the `critical-reviewer` agent (fresh context).
+**Verdict:** **Needs changes:** 1 blocker, 4 major, 4 minor.
+- Fully fixed: #3, #4 and #8–#16.
+- Partly fixed: #1 (inaccurate and overreaching), #2 (incomplete) and #7 (overclaims).
+- Fixed, with a small follow-up still needed: #5 and #6.
+
+**Status:** **not applied.** These are changes to consent and to the spike decision rules, so they need the user's approval. The assistant checked P1, P6 and P9 against the files and found them accurate:
+- ADR 0013 UC1 runs UC3 and then UC4 as jobs, so cloned previews come before review.
+- TEST_SCRIPT §7 puts R1's texts after the freeze.
+- SPIKE_PLAN M4 and rule 4 have no outcome for when ECAPA is skipped.
+
+| # | Severity | Section | Problem | Proposed fix |
+|---|---|---|---|---|
+| P1 | **Blocker** | Part D | "approved by a human reviewer" is inaccurate. Under ADR 0013, cloned previews are generated from AI drafts **before** review, and a Plan A live regeneration plays unreviewed text to the panel. | "Your cloned voice will speak Tamil translations drafted by AI. Until a reviewer checks them they may contain errors, including wrong numbers or a missing 'not'. Unreviewed versions are heard by the team, and in a live demo regeneration by the panel." |
+| P2 | Major | Part D | "Replaces the limits in §5" lifts **every** §5 limit, including no commercial use, no face use and nothing in git. | Name exactly what each tick lifts: D1 lifts the machine-text limit only (heard by the team, R1 and R2); D2 lifts the machine-text and playback limits (to the panel and audience); D3 lifts the playback limit (to the panel); D4 lifts the Kaggle limit. Add: "All other §5 limits still apply." |
+| P3 | Major | §8 vs §6 | §8 deletes copies that §6 never lists. The golden project (ADR 0012 §2) and export packages are missing, and so is ADR 0006 §7 (downloaded exports can't be recalled). | Add a §6 row for "Part D copies" (location, backup and cloud rules, deletion date). Add the golden project and exports to §8. Add: "Exports copied off the laptop cannot be recalled." |
+| P4 | Major | §1 | "Deleting it stops any new clones" overclaims: any clear recording, or the clone itself, can act as a reference, and Kaggle or Groq may hold copies. | "Any clear recording of your voice can be used as a reference. Deleting all your recordings and cloned audio (§8) stops **us** making new clones. Copies outside our control (§6) are not covered." Keep [INFERRED] until the model card is checked. |
+| P5 | Major | Part D footnote vs D2 | The footnote says you can revoke in the system, but D2 says the on-stage revocation isn't real. What counts as a real withdrawal is ambiguous, and `demo_reset` reverses revocations made in the system. | Define a real withdrawal: one given to the §8 contact, or a revocation in the system outside a demo. State that after a real withdrawal no reset can bring your voice back. The wording depends on ADR 0020; until the system exists, a team member deletes the copies by hand and logs it. |
+| P6 | Minor | Header "When to sign" | A frozen script doesn't make Appendix A final, because R1's Tamil texts come after the freeze. | "Only after the test script is frozen **and** R1's Tamil texts in Appendix A have been checked by R2." Reorder TEST_SCRIPT §7 to match. |
+| P7 | Minor | §6 | "Excluded from all backups" is stated before anyone has checked it. | "Excluded from backups (checked on ____ by ____)." |
+| P8 | Minor | Appendix A | A speaker who doesn't read Tamil can't really initial Tamil text. | "If you do not read Tamil, an English back-translation is read to you before you initial." |
+| P9 | Minor | SPIKE_PLAN P6, M4, rule 4 | P6 says "team member" (the form now allows volunteers) and lists only some permissions. M4 doesn't play B's clone to A's listeners, although 3.6 says it does. Rule 4 has no outcome for when ECAPA is skipped (3.5). | Align P6 and M4. Fix the outcome for a skipped ECAPA run **before any results exist** (user decision). |
+
+**Interim rule proposed by the reviewer:** no demo-reset snapshot or golden project may contain a real speaker's voice until the ADR 0006/0012 change (ADR 0020) is approved.
+
+**What the reviewer found good:** the coercion safeguards are now strong; the Kaggle and Groq limits are stated exactly; 3.0–3.6 are separate ticks with clear dependencies; and the Speaker B listener sets now match.
