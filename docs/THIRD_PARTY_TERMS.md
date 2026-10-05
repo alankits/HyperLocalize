@@ -17,6 +17,11 @@ Facts were checked against the official pages listed. Anything not confirmed on 
 | **Kaggle Notebooks** | Inputs (reference voice clip, texts) are uploaded as **private datasets**; outputs are stored as kernel output. GPU and internet need a **phone-verified account**. | Kaggle is named as a processor in the consent form. Datasets and kernels are deleted after import and on revocation (`kaggle datasets delete`, `kaggle kernels delete`). **There is no cancel command for a running kernel.** [kernels CLI](https://github.com/Kaggle/kaggle-cli/blob/main/docs/kernels.md), [datasets CLI](https://github.com/Kaggle/kaggle-cli/blob/main/docs/datasets.md) |
 | **ElevenLabs, free plan** (**dropped after review**; kept here for reference) | The free plan has **no commercial licence**. Published content must be attributed ("elevenlabs.io" or "11.ai" in the title). Instant Voice Cloning is **not** on the free plan. A data-use opt-out toggle exists. | Stock voice only, academic non-commercial use, attribution in the export manifest and demo credits. [Publishing](https://elevenlabs.io/docs/help-center/legal/can-i-publish-the-content-i-generate-on-the-platform), [pricing](https://elevenlabs.io/pricing) |
 
+**Account status (reported by the user, 2026-10-05):**
+- **Groq:** Zero Data Retention for Inference APIs is available and enabled on the team's free account. That settles the free-plan question in the table above **for inference APIs**. Whether it also covers the **speech-to-text (audio transcription) endpoint** is **[UNVERIFIED]**. Before any audio is sent, record evidence: the date, and a screenshot kept outside git. Until then, no audio goes to Groq.
+- **Gemini:** API key created on a project with no Cloud Billing. The key goes in `.env` (git-ignored) and is never shared in chat or docs.
+- **Kaggle:** account phone-verified.
+
 ## 2. Model licences
 
 | Model | Use in HyperLocalize | Licence as stated | Notes |

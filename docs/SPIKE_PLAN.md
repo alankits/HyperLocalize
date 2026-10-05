@@ -21,12 +21,13 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 |---|---|---|
 | P1 | Language pair, raters, data policy | Done |
 | P2 | Budget rule | Done: zero spend |
-| P3 | Hugging Face access accepted for the gated models IndicF5, IndicTrans2 and Indic Parler-TTS | To do |
-| P4 | Kaggle account with **phone verification** (needed only if rule 6 calls for Kaggle; start early anyway) | To do |
-| P5 | Gemini API key from AI Studio on a project **with no Cloud Billing**; Groq free account with **Zero Data Retention on** | To do |
+| P3 | Hugging Face access accepted for the gated models IndicF5, IndicTrans2 and Indic Parler-TTS | **Pending.** Access requested (user, 2026-10-05). Approval is not assumed until confirmed for each model. |
+| P4 | Kaggle account with **phone verification** (needed only if rule 6 calls for Kaggle; start early anyway) | Done (phone verified; reported by user 2026-10-05) |
+| P5 | Gemini API key from AI Studio on a project **with no Cloud Billing**; Groq free account with **Zero Data Retention on** | **Partly done** (reported by user 2026-10-05). Gemini key created on a project with no billing; not yet in `.env` and not shared. Groq: Inference APIs ZDR available and enabled. **Still to check:** whether ZDR covers the speech-to-text endpoint used by slot A2 [UNVERIFIED]. **No audio is sent to Groq** until this is checked and consent 3.3 is signed. |
 | P6 | Signed consent (`docs/spike/CONSENT_FORM.md`) from each recorded team member: `voice_synthesis`; `remote_voice_processing` (Kaggle); `external_transcription` (Groq, needed only for slot A2); disclosure that the **Gemini free tier receives script text** (may be used for training and seen by human reviewers). **At least 2 speakers** are needed for the M4 similarity control. | To do |
 | P7 | Your approval of this plan and the decision thresholds (§5) | Done (2026-10-05) |
-| P8 | **Demo laptop specs:** CPU model and cores, RAM, OS, and the Docker memory limit | **Waiting on you** |
+| P8 | **Demo laptop specs:** CPU model and cores, RAM, OS, and the Docker memory limit | **Partly done** (confirmed by user 2026-10-05): Intel Core i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, x86_64, Linux kernel 7.0.0-34-generic. **Still missing:** the Ubuntu release (`lsb_release -d`) and the Docker memory limit (see P9). |
+| P9 | **Docker Engine and Docker Compose installed on the demo laptop, and the Docker memory limit chosen.** On Linux, Docker sets no memory limit by default, and ADR 0012 doesn't set one, so the limit is **your decision**, written in the Compose file. *(Added 2026-10-05.)* | **To do.** Docker is not installed. **Blocks:** M6 CPU timings (run inside Compose, §4) and rule 6a (peak RAM ≤ 70% of the limit), so it also blocks the demo-plan choice. |
 
 ## 2. Test material
 

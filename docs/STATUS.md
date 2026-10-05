@@ -1,7 +1,7 @@
 # HyperLocalize — Implementation Status
 
 **Current phase:** Phase 0: Discovery and Design. **No application code exists.** Throwaway spike tooling exists in `spike/` (not part of the app).
-**Branch:** `master` (Phase 0 design merged 2026-10-05).
+**Branch:** `master` holds the Phase 0 design (merged 2026-10-05). The spike tooling is on `phase0/spike-scripts` and is **not merged**: the user said not to merge yet (2026-10-05).
 **Resume a session from:** this file → `docs/NEXT_STEPS.md` → `docs/adr/README.md`.
 
 Status values: Implemented (tested) / Partial / Stubbed / Not started.
@@ -36,6 +36,17 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 | `docs/spike/TEST_SCRIPT.md` | Draft v1 (ORS health script, 27 segments, 256 words; length not yet timed). Health facts **[UNVERIFIED]** against the WHO source; waiting for approval. |
 | `spike/` tooling | M1 scorer, ADR 0008 hard checks, freeze, M3 seeded evaluation, M5 timing fit, M6 timing harness, rule 6. **51 unit tests pass (synthetic inputs only, 2026-10-05). Not run on real data.** Tamil lexicons are empty until R1/R2 fill them in. |
 | `docs/EVALUATION.md` | Not created yet (created when the spike runs) |
+
+## Spike readiness (2026-10-05)
+
+| Item | State |
+|---|---|
+| P3 Hugging Face gated models | Requested; **pending**, not assumed |
+| P4 Kaggle | Phone verified |
+| P5 Gemini and Groq | Gemini key created (no billing; not yet in `.env`). Groq ZDR enabled for inference APIs; whether it covers speech-to-text is [UNVERIFIED]. No audio to Groq yet. |
+| P8 Demo laptop | i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, kernel 7.0.0-34-generic. Ubuntu release not recorded. |
+| P9 Docker | **Not installed; memory limit not chosen. Blocks M6 and rule 6a.** |
+| Consent form, script fact check, Tamil reference data, recording | **Not started** |
 
 ## Known issues
 
