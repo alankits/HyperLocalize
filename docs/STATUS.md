@@ -32,9 +32,9 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 | `docs/SPIKE_PLAN.md` | **Approved** 2026-10-05; **not run** (waiting on P3–P6, P8) |
 | `docs/THIRD_PARTY_TERMS.md` | Reference; checked 2026-10-05 |
 | `docs/ADR_REVIEW.md` | Self-review and independent-review records (all findings resolved, 2026-10-05) |
-| `docs/spike/CONSENT_FORM.md` | Draft v1 (spike prerequisite P6), waiting for approval. Not reviewed by a lawyer or ethics committee. Independent review applied (`docs/ADR_REVIEW.md`); preparation-review fixes applied 2026-10-05 (media path, spike log, 18+ confirmation, listener-name fields, stale labels). |
+| `docs/spike/CONSENT_FORM.md` | Draft v1 (spike prerequisite P6), waiting for approval. Not reviewed by a lawyer or ethics committee. Independent review applied (`docs/ADR_REVIEW.md`); preparation-review fixes applied 2026-10-05 (media path, spike log, 18+ confirmation, listener-name fields, stale labels). **Second independent review 2026-10-05: needs changes** (2 blockers, 6 major, 8 minor; `docs/spike/CONSENT_FORM_REVIEW.md`). Fixes **not applied yet**; they wait for approval. |
 | `docs/spike/TEST_SCRIPT.md` | Draft v1 (ORS health script, 27 segments, 256 words; length not yet timed). Health facts **[UNVERIFIED]** against the WHO source; waiting for approval. |
-| `spike/` tooling | M1 scorer, ADR 0008 hard checks, freeze, M3 seeded evaluation, M5 timing fit, M6 timing harness, rule 6. **51 unit tests pass (synthetic inputs only, 2026-10-05). Not run on real data.** Tamil lexicons are empty until R1/R2 fill them in. |
+| `spike/` tooling | M1 scorer, M2 tally (blind MQM and pairwise sheets, agreement, chrF, rule 3), ADR 0008 hard checks, freeze, M3 seeded evaluation, M5 timing fit, M6 timing harness, rule 6. **75 unit tests pass and 1 is skipped (the optional sacreBLEU cross-check, which passes when sacreBLEU is installed); synthetic inputs only, 2026-10-05. Not run on real data.** Tamil lexicons are empty until R1/R2 fill them in. |
 | `docs/EVALUATION.md` | Not created yet (created when the spike runs) |
 
 ## Spike readiness (2026-10-05)
@@ -54,4 +54,4 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 - No measured results of any kind yet; every number in the docs is a TARGET or an ESTIMATE.
 - Q10–Q18 answered (defaults accepted 2026-10-05). Note: Q16 uses ADR 0004's 5 min / 500 MB, not the 3 min / 200 MB mentioned in chat.
 - Q1 (official UML/problem statement) is still unanswered; the data model and use cases may need to change if UML arrives.
-- The `critical-reviewer` agent type loads only in a new session; this session's independent review used a built-in read-only agent with the same brief.
+- SPIKE_PLAN §2 says the reference clips are 10–15 s; the consent form and TEST_SCRIPT say 8–11 s (consent review #14). Not fixed yet.
