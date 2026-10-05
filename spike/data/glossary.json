@@ -1,0 +1,14 @@
+{
+  "_comment": "ADR 0008 glossary for the spike (terms from docs/spike/TEST_SCRIPT.md §2). ta_forms (accepted inflected forms) and ta_stem MUST be filled in by R1/R2 before the rules are frozen. An entry with no Tamil forms gives UNVERIFIABLE, never PASS. Set do_not_translate to true only if the raters decide the English term must stay as it is (then list accepted transliterations in ta_forms).",
+  "entries": [
+    {"id": "diarrhoea",     "en_forms": ["diarrhoea", "diarrhea"],                    "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "dehydration",   "en_forms": ["dehydration"],                              "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "ors",           "en_forms": ["oral rehydration salts", "ORS", "O.R.S."],  "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "sachet",        "en_forms": ["sachet", "sachets"],                        "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "loose_stool",   "en_forms": ["loose stool", "loose stools"],              "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "zinc",          "en_forms": ["zinc"],                                     "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "health_worker", "en_forms": ["health worker", "health workers"],          "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "breastfeeding", "en_forms": ["breastfeeding", "breastfeed"],              "ta_forms": [], "ta_stem": "", "do_not_translate": false},
+    {"id": "danger_sign",   "en_forms": ["danger sign", "danger signs"],              "ta_forms": [], "ta_stem": "", "do_not_translate": false}
+  ]
+}

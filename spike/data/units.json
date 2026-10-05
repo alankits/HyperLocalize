@@ -1,0 +1,14 @@
+{
+  "_comment": "ADR 0008 unit lexicon for the spike. en_forms are matched in the English source (and in the target, in case the unit is kept in English). latin_target_forms are extra Latin abbreviations accepted in the Tamil target. ta_forms are accepted Tamil forms, matched as word prefixes so inflections still match. ta_forms MUST be filled in by R1/R2 before the rules are frozen (ADR 0008: from the raters' review, not from memory). Until then, a unit written in Tamil gives FAIL (fail-safe).",
+  "entries": [
+    {"canonical": "L",           "en_forms": ["litre", "litres", "liter", "liters"],                     "latin_target_forms": ["L"],         "ta_forms": []},
+    {"canonical": "ml",          "en_forms": ["millilitre", "millilitres", "milliliter", "milliliters", "ml"], "latin_target_forms": ["mL"],  "ta_forms": []},
+    {"canonical": "mg",          "en_forms": ["milligram", "milligrams", "mg"],                          "latin_target_forms": [],            "ta_forms": []},
+    {"canonical": "teaspoonful", "en_forms": ["teaspoonful", "teaspoonfuls", "teaspoon", "teaspoons", "tsp"], "latin_target_forms": [],       "ta_forms": []},
+    {"canonical": "minute",      "en_forms": ["minute", "minutes", "min", "mins"],                       "latin_target_forms": [],            "ta_forms": []},
+    {"canonical": "hour",        "en_forms": ["hour", "hours", "hr", "hrs"],                             "latin_target_forms": [],            "ta_forms": []},
+    {"canonical": "day",         "en_forms": ["day", "days"],                                             "latin_target_forms": [],            "ta_forms": []},
+    {"canonical": "month",       "en_forms": ["month", "months"],                                         "latin_target_forms": [],            "ta_forms": []},
+    {"canonical": "year",        "en_forms": ["year", "years"],                                           "latin_target_forms": [],            "ta_forms": []}
+  ]
+}

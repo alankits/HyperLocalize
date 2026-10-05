@@ -45,3 +45,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Spike working files (recordings, transcripts, model outputs); never commit
+spike/work/

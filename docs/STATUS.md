@@ -1,6 +1,6 @@
 # HyperLocalize — Implementation Status
 
-**Current phase:** Phase 0: Discovery and Design. **No application code exists.**
+**Current phase:** Phase 0: Discovery and Design. **No application code exists.** Throwaway spike tooling exists in `spike/` (not part of the app).
 **Branch:** `master` (Phase 0 design merged 2026-10-05).
 **Resume a session from:** this file → `docs/NEXT_STEPS.md` → `docs/adr/README.md`.
 
@@ -34,6 +34,7 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 | `docs/ADR_REVIEW.md` | Self-review and independent-review records (all findings resolved, 2026-10-05) |
 | `docs/spike/CONSENT_FORM.md` | Draft v1 (spike prerequisite P6), waiting for approval. Not reviewed by a lawyer or ethics committee. Independent review applied (`docs/ADR_REVIEW.md`). |
 | `docs/spike/TEST_SCRIPT.md` | Draft v1 (ORS health script, 27 segments, 256 words; length not yet timed). Health facts **[UNVERIFIED]** against the WHO source; waiting for approval. |
+| `spike/` tooling | M1 scorer, ADR 0008 hard checks, freeze, M3 seeded evaluation, M5 timing fit, M6 timing harness, rule 6. **51 unit tests pass (synthetic inputs only, 2026-10-05). Not run on real data.** Tamil lexicons are empty until R1/R2 fill them in. |
 | `docs/EVALUATION.md` | Not created yet (created when the spike runs) |
 
 ## Known issues

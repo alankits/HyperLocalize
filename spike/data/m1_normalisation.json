@@ -1,0 +1,60 @@
+{
+  "_comment": "M1 normalisation rules, fixed before any ASR output is seen (docs/spike/TEST_SCRIPT.md §2b). Changing this file after the spike starts must be recorded in the spike log.",
+  "dotted_abbreviations": {
+    "o.r.s.": "ors",
+    "o.r.s": "ors"
+  },
+  "equivalents": {
+    "diarrhea": "diarrhoea",
+    "liter": "litre",
+    "liters": "litre",
+    "litres": "litre",
+    "milliliter": "millilitres",
+    "milliliters": "millilitres",
+    "millilitre": "millilitres",
+    "ml": "millilitres",
+    "milligram": "milligrams",
+    "mg": "milligrams",
+    "hour": "hours",
+    "hrs": "hours",
+    "minute": "minutes",
+    "mins": "minutes",
+    "month": "months",
+    "year": "years",
+    "sachets": "sachet",
+    "days": "day"
+  },
+  "phrases": {
+    "oral rehydration salts": "ors",
+    "oral rehydration salt": "ors",
+    "loose stool": "loose_stool",
+    "loose stools": "loose_stool",
+    "health worker": "health_worker",
+    "health workers": "health_worker",
+    "danger sign": "danger_sign",
+    "danger signs": "danger_sign",
+    "teaspoon full": "teaspoonful",
+    "once a day": "once_a_day"
+  },
+  "critical": [
+    "litre",
+    "hours",
+    "years",
+    "millilitres",
+    "minutes",
+    "teaspoonful",
+    "day",
+    "milligrams",
+    "months",
+    "diarrhoea",
+    "dehydration",
+    "ors",
+    "sachet",
+    "loose_stool",
+    "zinc",
+    "health_worker",
+    "breastfeeding",
+    "danger_sign",
+    "once_a_day"
+  ]
+}
