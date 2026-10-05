@@ -6,7 +6,7 @@
 | **Implements** | Spike prerequisite P6 (`docs/SPIKE_PLAN.md` §1); consent uses from ADR 0006 §2 |
 | **Status of this form** | Written by the project team. **It has not been reviewed by a lawyer or an ethics committee.** If your institution has an ethics or data-protection process, follow it as well; it takes precedence over this form. |
 | **Who signs** | Each team member whose voice is recorded for the spike (at least 2 speakers: Speaker A and Speaker B). Speakers must be 18 or older. |
-| **Countersigned by** | The faculty guide (recommended; see §9) |
+| **Countersigned by** | The faculty guide (recommended; see §9). The speaker keeps a copy of the signed form. |
 
 One copy per speaker. Print, fill in, sign. Store the signed copy **outside git** (it contains personal data). Record only the form ID, version, speaker pseudonym and date in the spike log.
 
@@ -39,13 +39,13 @@ One of the things we test is **voice cloning**: a computer model listens to a sh
 | 3.1 | **Voice synthesis** (`voice_synthesis`) | The IndicF5 model creates Tamil speech in your voice from your reference clips, **on the team laptop**. The clone only ever says **human-written, rater-checked Tamil text** listed in `TEST_SCRIPT.md` §6. Machine translations are **never** spoken in your voice. | ☐ | ☐ |
 | 3.2 | **Remote voice processing** (`remote_voice_processing`) | **Only if the laptop is too slow:** your reference clips, their transcripts and the Tamil text are uploaded to **Kaggle** (a Google-owned service) as a **private** dataset. The cloned Tamil audio is produced and temporarily stored on Kaggle, then downloaded. See §6 for what deletion on Kaggle does and does not guarantee. | ☐ | ☐ |
 | 3.3 | **External transcription** (`external_transcription`) *(Speaker A only)* | Your test-clip audio is sent to **Groq** (a US company) for speech-to-text, to compare against transcription on the laptop. Groq states it does not use inputs for training. **Your audio is sent only if Groq's Zero Data Retention setting can be turned on for our free account. If it cannot, your audio is not sent to Groq at all.** | ☐ | ☐ |
-| 3.4 | **Listening tests** | Your real voice and cloned voices are **played in person on the laptop** (no copies handed over) to: R1, R2, up to 4 other named Tamil-speaking listeners, and a few listeners **who know you**, who are asked whether the clone sounds like you. | ☐ | ☐ |
-| 3.5 | **Voice comparison score** | A speaker-recognition model (ECAPA-TDNN) compares your real voice (the held-out clip) with cloned voices **on the laptop**. Only the resulting similarity **number** is kept; the voice "fingerprint" it computes is deleted straight after. | ☐ | ☐ |
+| 3.4 | **Listening tests** | Your real voice and cloned voices are **played in person on the laptop** (no copies handed over) to: R1, R2, up to 4 other named Tamil-speaking listeners, and a few listeners **who know you**, who are asked whether the clone sounds like you. Listeners are asked not to record anything. | ☐ | ☐ |
+| 3.5 | **Voice comparison score** | A speaker-recognition model (ECAPA-TDNN) compares your real voice (the held-out clip) with cloned voices **on the laptop**. Only the resulting similarity **number** is kept; the voice "fingerprint" it computes is deleted straight after. **If the model cannot run on the laptop, this score is skipped; it is never moved elsewhere.** | ☐ | ☐ |
 | 3.6 | **Your clone as a comparison sample** | Your cloned voice is also compared with **another speaker's** real voice, by the model in 3.5 and by that speaker's listeners in 3.4. This is the "different person" check that shows whether cloning really copies a specific voice. | ☐ | ☐ |
 
 **What depends on what:**
 - NO to 3.0: you are not recorded.
-- NO to 3.1: your voice is not cloned. You can still help with transcription tests only.
+- NO to 3.1: your voice is not cloned. **Speaker A** can still help with transcription tests only. **Speaker B** records no test clip, so for B a NO to 3.1 means B is not recorded at all.
 - NO to 3.2: your voice is processed only on the laptop, even if that means the cloned-voice test cannot be completed for you.
 - NO to 3.3: your audio never leaves the laptop for transcription.
 - **Speaker B** is useful for the comparison check only with 3.0, 3.1, 3.5 and 3.6 (3.4 is also needed for the listener check).
@@ -54,7 +54,7 @@ One of the things we test is **voice cloning**: a computer model listens to a sh
 
 ## 4. Disclosure: Google Gemini (no tick needed, please read)
 
-The **written script text** (not your voice) is sent to **Google's Gemini API free tier** for translation tests. Google's terms say free-tier content **may be used to improve Google's products and train its models, and may be read by human reviewers**. The script is written by the team and contains no personal information about you. **Your audio is never sent to Gemini.**
+The **written script text** (not your voice) is sent to **Google's Gemini API free tier** and to **Groq's hosted language models** for translation tests. Groq states it does not use inputs for training. Google's terms say free-tier content **may be used to improve Google's products and train its models, and may be read by human reviewers**. The script is written by the team and contains no personal information about you. **Your audio is never sent to Gemini.**
 
 ☐ I have read this disclosure.
 
@@ -75,9 +75,9 @@ The **written script text** (not your voice) is sent to **Google's Gemini API fr
 | A phone copy, if a phone was used to record | The phone, recorded in airplane mode with cloud backup off | Straight after transfer to the laptop by cable. The deletion is logged. |
 | Copies on Kaggle (only if 3.2 is YES) | Private Kaggle dataset and notebook output | We run Kaggle's delete commands straight after the results are downloaded, and on withdrawal. **Limits:** a job already running on Kaggle **cannot be stopped** and may finish. **Whether deleting removes its output is not yet verified.** We test this in the spike and will tell you the result. Output produced after you withdraw is **never imported**. What Kaggle keeps internally after deletion is outside our control. |
 | Copies at Groq (only if 3.3 is YES) | Groq servers | Sent only with Zero Data Retention on (see 3.3). What Groq keeps internally is outside our control. |
-| Ratings and numbers (scores, error counts) | `docs/EVALUATION.md` in the repository | Kept, under your pseudonym "Speaker A" or "Speaker B". **Within the team and the class, the pseudonym may still identify you.** |
+| Ratings and numbers (scores, error counts) | `docs/EVALUATION.md` in the repository | Kept, under your pseudonym "Speaker A" or "Speaker B". This is **pseudonymised, not anonymous**: teammates and examiners may know who Speaker A is, and scores in git history stay there. |
 
-**Every deletion is written down in the spike log** (what, where, when, by whom). Short-lived temporary files on the laptop are deleted when each run ends.
+**Every deletion is written down in the spike log** (what, where, when, by whom). Short-lived temporary files on the laptop are **designed** to be deleted when each run ends. This is checked in the withdrawal test below, and logged after each run.
 
 **Test of the withdrawal mechanism.** The spike tests whether a withdrawal really stops processing, by **simulating** one on your recordings (`SPIKE_PLAN.md` M9). This simulation is **not** your withdrawal and does not end your consent. If it shows that Kaggle keeps output after deletion, we will tell you.
 
@@ -90,10 +90,10 @@ The **written script text** (not your voice) is sent to **Google's Gemini API fr
 
 You can withdraw **any or all** permissions **at any time, without giving a reason**, by telling: **[name, phone / email — to be filled in]**, or the faculty guide (§9).
 
-When you withdraw, we will within **[N, e.g. 2] working days**:
-1. stop any processing of your voice **on the laptop**. On Kaggle, a job already running may finish, but its output is never imported;
-2. delete your recordings, any cloned audio of you, and run Kaggle's delete commands for any copies there (with the limits in §6);
-3. record the deletions in the spike log and tell you when they are done.
+When you withdraw:
+1. **Immediately:** we stop any processing of your voice **on the laptop**. On Kaggle, a job already running may finish, but its output is never imported.
+2. **Within [N, e.g. 2] working days:** we delete your test clip (Speaker A), reference and held-out clips, their transcripts, and any cloned audio of you. We run Kaggle's delete commands for any copies there (with the limits in §6). **Audio already sent to Groq cannot be recalled by us.**
+3. We record the deletions in the spike log and tell you when they are done.
 
 Scores already in `docs/EVALUATION.md` stay, under your pseudonym.
 
@@ -106,8 +106,8 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 | Use after the spike | YES | NO |
 |---|---|---|
 | D1. Keep my recordings to **develop and test** HyperLocalize on the team laptop | ☐ | ☐ |
-| D2. Play my real and cloned voice in the **live demo** to the evaluation panel | ☐ | ☐ |
-| D3. Include my cloned voice in the **backup screen recording** of the demo, kept by the team and shown only to the panel | ☐ | ☐ |
+| D2. Play my real and cloned voice in the **live demo**, including the live consent-revocation demo, to the evaluation panel and any viva or expo audience | ☐ | ☐ |
+| D3. Include my cloned voice in the **backup screen recording** of the demo, kept on the team laptop (outside git and cloud sync) and shown only to the panel | ☐ | ☐ |
 | D4. Kaggle processing (as in 3.2) during development | ☐ | ☐ |
 
 *If you tick any of D1–D4, the HyperLocalize system will also record your consent in its own consent records, where you can view and revoke it. This form does not replace that.*
@@ -125,6 +125,7 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 | Date | |
 | Form version | `HL-SPIKE-CONSENT` v1 |
 | Team member who explained the form | |
+| Withdrawal date (if withdrawn) and what was withdrawn | |
 
 | | Faculty guide (recommended) |
 |---|---|

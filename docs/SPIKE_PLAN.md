@@ -52,7 +52,7 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 | | **A2** | Groq `whisper-large-v3` (needs `external_transcription` consent). **Dropped if Zero Data Retention can't be enabled on the free plan** (consent form 3.3) | Hosted, free | No training; ZDR on |
 | Translation | **T0** | IndicTrans2 En→Indic dist-200M (context-free baseline) | Laptop CPU | MIT, gated |
 | | **T1/T2-G** | Gemini Flash, free tier: without context / with full context | Hosted | Free tier: training + human review; script text only |
-| | **T1/T2-Q** | **One** Groq production model, chosen by a 5-segment pre-screen between `llama-3.3-70b-versatile` and `openai/gpt-oss-120b` (fewest critical/major errors by R1, quick read) | Hosted, free | No training |
+| | **T1/T2-Q** | **One** Groq production model, chosen by a 5-segment pre-screen (run only **after** R1's reference translation is frozen) between `llama-3.3-70b-versatile` and `openai/gpt-oss-120b` (fewest critical/major errors by R1, quick read) | Hosted, free | No training |
 | Meaning-check | **C-same / C-other** | Checker from the same vs. a different model family as the translator | Hosted | as above |
 | Stock voice | **V0a** | MMS-TTS Tamil | Laptop CPU | CC-BY-NC-4.0 |
 | | **V0b** | Indic Parler-TTS (speaker "Jaya") | Laptop CPU | Apache-2.0, gated |
@@ -148,6 +148,8 @@ These rules are written now, before any results exist, so that the results can't
    - "same person?" median ≥ 3/5.
 
    The better of the English or Tamil reference is used. Otherwise the MVP uses stock voice only, and you are told first.
+
+   **If Speaker B declines the permissions the comparison needs** (consent form 3.1, 3.5, 3.6), recruit another matched speaker. If none is available, the third condition counts as **not met** [PROPOSED].
 5. **Stock voice (ADR 0018):** fewest critical-content pronunciation errors, then naturalness, then CPU speed.
 6. **Runtime and demo plan:**
    - (a) **CPU is live-capable** if the median per-segment IndicF5 time is ≤ 20 s, a 3-segment scene takes ≤ 60 s, and peak RAM is ≤ 70% of the Docker memory limit.

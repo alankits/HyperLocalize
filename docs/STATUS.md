@@ -33,7 +33,7 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 | `docs/THIRD_PARTY_TERMS.md` | Reference; checked 2026-10-05 |
 | `docs/ADR_REVIEW.md` | Self-review and independent-review records (all findings resolved, 2026-10-05) |
 | `docs/spike/CONSENT_FORM.md` | Draft v1 (spike prerequisite P6), waiting for approval. Not reviewed by a lawyer or ethics committee. Independent review applied (`docs/ADR_REVIEW.md`). |
-| `docs/spike/TEST_SCRIPT.md` | Draft v1 (ORS health script, 27 segments, 251 words; length not yet timed). Health facts **[UNVERIFIED]** against the WHO source; waiting for approval. |
+| `docs/spike/TEST_SCRIPT.md` | Draft v1 (ORS health script, 27 segments, 256 words; length not yet timed). Health facts **[UNVERIFIED]** against the WHO source; waiting for approval. |
 | `docs/EVALUATION.md` | Not created yet (created when the spike runs) |
 
 ## Known issues

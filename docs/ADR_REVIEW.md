@@ -128,7 +128,28 @@ New Q4: **zero spend**; free tiers and open-source models only; no local GPU; Ka
 | Part D and expiry (#14), pseudonym traceability (#15), non-system uses (#16) | Part D split into D1–D4 and stated to extend expiry only for the ticked uses. Pseudonym caveat added. Spike-only uses marked. ECAPA row added to THIRD_PARTY_TERMS ([UNVERIFIED] licence). |
 | S17 dosing likely wrong (#6), S14 ambiguous (#7) | S17 → "teaspoonful every 1 to 2 minutes" [UNVERIFIED]; "rule of thumb" moved to a non-dosing line (S12); S14 gains "after each loose stool"; "high fever" → "fever". |
 | Rating protocol (#17–#22) | B matched to A; held-out clip for ECAPA; S24–S26 rated as one unit; critical-token list and normalisation fixed in advance; whole-take re-record; 5 separate calibration sentences. |
-| Length and reference clips (#20, #23, #24) | S28 dropped (27 segments, 251 words); timed read-through required before freezing; references shortened to 8–11 s (IndicF5 guidance [UNVERIFIED]); pack-size check added. |
+| Length and reference clips (#20, #23, #24) | S28 dropped (27 segments, 251 words; 256 after the second pass); timed read-through required before freezing; references shortened to 8–11 s (IndicF5 guidance [UNVERIFIED]); pack-size check added. |
 | Label misuse | `[TO VERIFY]` → `[UNVERIFIED]`. |
 
 **Not resolved, needs a human:** every health fact in TEST_SCRIPT §4 still has to be checked against the WHO source by two team members.
+
+**Second report from the same reviewer** (on the same first drafts; most findings duplicated the above). Additional fixes applied:
+- **Consent form:**
+  - The "NO to 3.1" line is now separate for Speaker A and Speaker B.
+  - Withdrawal is split: processing stops immediately, deletion follows within N days.
+  - Withdrawal now lists every item, and states that audio already sent to Groq can't be recalled.
+  - Groq LLMs are added to the script-text disclosure.
+  - ECAPA scoring is skipped, never moved off the laptop, if it can't run on CPU.
+  - Listeners are asked not to record anything.
+  - The temp-file deletion promise is softened to "designed to …, checked and logged".
+  - The pseudonym is described as pseudonymised, not anonymous, and git history is kept.
+  - Part D now names the revocation demo, the audiences, and where the backup recording is stored.
+  - The speaker keeps a copy of the signed form, and a withdrawal-date field is added.
+- **Test script:**
+  - Referents are made explicit (S11, S12, S27), and S21 now says "For children".
+  - Fact rows are added for S01–S03 and for boil-and-cool, with the MoHFW 14-day note.
+  - A rule is added: [CONFIRMED] only once the source page and both checkers are filled in.
+- **Spike plan:**
+  - The Groq pre-screen runs only after R1's reference is frozen.
+  - New rule-4 contingency [PROPOSED]: if Speaker B declines, recruit another matched speaker; otherwise the comparison condition counts as not met.
+- **Not applied:** the WHO age-boundary wording "2 up to 10 years" for S14. It waits for the §4 source check.

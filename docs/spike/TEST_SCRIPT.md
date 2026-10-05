@@ -35,12 +35,12 @@ Segment boundaries are the intended split points. Pause for **about half a secon
 | S08 | Do not add sugar or salt. |
 | S09 | Do not use less water than the packet says. |
 | S10 | Do not boil the solution after mixing. |
-| S11 | Throw away any left after 24 hours. |
+| S11 | Throw away any solution left after 24 hours. |
 
 ### Scene 3: How much to give
 | Seg | Text |
 |---|---|
-| S12 | As a rule of thumb, give it slowly, in small sips. |
+| S12 | As a rule of thumb, give the solution slowly, in small sips. |
 | S13 | Under 2 years, give 50 to 100 millilitres after each loose stool. |
 | S14 | From 2 to 10 years, give 100 to 200 millilitres after each loose stool. |
 | S15 | Older children and adults: as much as they want. |
@@ -53,7 +53,7 @@ Segment boundaries are the intended split points. Pause for **about half a secon
 | Seg | Text |
 |---|---|
 | S20 | Ask a health worker about zinc. |
-| S21 | Zinc is given once a day for 10 to 14 days. |
+| S21 | For children, zinc is given once a day for 10 to 14 days. |
 | S22 | The dose is 20 milligrams a day, or 10 milligrams for babies under 6 months. |
 | S23 | Finish the course, even after the diarrhoea stops. |
 
@@ -63,9 +63,9 @@ Segment boundaries are the intended split points. Pause for **about half a secon
 | S24 | See a health worker straight away for danger signs: |
 | S25 | blood in the stool, repeated vomiting, or fever, |
 | S26 | or if the child cannot drink or is very sleepy. |
-| S27 | Do not wait for it to pass. Better safe than sorry. |
+| S27 | Do not wait for the illness to pass. Better safe than sorry. |
 
-**Length [ESTIMATE]:** 251 words (counted with `wc -w`). Spoken numbers ("one hundred", "twenty-four") and "O-R-S" make the speech longer than the word count suggests. **Do a timed read-through before freezing v1.** If it runs over 120 s, drop S04 (it has no critical tokens), then shorten S15. Don't drop S03 (it defines ORS) or S27 (it carries an idiom and a negation).
+**Length [ESTIMATE]:** 256 words (counted with `wc -w`). Spoken numbers ("one hundred", "twenty-four") and "O-R-S" make the speech longer than the word count suggests. **Do a timed read-through before freezing v1.** If it runs over 120 s, drop S04 (it has no critical tokens), then shorten S15. Don't drop S03 (it defines ORS) or S27 (it carries an idiom and a negation).
 
 ### 1b. Calibration sentences (M2 practice, not rated, not recorded)
 
@@ -130,7 +130,8 @@ Each consenting speaker records all three clips. The exact transcript is require
 
 | Seg | Claim | Status | Source page | Checked by |
 |---|---|---|---|---|
-| S05–S06 | 1 standard sachet in 1 litre of clean water | [UNVERIFIED]. Smaller packs (e.g. 200 ml) may exist; confirm which pack the script describes. S09 covers this with "what the packet says". | | |
+| S01–S03 | Diarrhoea causes loss of water and salts; ORS replaces them | [UNVERIFIED] | | |
+| S05–S06 | 1 standard sachet in 1 litre of clean water; boil and cool the water if unsure it is safe | [UNVERIFIED]. Smaller packs (e.g. 200 ml) may exist; confirm which pack the script describes. S09 covers this with "what the packet says". | | |
 | S08 | Do not add sugar or salt | [UNVERIFIED] | | |
 | S10 | Do not boil after mixing | [UNVERIFIED] | | |
 | S11 | Discard after 24 hours | [UNVERIFIED] | | |
@@ -141,11 +142,11 @@ Each consenting speaker records all three clips. The exact transcript is require
 | S17 | Under 2 years: a teaspoonful every 1–2 minutes | [UNVERIFIED]. *Changed after review: the earlier draft said "a spoonful every 2–3 minutes", which the reviewer believes is wrong.* | | |
 | S18 | Continue breastfeeding and feeding | [UNVERIFIED] | | |
 | S19 | Soft drinks or juice are not substitutes | [UNVERIFIED] | | |
-| S21–S22 | Zinc for 10–14 days; 20 mg/day, 10 mg/day under 6 months | [UNVERIFIED] | | |
+| S21–S22 | Zinc for children for 10–14 days; 20 mg/day, 10 mg/day under 6 months | [UNVERIFIED]. Indian MoHFW guidance may specify 14 days; check it. | | |
 | S23 | Complete the zinc course after the diarrhoea stops | [UNVERIFIED] | | |
 | S24–S26 | Danger signs: blood in stool, repeated vomiting, fever, cannot drink, very sleepy | [UNVERIFIED]. The list is deliberately short, not complete. *Changed from "high fever" to "fever" pending the check.* | | |
 
-If a claim is wrong, fix the script **before** R1 writes the reference translation. Editing afterwards invalidates the reference.
+A row becomes [CONFIRMED] only when the source page and both checkers are filled in. If a claim is wrong, fix the script **before** R1 writes the reference translation. Editing afterwards invalidates the reference.
 
 ## 5. Recording instructions
 
