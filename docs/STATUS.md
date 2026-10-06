@@ -46,7 +46,7 @@ None yet. Planned mocks (ADR 0005) will be listed here when written.
 | P3 Hugging Face gated models | Requested; **pending**, not assumed |
 | P4 Kaggle | Phone verified |
 | P5 Gemini and Groq | Gemini key created (no billing; not yet in `.env`). Groq ZDR enabled for inference APIs; whether it covers speech-to-text is [UNVERIFIED]. No audio to Groq yet. |
-| P8 Demo laptop | i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, kernel 7.0.0-34-generic. Ubuntu release not recorded. |
+| P8 Demo laptop | i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, kernel 7.0.0-34-generic. Ubuntu 26.04.1 LTS (read 2026-10-06). P8 done. |
 | P9 Docker | Memory limit chosen: 8 GB (user, 2026-10-05). **Docker not installed yet. Blocks M6 and rule 6a.** |
 | Media folder and spike log | Decided (user, 2026-10-05): `~/hl-spike-media/` and `~/hl-spike-media/spike-log.md` (append-only, timestamped, no raw content). Folder not created yet. |
 | Consent form, script fact check, Tamil reference data, recording | **Not started** |

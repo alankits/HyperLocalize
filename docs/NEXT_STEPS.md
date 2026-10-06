@@ -29,7 +29,7 @@ The form may now be signed only **after** the test script is frozen and every Ap
    - **Faculty:** ask whether institutional ethics approval is needed (record the answer and the date asked), and confirm they will countersign (now **required**). Choose who explains the form: the faculty guide or a non-speaker.
    - **Consent blanks:** withdrawal contact, N days, expiry, spike end date, Part D fixed end date and demo topic.
    - **Facts:** two members check TEST_SCRIPT §4 independently against WHO 2005 Plan A, WHO/UNICEF 2004 and MoHFW, recording page numbers. Confirm the Indian ORS sachet size. Check the IndicF5 model card for (a) the reference-length guidance and (b) the "no model is trained on your voice" statement, which is [INFERRED] in consent §1.
-   - **Setup:** install Docker Engine and Compose (P9); wait for the HF approvals (P3); record dated Groq ZDR evidence for speech-to-text (P5; shown to Speaker A before signing 3.3); record the Ubuntu release (P8).
+   - **Setup:** install Docker Engine and Compose (P9); wait for the HF approvals (P3); record dated Groq ZDR evidence for speech-to-text (P5; shown to Speaker A before signing 3.3).
 3. **Timed read-through** by Speaker A (stopwatch only, no recording). Then approve and freeze script v1.
 4. **R1:** the Tamil reference sentence, the 27-segment reference translation, and the digit and word versions of the 10 clone-input segments. R2 checks all of it.
 5. **Approve consent form v1** (suggest a final critical-reviewer pass on the filled-in form). Explain it, wait at least 24 h, then sign with Appendix A initialled. The faculty guide countersigns, and the speaker keeps a copy.
@@ -45,7 +45,7 @@ The form may now be signed only **after** the test script is frozen and every Ap
 - the faculty ethics question and countersignature;
 - the consent blanks;
 - the TEST_SCRIPT §4 fact check;
-- Docker (P9), the HF approvals (P3), the Groq evidence (P5) and the Ubuntu release (P8).
+- Docker (P9), the HF approvals (P3), and the Groq evidence (P5); P8 is done (Ubuntu 26.04.1 LTS).
 
 Then the timed read-through and the script freeze (step 3).
 
