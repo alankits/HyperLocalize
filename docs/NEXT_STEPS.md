@@ -57,7 +57,7 @@ The form may now be signed only **after** the test script is frozen and every Ap
 
 ## Exact next action
 **User decisions:**
-1. Review ADR 0020 revision 5 (an independent review is recommended), then approve it or request changes.
+1. ADR 0020 revision 5: the round-4 review is done and all its fixes are applied (`0020-REVIEW.md` round 4). Approve it or request changes.
 2. Optionally, apply SF2–SF5 and SF7 (wording only).
 3. SF8: record that the project now has one developer, then discuss the solo plan.
 

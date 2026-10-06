@@ -4,7 +4,7 @@
 |---|---|
 | **Status** | Canonical product boundary, set by the user 2026-10-06 |
 | **Applies to** | Every implementation, UML diagram, PPT, report and viva explanation |
-| **Sources** | `docs/context/01`–`05`, `CLAUDE.md`, accepted ADRs 0001–0014, the user's definition (2026-10-06) |
+| **Sources** | `docs/context/01`–`05`; `CLAUDE.md`; accepted ADRs 0001–0014; provisional and proposed ADRs 0015–0020; `docs/SPIKE_PLAN.md`; the Q answers in `docs/PHASE0_DISCOVERY.md` §11; the user's definition (2026-10-06) |
 
 **Labels:**
 - **[CONFIRMED]** means one of: stated in `docs/context/` or `CLAUDE.md`; decided by the user; or an accepted ADR. An accepted ADR is a *design or implementation decision*, not a built feature.
@@ -54,7 +54,7 @@ The exact context inputs and method are [PROPOSED] (Phase 0 §4; ADR 0016 is pen
 
 **Consent is a core safety and control requirement:**
 - it is enforced in the backend before any use of identity [CONFIRMED];
-- revocation must block new generation and stop pending and running work [CONFIRMED];
+- revocation must block new generation and cancel or halt pending jobs that use that identity [CONFIRMED, CLAUDE.md §5]. Stopping jobs that are already running is designed in ADR 0006 [CONFIRMED design];
 - the effect of revocation on existing previews and exports must be defined [CONFIRMED].
 
 **Voice cloning is one possible identity-preservation mechanism.** It is not the definition of the product [CONFIRMED].
@@ -84,12 +84,13 @@ The exact context inputs and method are [PROPOSED] (Phase 0 §4; ADR 0016 is pen
 
 ## 7. The MVP (first demonstrable build)
 
+**Project constraint** (not an MVP feature): zero budget [CONFIRMED, Q4].
+
 | Item | Status |
 |---|---|
 | One language pair; one target locale per project; the MVP pair is **English → Tamil** | [CONFIRMED for the MVP: Q3, Q14] |
 | Uploads of up to **5 minutes / 500 MB** | [CONFIRMED for the MVP, Q16] |
 | No lip-sync and no face processing | [CONFIRMED for the MVP, Q5] |
-| Zero budget | [CONFIRMED constraint, Q4] |
 | Demo deployment on one laptop | [CONFIRMED for the MVP, Q18] |
 | MVP identity: a consented reference voice plus versioned consent, with stock-voice or subtitles-only fallback | [PROPOSED; ADR 0015 is provisional] |
 | Implementation choices: modular monolith, Django (no DRF), PostgreSQL, a Postgres job queue, server-rendered pages with htmx, Docker Compose | [CONFIRMED implementation choices, ADRs 0001–0014]. These are **architecture, not the product** |
@@ -122,7 +123,7 @@ Its thresholds, participants (Speakers A and B, raters R1 and R2) and its consen
 ## 9. The current demo scenario
 
 - **The test case:** an English health-information script about ORS, localized into Tamil. It is used to test the workflow and the candidate components [CONFIRMED as a scenario].
-- **Demo video length:** 1–3 minutes, which is a **TARGET** [CONFIRMED as the demo target].
+- **Demo video length:** 1–3 minutes, which is a **TARGET** [PROPOSED, Phase 0 §5.2].
 - **Demo mechanisms:** the demo reset, the golden project and the screen-recording rules [PROPOSED, ADR 0020].
 - **Live consent revocation** is **designed, not implemented** [CONFIRMED].
 
@@ -135,13 +136,13 @@ Its thresholds, participants (Speakers A and B, raters R1 and R2) and its consen
 - background-music separation [PROPOSED];
 - lip-sync and face processing, which are **future scope only** and would need their own consent design [CONFIRMED as future scope, Q5].
 
-**HyperLocalize is NOT** [all CONFIRMED]:
-- a health, ORS or Tamil-only application;
-- a voice-cloning product;
-- a competitor on raw dubbing quality;
-- a fully autonomous pipeline;
-- a solution to physical problems in any domain;
-- something to describe as "production-ready", "secure", "GDPR compliant" or "100% accurate".
+**HyperLocalize is NOT:**
+- a health, ORS or Tamil-only application [CONFIRMED, user 2026-10-06];
+- a voice-cloning product [CONFIRMED, user 2026-10-06];
+- a competitor on raw dubbing quality [CONFIRMED, user 2026-10-06];
+- a fully autonomous pipeline [CONFIRMED, CLAUDE.md §4; user 2026-10-06];
+- a solution to physical problems in any domain [CONFIRMED, `docs/context/01`];
+- something to describe as "production-ready", "secure", "GDPR compliant" or "100% accurate" [CONFIRMED, CLAUDE.md §2].
 
 ## 11. Still undecided
 
@@ -158,4 +159,4 @@ Its thresholds, participants (Speakers A and B, raters R1 and R2) and its consen
 | Whether the combination is genuinely novel | [UNKNOWN; no product or literature check done] |
 | Quality, speed and accuracy figures | none measured |
 | Deployment beyond the laptop demo | [UNKNOWN] |
-| The effect of the team size on scope (the project now has one developer) | [UNKNOWN] |
+| The effect of the team size on scope. The user reported on 2026-10-06 that they are working alone; this is not yet recorded (it contradicts Q2; SF8 is pending) | [UNKNOWN] |

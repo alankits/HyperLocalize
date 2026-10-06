@@ -155,3 +155,27 @@ The reviewer found these minor leftovers. **The assistant applied all of them in
 - The round-3 status line above is updated.
 
 Harmless difference: the consent form also names the faculty guide as a withdrawal contact, but the dialog text doesn't. §8 names both.
+
+## Round 4: revision 5 and the framing changes (2026-10-06)
+
+| | |
+|---|---|
+| **Reviewed** | ADR 0020 revision 5 (Proposed), `docs/PRODUCT.md`, and the framing notes in ADRs 0008, 0013, 0014 and 0015 and Phase 0 §0 and §9 (commit `e349412`) |
+| **Reviewer** | `critical-reviewer` agent (fresh context) |
+| **Verdict** | ADR 0020 revision 5: **approve with changes** (1 major, 5 minor). PRODUCT.md and the framing notes: **approve with changes** (2 major, 4 minor). No framing note changes a decision. |
+| **Status** | **All applied** by the assistant (they correct its own revision 5 and the framing edits). ADR 0020 stays **Proposed**. |
+
+| # | Severity | Problem | Applied fix |
+|---|---|---|---|
+| A1 | Major | The parent rule was conditional ("for an owner who has a standing consent"), which reopened N3, and the gate didn't cover an owner with no standing version. | The rule is unconditional in the MVP. The gate refuses an owner with no standing version. The product question stays [UNKNOWN] in one note. |
+| A2 | Minor | "D1 (team rehearsals)" contradicted form D2, which now covers rehearsals. | "D1 (the seed comes from a development project), D2 (the demo and its team rehearsals)". The suggested form line ("D2 needs D1") was **not** applied, because it is a consent form change. |
+| A3 | Minor | Spike ticks appeared in the product UI and logic (dialog text, "Removing D4"). | Generic dialog text and logic. Spike ticks appear only as notes. |
+| A4 | Minor | The mapping had no row for `voice_synthesis` or `languages`. | Rows added. |
+| A5 | Minor | The form's audience limits for D1 and D3 have no system field. | Stated as kept by procedure. |
+| A6 | Minor → **behaviour fix** | The narrowing list was incomplete. The assistant also found that the revision 5 gate checked only the project's own purpose, so removing `STANDARD` no longer failed rehearsal projects (revision 4 required D1 and D2). | The gate restores the revision 4 behaviour: a rehearsal needs both purposes. The list is aligned and test 6 extended. |
+| B1 | Major | Phase 0 §9 viva line: "We measured whether context-aware translation helps" (nothing is measured). | "We will measure … (spike M2/M3, S4 ablation)". |
+| B2 | Major | PRODUCT §10: "not a competitor on raw dubbing quality" was under [all CONFIRMED], with a [PROPOSED] source. | Per-item sources. That item is confirmed by the user on 2026-10-06. |
+| B3 | Minor | The 1–3 minute demo length was marked CONFIRMED. | TARGET [PROPOSED, Phase 0 §5.2]. |
+| B4 | Minor | "The project now has one developer" was stated as a recorded fact. | Marked user-reported and not yet recorded (SF8). |
+| B5 | Minor | Source list incomplete; "stop running work" attributed to CLAUDE.md; budget listed as an MVP item. | Sources extended; running-job stop attributed to ADR 0006; budget moved to a constraint line. |
+| B6 | Minor | Phase 0 §9 novelty row still said "for high-stakes domains". | "(emphasis …)". |
