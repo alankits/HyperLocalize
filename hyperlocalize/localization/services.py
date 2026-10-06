@@ -143,6 +143,7 @@ def localize_scene(localization, scene, *, instruction="", actor=None, job_ctx=N
     if not request.segments:
         return []
     outcome = run_chain("localization", lambda a: a.localize(request), accept=_data_use_rule(project))
+    _record_usage(outcome.adapter, "localization", project)
     with transaction.atomic():
         for name, reason in outcome.skipped:
             if "data-use rule" in reason or "Error" in reason:
@@ -202,6 +203,14 @@ def save_translation(localization, segment, *, actor, origin, subtitle_text, spe
     return t
 
 
+def _record_usage(adapter, stage, project):
+    """Free-quota ledger (ADR 0005): one request per call; mocks are not counted."""
+    if not adapter.is_mock:
+        from hyperlocalize.pipeline.models import ProviderUsage
+
+        ProviderUsage.objects.create(adapter=adapter.name, stage=stage, units=1, unit_type="requests", project=project)
+
+
 def _run_hard_checks(t, project):
     seg = t.segment
     results = rules.run_hard_checks(
@@ -227,6 +236,7 @@ def _run_meaning_check(t, project):
         CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
                                    status=CheckResult.Status.CHECK_UNAVAILABLE, detail={"messages": [str(exc)[:300]]})
         return
+    _record_usage(outcome.adapter, "meaning_check", project)
     flags = outcome.result.flags
     if not flags:
         CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",

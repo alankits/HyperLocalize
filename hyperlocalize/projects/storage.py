@@ -59,10 +59,37 @@ class LocalMediaStorage(MediaStorage):
         return f"{token[:2]}/{token}{suffix}"
 
     def _path(self, key):
-        path = (self.root / "files" / key).resolve()
-        if not str(path).startswith(str((self.root / "files").resolve()) + os.sep):
+        # Keys starting with "offline/" live in media/offline/ (ADR 0020 OfflineCopy register).
+        area, rest = ("offline", key[len("offline/"):]) if key.startswith("offline/") else ("files", key)
+        base = (self.root / area).resolve()
+        path = (base / rest).resolve()
+        if not str(path).startswith(str(base) + os.sep):
             raise ValueError("invalid media key")
         return path
+
+    def save_offline_file(self, src_path, suffix):
+        """Copy a file into media/offline/ (identity files outside the artefact tables, ADR 0020)."""
+        key = "offline/" + self._new_key(suffix)
+        dest = self._path(key)
+        self._ensure(dest)
+        shutil.copyfile(src_path, dest)
+        os.chmod(dest, 0o600)
+        return key, _sha256_file(dest)
+
+    def sha256(self, key):
+        return _sha256_file(self._path(key))
+
+    def offline_files(self):
+        """Keys of every file in media/offline/ (for the drift warnings)."""
+        base = self.root / "offline"
+        if not base.exists():
+            return []
+        return ["offline/" + str(p.relative_to(base)) for p in base.rglob("*") if p.is_file()]
+
+    def all_files(self):
+        base = self.root / "files"
+        out = ["" + str(p.relative_to(base)) for p in base.rglob("*") if p.is_file()] if base.exists() else []
+        return out + self.offline_files()
 
     def save_file(self, src_path, suffix):
         key = self._new_key(suffix)
