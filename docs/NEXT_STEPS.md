@@ -10,8 +10,10 @@
 - **M2 choices approved 2026-10-05** and recorded in `SPIKE_PLAN.md` M2 and §5: linear-weighted κ for severity; a tie means within 5 points of the best; T2 vs T1 compares the same provider.
 - **Second consent review (2026-10-05): all fixes #1–16 approved and applied** (`docs/spike/CONSENT_FORM_REVIEW.md`). The clip-length mismatch in SPIKE_PLAN §2 is fixed (8–11 s). Team-specific values are left blank, not invented.
 - **2026-10-06:**
-  - **Round-2 consent review: needs changes.** 1 blocker (P1), 4 major and 4 minor issues (P1–P9), in `CONSENT_FORM_REVIEW.md` round 2. **Not applied.**
-  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. **Not approved.**
+  - **Round-2 consent review** (1 blocker, 4 major, 4 minor; `CONSENT_FORM_REVIEW.md` round 2): **P1–P8 approved and applied** to `CONSENT_FORM.md`, with P6 also reordering `TEST_SCRIPT.md` §7.
+  - **P9 approved and applied** to `SPIKE_PLAN.md`: P6 permissions aligned; in M4, A's listeners rate both clones. Rule 4 when ECAPA is skipped uses **Option A**: A's clone "same person?" median ≥ 3 **and** B's clone ≤ 2. If B hasn't given 3.4 and 3.6, the condition is not met.
+  - **Interim rule approved:** no real voice in any demo-reset snapshot or golden project until ADR 0020 is approved (ADR 0012 note, SPIKE_PLAN §6, consent Part D).
+  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. **Independent critical review run; results in `docs/adr/0020-REVIEW.md`. Not approved; the ADR itself is unchanged.**
 - Prerequisites: P4 done; P5 partly done; P8 partly done; P3 pending; P9 (Docker) added. Details in `SPIKE_PLAN.md` §1 and `STATUS.md`.
 
 ## Order change caused by the consent fixes
@@ -37,10 +39,9 @@ The form may now be signed only **after** the test script is frozen and every Ap
 9. **Spike runs:** need P3, P9 and the keys in `.env`.
 
 ## Exact next action
-**User decisions:**
-1. Round-2 consent fixes P1–P8.
-2. P9: align SPIKE_PLAN P6 and M4, and choose the rule 4 outcome when ECAPA is skipped.
-3. The interim rule: no real voice in any snapshot or golden project until ADR 0020 is approved.
-4. Approve or change ADR 0020.
+**User decision:** read `docs/adr/0020-REVIEW.md`, then choose one:
+1. Apply the review's fixes to ADR 0020 (all, or a numbered subset), then re-review.
+2. Approve ADR 0020 as it is.
+3. Reject or rework it.
 
-Then the assistant applies the approved items. Steps 1–2 above are still waiting on the team. No merges, no spike runs on real data, no recordings and no freezes until approved.
+Until then the interim rule applies. The team's steps 1–2 above (names, media folder, faculty, blanks, fact check, Docker, Groq evidence, Ubuntu release) are still open; the assistant does not fill them in. No merges, no spike runs on real data, no recordings and no freezes until approved.

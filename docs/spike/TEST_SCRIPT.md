@@ -178,9 +178,9 @@ Stock voices (MMS-TTS, Indic Parler-TTS) may also synthesise machine output, bec
 | Verify §4 against the WHO source (two members, independently); fix the script if needed | Team |
 | Timed read-through; trim per §1 if over 120 s | Speaker A |
 | Approve this script (freeze v1) | You |
-| Write the Tamil reference-clip text, and the digit and word versions in §6 | R1 |
+| Write the Tamil reference-clip text, the reference translation (**before seeing any system output**), and the digit and word versions in §6 | R1 |
+| Check all of R1's Tamil texts (Appendix A of the consent form must be final before signing) | R2 |
 | Sign consent, then record the test clip, reference clips and held-out clips | Speakers A and B |
 | Write the reference transcript (verbatim) and hand-mark segment boundaries | Team |
-| Write the reference translation, **before seeing any system output** | R1, checked by R2 |
 | Build the glossary (accepted Tamil inflected forms) and the unit lexicon | R1, R2 |
 | Write the seeded-error set, **after the check rules are frozen** | R2 only |

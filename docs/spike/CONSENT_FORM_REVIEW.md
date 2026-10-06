@@ -52,7 +52,13 @@ The assistant checked items 1, 2 and 14 against the files and found them accurat
 - Partly fixed: #1 (inaccurate and overreaching), #2 (incomplete) and #7 (overclaims).
 - Fixed, with a small follow-up still needed: #5 and #6.
 
-**Status:** **not applied.** These are changes to consent and to the spike decision rules, so they need the user's approval. The assistant checked P1, P6 and P9 against the files and found them accurate:
+**Status (2026-10-06): approved by the user and applied.**
+- P1–P8 are applied to `CONSENT_FORM.md` as proposed. For P6, `TEST_SCRIPT.md` §7 now has R1 write all the Tamil texts, including the reference translation, and R2 check them, before signing.
+- P9 is applied to `SPIKE_PLAN.md`: P6 lists permissions 3.0–3.6; in M4, A's listeners rate both clones; rule 4 uses **Option A** when ECAPA is skipped (A's clone "same person?" median ≥ 3 and B's clone ≤ 2; not met if B hasn't given 3.4 and 3.6).
+- The interim rule is approved and recorded in ADR 0012, SPIKE_PLAN §6 and consent form Part D.
+- ADR 0020 is under independent review and **not approved**.
+
+*Original status:* not applied. These are changes to consent and to the spike decision rules, so they need the user's approval. The assistant checked P1, P6 and P9 against the files and found them accurate:
 - ADR 0013 UC1 runs UC3 and then UC4 as jobs, so cloned previews come before review.
 - TEST_SCRIPT §7 puts R1's texts after the freeze.
 - SPIKE_PLAN M4 and rule 4 have no outcome for when ECAPA is skipped.

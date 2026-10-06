@@ -24,7 +24,7 @@ All results are **MEASURED RESULTS on one clip** (n = 1 clip, about 30 segments)
 | P3 | Hugging Face access accepted for the gated models IndicF5, IndicTrans2 and Indic Parler-TTS | **Pending.** Access requested (user, 2026-10-05). Approval is not assumed until confirmed for each model. |
 | P4 | Kaggle account with **phone verification** (needed only if rule 6 calls for Kaggle; start early anyway) | Done (phone verified; reported by user 2026-10-05) |
 | P5 | Gemini API key from AI Studio on a project **with no Cloud Billing**; Groq free account with **Zero Data Retention on** | **Partly done** (reported by user 2026-10-05). Gemini key created on a project with no billing; not yet in `.env` and not shared. Groq: Inference APIs ZDR available and enabled. **Still to check:** whether ZDR covers the speech-to-text endpoint used by slot A2 [UNVERIFIED]. **No audio is sent to Groq** until this is checked and consent 3.3 is signed. |
-| P6 | Signed consent (`docs/spike/CONSENT_FORM.md`) from each recorded team member: `voice_synthesis`; `remote_voice_processing` (Kaggle); `external_transcription` (Groq, needed only for slot A2); disclosure that the **Gemini free tier receives script text** (may be used for training and seen by human reviewers). **At least 2 speakers** are needed for the M4 similarity control. | To do |
+| P6 | Signed consent (`docs/spike/CONSENT_FORM.md`) from each recorded speaker (team member or volunteer), with each permission ticked separately: 3.0 recording and local processing; 3.1 `voice_synthesis`; 3.2 `remote_voice_processing` (Kaggle, only if rule 6 calls for it); 3.3 `external_transcription` (Groq, Speaker A only, needed only for slot A2); 3.4 listening tests; 3.5 voice comparison score; 3.6 clone as a comparison sample; plus the §4 disclosure that the **Gemini free tier receives script text** (may be used for training and seen by human reviewers). **At least 2 speakers** are needed for the M4 similarity control. *(Aligned with the consent form 2026-10-06, round-2 fix P9.)* | To do |
 | P7 | Your approval of this plan and the decision thresholds (§5) | Done (2026-10-05) |
 | P8 | **Demo laptop specs:** CPU model and cores, RAM, OS, and the Docker memory limit | **Partly done** (confirmed by user 2026-10-05): Intel Core i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, x86_64, Linux kernel 7.0.0-34-generic. Docker memory limit: 8 GB (see P9). **Still missing:** the Ubuntu release (`lsb_release -d`). |
 | P9 | **Docker Engine and Docker Compose installed on the demo laptop, and the Docker memory limit chosen.** On Linux, Docker sets no memory limit by default, and ADR 0012 doesn't set one, so the limit is **your decision**, written in the Compose file. *(Added 2026-10-05.)* | **Partly done.** Memory limit chosen: **8 GB** (user, 2026-10-05), written in the Compose file as `8g` (Docker reads this as 8 GiB), leaving about 6 GiB of the laptop's 14 GiB for the host. Rule 6a's 70% line is therefore about 5.6 GiB. **Docker is not installed yet. Blocks:** M6 CPU timings (run inside Compose, §4) and rule 6a (peak RAM ≤ 70% of the limit), so it also blocks the demo-plan choice. |
@@ -101,7 +101,7 @@ All scripts and notebooks live in `spike/` and `spike/kaggle/`. They are throwaw
 - **Intelligibility (relative):** transcribe the synthesised Tamil with one fixed **local** faster-whisper model (cloned audio never goes to Groq) and compute the character error rate against the input.
 - **Speaker similarity (cloned voice only):**
   - **Objective:** ECAPA-TDNN embedding cosine similarity between speaker A's real voice (the **held-out clip**, never the cloning reference; `docs/spike/TEST_SCRIPT.md` §3) and (i) speaker A's clone, and (ii) **speaker B's clone**, which is the different-speaker control *(changed after review: a stock voice was a trivial bar)*. Speaker B is matched to A in gender and rough age, with the same room and microphone. [UNVERIFIED that the embedding model runs acceptably on our CPU.]
-  - **Subjective:** "same person as A?" 1–5, from listeners who know speaker A.
+  - **Subjective:** "same person as A?" 1–5, from listeners who know speaker A, rating **both** speaker A's clone and speaker B's clone, blind and in random order (B's clone is played to them only with B's consent 3.4 and 3.6). *(Changed 2026-10-06, round-2 fix P9.)*
 
 ### M5: Timing fit → **ADRs 0016, 0018**
 - **Metric:** synthesised duration ÷ slot duration, per segment; distribution and % within ±15% (an assumed working threshold).
@@ -151,6 +151,8 @@ These rules are written now, before any results exist, so that the results can't
    The better of the English or Tamil reference is used. Otherwise the MVP uses stock voice only, and you are told first.
 
    **If Speaker B declines the permissions the comparison needs** (consent form 3.1, 3.5, 3.6), recruit another matched speaker. If none is available, the third condition counts as **not met** [CONFIRMED].
+
+   **If ECAPA cannot run on the laptop** (consent form 3.5: the score is skipped, never moved elsewhere), the third condition is replaced by a listener control: among listeners who know speaker A, the "same person as A?" median is **≥ 3/5 for A's clone and ≤ 2/5 for B's clone**. If B has not given 3.4 and 3.6, this control is unavailable and the third condition counts as **not met**. The other three conditions are unchanged. *[CONFIRMED 2026-10-06, user approval of round-2 fix P9, Option A; fixed before any results exist.]*
 5. **Stock voice (ADR 0018):** fewest critical-content pronunciation errors, then naturalness, then CPU speed.
 6. **Runtime and demo plan:**
    - (a) **CPU is live-capable** if the median per-segment IndicF5 time is ≤ 20 s, a 3-segment scene takes ≤ 60 s, and peak RAM is ≤ 70% of the Docker memory limit.
@@ -172,7 +174,7 @@ These rules are written now, before any results exist, so that the results can't
 
 | When | What |
 |---|---|
-| T-3 days | Pre-render the cloned-voice previews (overnight CPU or Kaggle). They are imported through the consent checks and reviewed. Snapshot for `demo_reset`. |
+| T-3 days | Pre-render the cloned-voice previews (overnight CPU or Kaggle). They are imported through the consent checks and reviewed. Snapshot for `demo_reset`. **Interim rule [CONFIRMED 2026-10-06]:** no demo-reset snapshot or golden project may contain a real speaker's voice until ADR 0020 is approved. |
 | T-1 day | `check_providers` (free quotas, model cache, Kaggle hours if used). Rehearse from `demo_reset`. Record the backup screen recording. |
 | Live: review | Open the pre-rendered previews and **say how they were made** ("rendered overnight on this laptop", or "on a free Kaggle GPU yesterday"). |
 | Live: regenerate | Request changes on a scene → regenerate with the **stock voice on CPU** so the full loop is visible. A live Kaggle dispatch is **optional and off the critical path**. |

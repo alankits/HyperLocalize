@@ -47,3 +47,6 @@ Q4 (revised): **zero budget**, no local GPU, free tiers and open-source models o
 - **−** No remote access for evaluators between reviews. Acceptable.
 - **−** Not production deployment. It is described as a demo deployment only.
 - **Viva in 2 minutes:** "Four containers on a laptop, using free hosted AI where allowed and local open-source models otherwise. If the network fails we switch to the all-local chain. We have a provider and quota check, a reset fixture, a completed golden project and a recorded run, and we say openly when we use any of them."
+
+## Interim rule (2026-10-06)
+**[CONFIRMED 2026-10-06, user approval]** Until ADR 0020 (proposed) is approved, no `demo_reset` snapshot or golden project may contain a real speaker's voice (recordings or cloned audio). Both use stock voices only. This comes from round 2 of the consent review (`docs/spike/CONSENT_FORM_REVIEW.md`). It does not change the rest of this ADR.
