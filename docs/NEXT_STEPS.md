@@ -12,8 +12,8 @@
 - **2026-10-06:**
   - **Round-2 consent review** (1 blocker, 4 major, 4 minor; `CONSENT_FORM_REVIEW.md` round 2): **P1–P8 approved and applied** to `CONSENT_FORM.md`, with P6 also reordering `TEST_SCRIPT.md` §7.
   - **P9 approved and applied** to `SPIKE_PLAN.md`: P6 permissions aligned; in M4, A's listeners rate both clones. Rule 4 when ECAPA is skipped uses **Option A**: A's clone "same person?" median ≥ 3 **and** B's clone ≤ 2. If B hasn't given 3.4 and 3.6, the condition is not met.
-  - **Interim rule** (approved, then superseded the same day by ADR 0020): no real voice in any demo-reset snapshot or golden project.
-  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. Round-1 review: needs changes (2 blockers); revision 2 applied all 14 fixes. Round-2 review: approve with changes; **revision 3** applied N1–N7, the simplification and the N4 consent wording (approved by the user). Round-3 review: approve with changes; **revision 4** applied M1–M6 (M4 option a: the golden project is built once by hand, stock voices, real approval). Spot-check: ready. **Accepted by the user 2026-10-06; amendments applied to ADRs 0006, 0007, 0011, 0012 and 0014; interim rule superseded.**
+  - **Interim rule approved:** no real voice in any demo-reset snapshot or golden project until ADR 0020 is approved (ADR 0012 note, SPIKE_PLAN §6, consent Part D).
+  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. Round-1 review: needs changes (2 blockers); revision 2 applied all 14 fixes. Round-2 review: approve with changes; **revision 3** applied N1–N7, the simplification and the N4 consent wording (approved by the user). Round-3 review: approve with changes; **revision 4** applied M1–M6 (M4 option a: the golden project is built once by hand, stock voices, real approval). **Spot-check: ready for user approval.** **Not approved yet.**
 - Prerequisites: P4 done; P5 partly done; P8 partly done; P3 pending; P9 (Docker) added. Details in `SPIKE_PLAN.md` §1 and `STATUS.md`.
 
 ## Order change caused by the consent fixes
@@ -29,7 +29,7 @@ The form may now be signed only **after** the test script is frozen and every Ap
    - **Faculty:** ask whether institutional ethics approval is needed (record the answer and the date asked), and confirm they will countersign (now **required**). Choose who explains the form: the faculty guide or a non-speaker.
    - **Consent blanks:** withdrawal contact, N days, expiry, spike end date, Part D fixed end date and demo topic.
    - **Facts:** two members check TEST_SCRIPT §4 independently against WHO 2005 Plan A, WHO/UNICEF 2004 and MoHFW, recording page numbers. Confirm the Indian ORS sachet size. Check the IndicF5 model card for (a) the reference-length guidance and (b) the "no model is trained on your voice" statement, which is [INFERRED] in consent §1.
-   - **Setup:** install Docker Engine and Compose (P9); wait for the HF approvals (P3); record dated Groq ZDR evidence for speech-to-text (P5; shown to Speaker A before signing 3.3).
+   - **Setup:** install Docker Engine and Compose (P9); wait for the HF approvals (P3); record dated Groq ZDR evidence for speech-to-text (P5; shown to Speaker A before signing 3.3); record the Ubuntu release (P8).
 3. **Timed read-through** by Speaker A (stopwatch only, no recording). Then approve and freeze script v1.
 4. **R1:** the Tamil reference sentence, the 27-segment reference translation, and the digit and word versions of the 10 clone-input segments. R2 checks all of it.
 5. **Approve consent form v1** (suggest a final critical-reviewer pass on the filled-in form). Explain it, wait at least 24 h, then sign with Appendix A initialled. The faculty guide countersigns, and the speaker keeps a copy.
@@ -38,23 +38,33 @@ The form may now be signed only **after** the test script is frozen and every Ap
 8. **R1 and R2:** fill in the Tamil forms in `spike/data/units.json` and `glossary.json`, and review `ta_number_word_stems.txt` (can run alongside steps 4–7). Then `python3 -m hlspike.freeze --write`. Only after that does R2 write the seeded errors.
 9. **Spike runs:** need P3, P9 and the keys in `.env`.
 
+## Framing audit (2026-10-06)
+- **Canonical product definition:** `docs/PRODUCT.md`. HyperLocalize is a general localization workflow. Health/ORS and English → Tamil are the spike and demo scenario only.
+- **Applied (wording only):**
+  - ADR 0013: language- and provider-neutral use cases;
+  - ADR 0014: MVP values marked;
+  - ADR 0008 and Phase 0 §0 and §9: the "high-stakes" claim reworded as an emphasis;
+  - ADR 0015: MVP qualifier;
+  - CLAUDE.md §1: pointer to PRODUCT.md.
+- **ADR 0020:** reverted to Proposed; amendments rolled back. Revision 5 decouples the product consent model from the spike's Part D. The interim rule (no real voice in any snapshot or golden project) is **in force again**.
+- **Not applied (optional SHOULD FIX items):**
+  - SF2: ADR 0008 title "(Tamil-aware)";
+  - SF3: ADR 0004 "MVP upload limits";
+  - SF4: ADR 0006 Context;
+  - SF5: ADR 0016 and 0018 titles;
+  - SF7: Phase 0 header and §0 stack;
+  - SF8: team size is now one developer.
+
 ## Exact next action
-**All open design decisions in this thread are closed.** The next steps are with the team (steps 1–2 above):
-- names on the paper forms;
-- the media folder, cloud-sync and backup checks, and disk encryption;
-- the faculty ethics question and countersignature;
-- the consent blanks;
-- the TEST_SCRIPT §4 fact check;
-- Docker (P9), the HF approvals (P3), and the Groq evidence (P5); P8 is done (Ubuntu 26.04.1 LTS).
+**User decisions:**
+1. Review ADR 0020 revision 5 (an independent review is recommended), then approve it or request changes.
+2. Optionally, apply SF2–SF5 and SF7 (wording only).
+3. SF8: record that the project now has one developer, then discuss the solo plan.
 
-Then the timed read-through and the script freeze (step 3).
+Still waiting on you:
+- the `external_transcription` choice after the spike: (a) local ASR only, or (b) add a D5 tick;
+- the GitHub remote;
+- Docker (P9);
+- the team items in steps 1–2 above.
 
-**Consistency pass done (2026-10-06):** consistent, with minor fixes. All the wording fixes are applied, including the spike live script (no live approval invalidation in a rehearsal project) and the ADR 0003 lock order.
-
-**One open user decision:** after the spike, `external_transcription` (Groq speech-to-text) can't pass the gate, because Part D has no tick for it. Choose:
-- (a) local ASR only after the spike (no form change; recommended);
-- (b) add a Part D tick D5 for external transcription (a consent form change).
-
-**GitHub:** no remote is configured. Nothing has been pushed; all commits are local only.
-
-The consent form is still a draft and needs your approval (step 5) after the blanks and Appendix A texts exist. No Part D signature before that. No merges, no spike runs on real data, no recordings and no freezes until approved.
+No merges, no spike runs on real data, no recordings and no freezes until approved.

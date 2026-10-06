@@ -24,7 +24,7 @@ The only free Tamil voice-cloning model in scope is **IndicF5** (AI4Bharat). It 
 
 ## Decision (provisional)
 
-"Identity" means:
+**For the MVP**, "identity" means the following. *(Framing note 2026-10-06, `docs/PRODUCT.md`: identity preservation is a core product concern, and voice is one identity-preservation mechanism. Whether identity at product level also covers faces or other speaker attributes is [UNKNOWN]; faces are future scope, Q5.)*
 - an **IdentityOwner**;
 - a **VoiceProfile**, which is our stored, consented **reference clip + transcript** (no provider-side clone);
 - a versioned **Consent** listing uses (`voice_synthesis`, `remote_voice_processing`, optionally `external_transcription`), project, languages, expiry, and the **same named processors as ADR 0006 §8** (Kaggle; Google Gemini free tier for script text; Groq only if external transcription is granted).

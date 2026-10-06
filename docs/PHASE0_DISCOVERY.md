@@ -22,7 +22,7 @@
 
 ## 0. Executive summary
 
-1. **Strategic recommendation.** HyperLocalize should not compete with commercial dubbing tools on raw dubbing quality, because a student team will lose that contest. It should compete on **trustworthy localization of critical information in high-stakes domains**. The differentiator is a *combination* of three things: (a) **critical-information verification**, meaning rule-based checks for numbers, units and glossary terms plus AI flags for possible meaning reversal, (b) a **mandatory human review gate**, and (c) an **export that carries its own evidence**. Consent that the backend enforces and that cascades on revocation is a required safeguard, classified as [ENHANCEMENT] (§9). No single part is claimed to be new. These properties are defensible in a viva and can be measured. [PROPOSED]
+1. **Strategic recommendation.** HyperLocalize should not compete with commercial dubbing tools on raw dubbing quality, because a student team will lose that contest. It should compete on **trustworthy localization**, with an emphasis on critical information in high-stakes domains. *(framing note 2026-10-06, `docs/PRODUCT.md`)* This is a proposed **emphasis**, not a product boundary: the product is a general localization workflow (`docs/PRODUCT.md`). The differentiator is a *combination* of three things: (a) **critical-information verification**, meaning rule-based checks for numbers, units and glossary terms plus AI flags for possible meaning reversal, (b) a **mandatory human review gate**, and (c) an **export that carries its own evidence**. Consent that the backend enforces and that cascades on revocation is a required safeguard, classified as [ENHANCEMENT] (§9). No single part is claimed to be new. These properties are defensible in a viva and can be measured. [PROPOSED]
 2. **Reframe "identity-preserving" as "consent-governed identity preservation".** A speaker's voice is reproduced only when, and only as far as, a current consent record allows. When consent is missing or revoked, the system falls back automatically to a non-identity voice or to subtitles. This turns the riskiest part of the concept into its strongest argument. [PROPOSED]
 3. **Define "context-aware" so it can be tested.** Context means a fixed set of inputs (transcript window, speaker, audience profile, glossary, timing budget) passed to a replaceable LLM stage. An **ablation study** (context on vs. context off vs. a plain machine-translation baseline) then shows whether the context actually helps. [PROPOSED]
 4. **MVP:** one short video, one language pair, at most two consenting speakers (team members), voice dubbing plus subtitles, scene-level regeneration, approval, an export with an evidence manifest, and a live demonstration of consent revocation. **Out of scope:** lip-sync, face manipulation, and on-screen text replacement. [PROPOSED]
@@ -537,7 +537,7 @@ The candidate tools below come from my training knowledge and need verifying (li
 2. An Export always references a VALID Approval, and its consent versions were all ACTIVE at export time.
 3. Any edit or new render after approval → that Approval becomes INVALIDATED.
 4. Translations, renders, and consent versions are append-only (new versions, no overwrites).
-5. Every state-changing action writes at least one AuditRecord in the same transaction. *(Updated 2026-10-06 to match ADR 0014 invariant 6 as amended by ADR 0020.)*
+5. Every state-changing action writes exactly one AuditRecord in the same transaction.
 
 ### 7.3 State machines [PROPOSED]
 
@@ -612,7 +612,7 @@ All values below are **TARGETS (to be set)**. There are no measured results yet.
 
 | Metric | Method |
 |---|---|
-| Audit completeness | Automated test: every state-changing endpoint produces at least one audit record; the chain verifier passes |
+| Audit completeness | Automated test: every state-changing endpoint produces exactly one audit record; the chain verifier passes |
 | Processing time per video minute (per stage) | Measured from job timestamps |
 | Cost per video minute | Measured from provider usage |
 | Failure handling | Tests for corrupt, oversized, or unsupported uploads, provider timeouts, retries, and partial pipeline failure |
@@ -644,7 +644,7 @@ What existing tools already do (from my training knowledge; **verify before quot
 
 Nothing is [IMPLEMENTED NOVELTY] yet, because nothing is implemented.
 
-**Recommended viva claim:** "HyperLocalize is a localization workflow for high-stakes information. Its contribution is a combination: numbers, units and terminology are rule-checked, possible meaning reversals are flagged by AI, a human review gate cannot be bypassed, and every export carries evidence of how it was produced and approved. Identity use is consent-bound and revocable throughout. We measured whether context-aware translation helps, rather than assuming it."
+**Recommended viva claim** *(framing note 2026-10-06, `docs/PRODUCT.md`)*: "HyperLocalize is a general, controlled video localization workflow. It adapts content for a target audience using source and audience context, respects each speaker's identity and consent, requires human review and approval before export, allows targeted regeneration, and keeps the process traceable. Its checks on critical content (numbers, units, terminology) make it suitable for important information, such as in health, food, water and energy. We measured whether context-aware translation helps, rather than assuming it." *(The earlier wording, "a localization workflow for high-stakes information", narrowed the product to a domain and is superseded.)*
 
 ---
 

@@ -5,7 +5,7 @@
 
 ## Context
 
-HyperLocalize targets high-stakes information (health, food, water, energy), where a wrong number, unit or term causes harm. AI translation output is a draft (CLAUDE.md §4). The language pair is **English → Tamil** (Q3). Tamil output brings specific difficulties:
+HyperLocalize is a general localization workflow. It is suited to important information (for example health, food, water, energy), where a wrong number, unit or term causes harm. AI translation output is a draft (CLAUDE.md §4). The checks below are specified for the **MVP language pair, English → Tamil** (Q3). Other language pairs would need their own normalisers and lexicons [INFERRED] *(framing note 2026-10-06, `docs/PRODUCT.md`)*. Tamil output brings specific difficulties:
 
 - **Numbers** may appear as Western digits (`5`), Tamil digits (`௫`, U+0BE6–U+0BEF), the non-positional Tamil numerals ௰ (10), ௱ (100) and ௲ (1000), or as words. Number words are inflected and combine through sandhi (e.g. இருபத்தைந்து = 25), and large numbers use the Indian system (லட்சம் = lakh, கோடி = crore; digit grouping like 1,00,000).
 - **Units** may be kept in Latin script (`mg`, `ml`) or written as Tamil abbreviations or words. The exact Tamil forms in our lexicon are to be confirmed by the raters.

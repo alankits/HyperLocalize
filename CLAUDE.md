@@ -31,6 +31,8 @@ Create Localization Project → Upload & Analyze Source Video → Context-Aware 
 
 Full context documents live in `docs/context/`. Read them when a task touches scope, actors, or use cases.
 
+**Canonical product definition:** `docs/PRODUCT.md`. It separates the product from the MVP, the Phase 0 spike, and the current demo scenario (health information, English → Tamil). Every implementation, UML diagram, PPT, report and viva explanation follows it.
+
 ---
 
 ## 2. Honesty rules (non-negotiable)

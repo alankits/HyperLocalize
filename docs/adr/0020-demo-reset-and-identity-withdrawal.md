@@ -1,17 +1,21 @@
 # ADR 0020: Demo reset by rebuild, offline-copy register, and identity withdrawal
 
-**Status:** **Accepted** (approved by the user 2026-10-06). The amendments below were applied to ADRs 0006, 0007, 0011, 0012 and 0014 on the same day, marked *(amended by ADR 0020, 2026-10-06)*.
+**Status:** **Proposed** (2026-10-06), waiting for approval.
 
 **History:**
 - **Revision 2** (2026-10-06): applied all 14 round-1 review findings.
-- **Revision 3** (2026-10-06): applied the round-2 findings N1–N8 (N8 is the revocation-demo note, §10) and the reviewer's simplification (no cloned voice in the golden project, no `DB_BACKUP` kind, one narrowing path), with the user's approval.
-- **Revision 4** (2026-10-06): applied round-3 findings M1–M6, with M4 option (a): the golden project is built once by hand through the real flow and never reset. The fixes were approved by the user. The ADR was then accepted on the same day.
+- **Revision 3** (2026-10-06): applied the round-2 findings N1–N7 and the reviewer's simplification (no cloned voice in the golden project, no `DB_BACKUP` kind, one narrowing path), with the user's approval.
+- **Revision 4** (2026-10-06): applied round-3 findings M1–M6, with M4 option (a): the golden project is built once by hand through the real flow and never reset. The fixes were approved by the user.
+- **Revision 5** (2026-10-06): product-framing fix MF2 (`docs/PRODUCT.md`). The standing consent is now a **product-level** owner consent with generic fields (`permitted_purposes[]`, `permitted_copy_kinds[]`, uses, languages, processors, expiry). The spike consent form's Part D ticks (D1–D4) are only **mapped** onto it (§1, table), instead of being stored as product consent values. Behaviour is unchanged for the spike speakers. Also: N8 (the revocation-demo note, §10) is added to the history, and the Amends list is completed.
+- *Note:* ADR 0020 was briefly marked Accepted on 2026-10-06 (commits `6c917e6`, `2e7538c`) and was **reverted to Proposed** the same day at the user's request. The amendments to other ADRs were rolled back.
+
+**The ADR itself is still Proposed.**
 
 Reviews: `docs/adr/0020-REVIEW.md`.
 
-**Amends:**
+**Amends**, if approved (those ADRs are not edited until then):
 - ADR 0003: lock order among several rows of the same type (ascending id);
-- ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep, and a new narrowing-and-withdrawal paragraph), §8 (standing grant as parent), §6 table (stop time labelled as a TARGET);
+- ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep, and a narrowing-and-withdrawal paragraph), §8 (standing consent as parent);
 - ADR 0007: the list of audited actions, and the own-transaction exception for `DEMO_RESET_REFUSED`;
 - ADR 0011: the Administrator and Identity Owner rows, and the viva line;
 - ADR 0012: demo-resilience items 1 (`check_providers`), 2 (golden project: stock voice only, built once through the real flow), 3 (screen recording) and 7 (demo reset), plus the revocation-demo note (§10 here);
@@ -40,7 +44,7 @@ ADR 0012 item 7 says: "`manage.py demo_reset` restores a database and media snap
 | Criterion | **A. Keep the snapshot; manual withdrawal checklist** | **B. Keep the snapshot; register it and guard the restore** | **C. Rebuild, don't restore: owner's standing grant, derived project grants, offline-copy register, one narrowing path** | **D. No reset: rerun the real flow before each rehearsal** |
 |---|---|---|---|---|
 | Keeps the §8 promise (withdrawal deletes all copies) | Only if a person remembers | Yes, for registered copies | **Designed to, for registered copies in the system's media folder**; the rest is on a manual checklist (§6) | Yes (there are no extra copies) |
-| A real withdrawal can't be undone by a reset | **No**: the restore brings back ACTIVE consent | Yes, if the guard works | **Yes, by design**: the reset refuses a withdrawn owner or a missing D1/D2, under the owner's lock | Yes |
+| A real withdrawal can't be undone by a reset | **No**: the restore brings back ACTIVE consent | Yes, if the guard works | **Yes, by design**: the reset refuses a withdrawn owner or a standing consent that doesn't permit the demo purposes, under the owner's lock | Yes |
 | Audit integrity (ADR 0007) | **Broken**: the restore cuts the chain silently | **Broken**: same | **Kept by the system**: the reset only appends. A manual restore remains a residual risk (§6) | Kept |
 | Consistent with ADR 0011 (only the owner grants) | Depends on who restores | Same | **Yes**: the owner grants; the reset only derives narrower, project-only versions | Yes, but the owner must re-grant before every rehearsal |
 | Rehearsal reliability | High | High | High (once the seed exists) | **Low**: needs the speaker and, under Plans C/D, an overnight render for every rehearsal |
@@ -51,41 +55,55 @@ ADR 0012 item 7 says: "`manage.py demo_reset` restores a database and media snap
 | Scalability | Demo-only in every option | | | |
 | Viva: explain in 2 minutes | Easy to explain, hard to defend | Hard to defend ("your reset deletes audit records") | **Moderate**: "the speaker grants once; every project consent is a narrower copy; revoking in a rehearsal is the demo, revoking anywhere else is real" | Easy, but the demo is fragile |
 
-## Decision
+## Decision (proposed)
 
 **Option C.**
 
-### 1. The owner's standing grant, and derived project grants
+### 1. The owner's standing consent, and derived project grants
 
-**Standing grant.**
-- The Speaker / Identity Owner signs in with their own account (ADR 0011, Q10) and grants a Consent version of a new kind, `STANDING_PART_D`. It records:
-  - `part_d_uses[]`: the Part D ticks, any of `D1_DEVELOPMENT`, `D2_LIVE_DEMO`, `D3_SCREEN_RECORDING`, `D4_KAGGLE`;
-  - `uses[]`: `voice_synthesis`, plus `remote_voice_processing` only if D4 is ticked;
+**Standing consent (product level).** *(Revision 5: generic fields; the spike form is only mapped onto them.)*
+- The Speaker / Identity Owner signs in with their own account (ADR 0011, Q10) and grants a Consent version of a new kind, `STANDING`. It is an owner-level consent that sets the outer limits for that owner's project consents. It records:
+  - `uses[]`: consent uses as defined in ADR 0006 §2 (for example `voice_synthesis`, `remote_voice_processing`);
+  - `permitted_purposes[]`: which kinds of project the owner's identity may be used in, from `Project.purpose` (§2): `STANDARD` and/or `DEMO_REHEARSAL`;
+  - `permitted_copy_kinds[]`: which `OfflineCopy` kinds (§4) may be kept for this owner, for example `SCREEN_RECORDING`;
   - `languages[]`;
   - `processors[]` (ADR 0006 §8);
-  - `expires_at`: **no later than the Part D end date**;
-  - evidence: the paper form ID and version;
+  - `expires_at`;
+  - evidence: the signed form's ID and version;
   - `granted_by`: the owner's own user.
 - It has no project. **The gate never accepts it directly.** Its only role is to authorise project versions.
+
+**How the spike consent form maps onto it** *(spike/demo mapping only; these ticks are not product consent values)*:
+
+| Spike consent form (Part D) | Standing consent field |
+|---|---|
+| D1. Develop and test on the team laptop | `permitted_purposes` includes `STANDARD` |
+| D2. Live demo and its team rehearsals | `permitted_purposes` includes `DEMO_REHEARSAL` |
+| D3. Backup screen recording | `permitted_copy_kinds` includes `SCREEN_RECORDING` |
+| D4. Kaggle processing | `uses` includes `remote_voice_processing`, and `processors` includes Kaggle |
+| Part D fixed end date | `expires_at` (no later than that date) |
+| Form ID and version | evidence |
 - Changing it means a new standing version; the latest version is current (ADR 0014).
   - **Narrowing** (removing uses, languages or processors, or an earlier `expires_at`) can be done by the owner in the app alone, or by an Administrator recording a §8 request (§5).
   - **Widening** (adding anything back, or a later `expires_at`) is done only by the owner, and needs a **new signed paper form ID** as evidence (fixes M5). Without it, the system refuses the new version.
 
-**Every project consent is derived from it** (fixes N3). A `PROJECT` Consent version must have `parent_consent` = the owner's latest standing version, and must be no wider than it:
+**Project consents derive from it** (fixes N3). For an owner who has a standing consent, every `PROJECT` Consent version must have `parent_consent` = the owner's latest standing version, and must be no wider than it:
 - `uses ⊆ parent.uses`;
 - `languages ⊆ parent.languages`;
 - `processors ⊆ parent.processors`;
 - `expires_at ≤ parent.expires_at`.
 
 There are two ways to create one:
-- **`STANDARD` project:** the owner grants it from their own account (ADR 0006 as now). It needs `D1_DEVELOPMENT` in the parent.
-- **`DEMO_REHEARSAL` project:** `demo_reset` creates it with `granted_by` = system (`DEMO_RESET`), and the Administrator who ran the command is recorded as `triggered_by` in the audit details. It needs both `D1_DEVELOPMENT` (team rehearsals) and `D2_LIVE_DEMO` (panel and audience; the consent form's D2 now also names rehearsals).
+- **`STANDARD` project:** the owner grants it from their own account (ADR 0006 as now). The parent must permit `STANDARD`.
+- **`DEMO_REHEARSAL` project:** `demo_reset` creates it with `granted_by` = system (`DEMO_RESET`), and the Administrator who ran the command is recorded as `triggered_by` in the audit details. The parent must permit both `STANDARD` and `DEMO_REHEARSAL`: for the spike speakers, that is D1 (team rehearsals) and D2 (panel and audience).
 
-The Administrator can trigger the copy but can't create, widen or extend consent. A project consent without a parent is refused.
+The Administrator can trigger the copy but can't create, widen or extend consent.
+
+**Owners without a standing consent.** In the MVP, every identity owner has a standing consent recorded from their signed form, so a project consent without a parent is refused [PROPOSED]. Whether the product should also let an owner grant project consent directly, without a standing consent, is [UNKNOWN].
 
 **Gate change (amends ADR 0006 §1).** `require_active_consent` also returns false if:
 - `IdentityOwner.withdrawn_at` is set; or
-- the owner's **latest** standing version is not ACTIVE, is expired, or lacks the Part D use the project needs (`remote_voice_processing` also needs `D4_KAGGLE`); or
+- the owner's **latest** standing version is not ACTIVE, is expired, or doesn't permit the project's purpose; or
 - the project version is **no longer within** that latest standing version: every one of its `uses`, `languages` and `processors` must still be in the standing version, and its `expires_at` must be no later (fixes M1). So narrowing a language or a processor makes the affected project scopes fail the gate, and §5 step 2 cascades them.
 
 These are extra conditions in the same gate, not a new gate.
@@ -108,13 +126,13 @@ There are three commands. **Each one first takes `select_for_update()` on every 
 - the reference clip;
 - any pre-rendered cloned audio (Plans B, C and D).
 
-It refuses unless the owner's latest standing version is ACTIVE, unexpired and has D1 and D2. It registers every seed file as an `OfflineCopy`. Audit: `SEED_BUILT`.
+It refuses unless the owner's latest standing version is ACTIVE, unexpired, and permits both `STANDARD` and `DEMO_REHEARSAL`. It registers every seed file as an `OfflineCopy`. Audit: `SEED_BUILT`.
 
 **`manage.py demo_reset`** never overwrites the database, deletes rows or restores files.
 
 It **refuses** (audit: `DEMO_RESET_REFUSED`, with the reason) if:
 - any identity owner in the seed is withdrawn; or
-- an owner's latest standing version isn't ACTIVE, is expired, or lacks D1 or D2; or
+- an owner's latest standing version isn't ACTIVE, is expired, or doesn't permit both `STANDARD` and `DEMO_REHEARSAL`; or
 - a seed file it needs has **no** `OfflineCopy` row, a row that isn't `PRESENT`, or a SHA-256 that doesn't match its row.
 
 Otherwise it does the following, in one transaction under the lock:
@@ -126,7 +144,7 @@ Otherwise it does the following, in one transaction under the lock:
 
 A rehearsal project starts with **no** Approval or Export. Review, approval and export in a rehearsal are done live, by real people, as part of the demo.
 
-**`manage.py register_offline_copy`** registers a screen recording (§4). It refuses unless the owner's latest standing version is ACTIVE and has `D3_SCREEN_RECORDING`. Audit: `OFFLINE_COPY_REGISTERED`.
+**`manage.py register_offline_copy`** registers a screen recording (§4). It refuses unless the owner's latest standing version is ACTIVE and its `permitted_copy_kinds` include `SCREEN_RECORDING`. Audit: `OFFLINE_COPY_REGISTERED`.
 
 **Run the evening before:** `check_providers` and a trial `demo_reset`, so that a refusal surfaces then and not on demo morning. The stock-voice-only plan (SPIKE_PLAN §6) is the fallback if the reset refuses.
 
@@ -165,14 +183,14 @@ These are **warnings for accidental drift, not tamper resistance**. A re-encoded
 | Action | Effect |
 |---|---|
 | Revocation inside a `DEMO_REHEARSAL` project (on stage or in a team rehearsal) | **Demonstration only.** Scope revocation for that project; the next reset derives a fresh grant. The UI there says: "This revokes only this rehearsal project. To withdraw for real, use *Withdraw* on your consent page." |
-| Revocation inside a `STANDARD` project | **Real, for that project only.** Nothing re-grants it automatically. It does **not** remove a Part D use, the demo seed or the screen recording. The revoke dialog says: "This ends the use of your voice in this project only. To withdraw a Part D use or everything, untick it or press *Withdraw* on your consent page, or tell the §8 contact." (fixes M2) |
-| A new standing version that removes one or more Part D uses (partial withdrawal) | **Real**, for those uses: narrowing, below. |
+| Revocation inside a `STANDARD` project | **Real, for that project only.** Nothing re-grants it automatically. It does **not** change the standing consent, the demo seed or the screen recording. The revoke dialog says: "This ends the use of your voice in this project only. To withdraw a Part D use or everything, untick it or press *Withdraw* on your consent page, or tell the §8 contact." (fixes M2) |
+| A new standing version that removes uses, purposes, copy kinds, languages or processors (partial withdrawal; for the spike speakers, unticking a Part D use) | **Real**, for what was removed: narrowing, below. |
 | *Withdraw* (owner-level, all uses) | **Real and final**: narrowing to nothing, below. |
 
-**Narrowing: the single withdrawal path** (fixes N2; simplification). A new standing version that narrows anything (uses, Part D uses, languages, processors, or an earlier `expires_at`), or a withdrawal, runs **one** procedure. In one transaction, under the IdentityOwner lock (ADR 0006 §4):
-1. Insert the new standing version, with the narrowed `uses`, `part_d_uses`, `languages`, `processors` or `expires_at`, or with status `REVOKED` for a withdrawal.
+**Narrowing: the single withdrawal path** (fixes N2; simplification). A new standing version that narrows anything (uses, permitted purposes, permitted copy kinds, languages, processors, or an earlier `expires_at`), or a withdrawal, runs **one** procedure. In one transaction, under the IdentityOwner lock (ADR 0006 §4):
+1. Insert the new standing version, with the narrowed `uses`, `permitted_purposes`, `permitted_copy_kinds`, `languages`, `processors` or `expires_at`, or with status `REVOKED` for a withdrawal.
 2. For **every** project scope of that owner, `STANDARD` and `DEMO_REHEARSAL` alike, that no longer passes the gate, run the ADR 0006 §5 cascade. That inserts a REVOKED version, cancels or flags jobs, quarantines artefacts, invalidates approvals, marks exports and queues the purge. Removing D4 therefore revokes `remote_voice_processing` everywhere, including `STANDARD` projects.
-3. Mark the owner's `OfflineCopy` rows `DELETION_PENDING` for the removed uses: D3 → `SCREEN_RECORDING`; D1 or D2 → `DEMO_SEED_*` (the seed is useless without both); withdrawal → all.
+3. Mark the owner's `OfflineCopy` rows `DELETION_PENDING` for what was removed: a removed copy kind → the copies of that kind; `STANDARD` or `DEMO_REHEARSAL` removed from `permitted_purposes` → `DEMO_SEED_*` (the seed is useless without both); withdrawal → all.
 4. For a withdrawal, also set `IdentityOwner.withdrawn_at`, `withdrawn_by` and `withdrawal_evidence`.
 
 The purge then deletes the files, with the same "deletion pending" retry and audit behaviour (ADR 0006 §5).
@@ -215,7 +233,7 @@ Each record carries who, what, when, project (where there is one) and consent ve
 | Entity | Change |
 |---|---|
 | Project | + `purpose` (`STANDARD` / `DEMO_REHEARSAL`) |
-| Consent | + `kind` (`PROJECT` / `STANDING_PART_D`), + `parent_consent` (required for `PROJECT`), + `part_d_uses[]` (standing only); `project` is null only for `STANDING_PART_D`; `processors[]` applies to both kinds |
+| Consent | + `kind` (`PROJECT` / `STANDING`), + `parent_consent` (required for `PROJECT` when the owner has a standing consent; always in the MVP), + `permitted_purposes[]` and `permitted_copy_kinds[]` (standing only); `project` is null only for `STANDING`; `processors[]` applies to both kinds |
 | IdentityOwner | + `withdrawn_at`, `withdrawn_by`, `withdrawal_evidence` |
 | Export | status + `PURGED` |
 | RenderedScene | the purge deletes the `audio_key` and `video_key` files (status `PURGED` already exists) |
@@ -226,20 +244,20 @@ Each record carries who, what, when, project (where there is one) and consent ve
 ### 9. Tests (16)
 
 1. A reset never changes or removes existing `AuditRecord` rows (the chain prefix hash is the same before and after).
-2. A reset refuses a withdrawn owner, and a standing grant that lacks D1 or D2 or has expired.
+2. A reset refuses a withdrawn owner, and a standing consent that doesn't permit both purposes or has expired.
 3. A reset refuses a seed file whose hash doesn't match, that has no row, or whose row is `DELETION_PENDING` or `DELETED`.
 4. **Withdraw vs. reset concurrency, both orders:** no live copy of a withdrawn voice remains afterwards.
 5. A revocation in one rehearsal project leaves the owner's other projects, and the seed reference clip, untouched.
-6. Removing D2 cancels running jobs and quarantines artefacts in every rehearsal project, and an in-flight CP5 save that commits after the narrowing is refused.
-7. Removing D3 purges only that owner's `SCREEN_RECORDING` copies.
-8. Removing D4 revokes `remote_voice_processing` in every project scope, including `STANDARD`. Removing a language or a processor from the standing grant cascades every project scope that uses it (M1).
+6. Removing `DEMO_REHEARSAL` from `permitted_purposes` cancels running jobs and quarantines artefacts in every rehearsal project, and an in-flight CP5 save that commits after the narrowing is refused.
+7. Removing `SCREEN_RECORDING` from `permitted_copy_kinds` purges only that owner's `SCREEN_RECORDING` copies.
+8. Removing `remote_voice_processing` (or the Kaggle processor) revokes it in every project scope, including `STANDARD`. Removing a language or a processor from the standing grant cascades every project scope that uses it (M1).
 9. Withdrawal purges every `OfflineCopy`, export package and render file (including the `DELETION_PENDING` retry).
 10. After withdrawal, the gate refuses every use × scope.
 11. A `PROJECT` consent without a parent is refused, and so is one wider than its parent (uses, languages, processors, `expires_at`). A project version that was within an earlier standing version but is wider than the latest one fails the gate (M1). A widening standing version without a new paper form ID is refused (M5).
 12. The Administrator can't create a standing grant, or any project consent except through a reset derivation.
 13. Standing-grant expiry cascades every project scope, purges the `OfflineCopy` rows and blocks the reset.
 14. `check_providers` warns about an unregistered file in `media/offline/`, and about a file whose hash matches a deleted copy.
-15. `register_offline_copy` refuses a `SCREEN_RECORDING` without D3; `demo_reset` never modifies the golden project; and a project with a VoiceProfile, Consent or cloned audio can't be named as the golden project: `check_providers` reads the `GOLDEN_PROJECT_ID` setting (environment variable) and warns if that project uses any identity.
+15. `register_offline_copy` refuses a `SCREEN_RECORDING` that the standing consent doesn't permit; `demo_reset` never modifies the golden project; and a project with a VoiceProfile, Consent or cloned audio can't be named as the golden project: `check_providers` reads the `GOLDEN_PROJECT_ID` setting (environment variable) and warns if that project uses any identity.
 16. Every new action writes its audit record with the required fields.
 
 ### 10. Revocation demo (amends ADR 0012)
@@ -250,12 +268,12 @@ Under ADR 0011 only the owner revokes in the system, so the speaker must be **pr
 
 - **The register only covers what it is told about.** A screen recording or backup that nobody registers is invisible to the purge. The hash check catches only exact copies. Mitigations: the `check_providers` warnings, a fixed folder, the no-backup rule and the manual checklist (§6). It still depends on people.
 - **The rehearsal-vs-real rule depends on where the owner clicks.** A revocation inside a rehearsal project is always treated as a demonstration, even if the owner meant it for real. Mitigations: the UI text in §5, the *Withdraw* button on the owner's consent page, and the consent form wording (N4, applied 2026-10-06).
-- **Re-deriving consent on every reset could look like consent theatre.** Answer for the viva: the owner granted Part D once, in their own account. Each reset makes an audited, project-only copy that can't be wider than that grant. Removing D1 or D2, or withdrawing, blocks every future reset.
-- **The demo seed is a second copy of the reference clip** for as long as the demo exists. This is deliberate: it is registered, hashed, purged on narrowing, withdrawal or expiry, and covered by consent Part D.
+- **Re-deriving consent on every reset could look like consent theatre.** Answer for the viva: the owner granted a standing consent once, in their own account. Each reset makes an audited, project-only copy that can't be wider than that grant. Removing a demo purpose, or withdrawing, blocks every future reset.
+- **The demo seed is a second copy of the reference clip** for as long as the demo exists. This is deliberate: it is registered, hashed, purged on narrowing, withdrawal or expiry, and covered by the standing consent (for the spike speakers, consent form Part D).
 - **Locking several owners in one command** relies on locking them in ascending id order to avoid deadlocks. The demo has at most two owners.
 - **The database fills with rehearsal projects.** That is acceptable for a demo; the UI filter hides them.
 - **Scope:** 1 model, about 8 fields, 3 commands and 16 tests [ESTIMATE: about 2–3 days, the reviewer's figure, not measured]. If the build runs short, the fallback is **no cloned voice in any demo project** (stock-only demo, SPIKE_PLAN §6).
-- **Spike phase:** there is no system yet. During the spike, withdrawal is done by hand and logged in the spike log (consent form §8). This ADR applies from the first system build. It supersedes the 2026-10-06 interim rule (no real voice in any snapshot or golden project): the snapshot no longer exists, and the golden project is permanently stock-voice only.
+- **Spike phase:** there is no system yet. During the spike, withdrawal is done by hand and logged in the spike log (consent form §8). This ADR applies from the first system build. Until it is approved, the interim rule applies: no real voice in any demo seed or golden project.
 
 ## Consequences
 
@@ -266,4 +284,4 @@ Under ADR 0011 only the owner revokes in the system, so the speaker must be **pr
 - **+** The golden project holds no identity, so it is always safe to show and can't be damaged by a misclick. Its approval is a real human approval, made once, so "who approved this?" has a true answer.
 - **−** More model and gate logic: a standing grant kind, a required parent link and a purpose flag. **UML diagrams to update:** class diagram (OfflineCopy plus the new fields), Consent states (standing and project versions, narrowing), UC7 activity or sequence diagram (narrowing and withdrawal).
 - **−** Rehearsal discipline is still needed for screen recordings and backups.
-- **Viva in 2 minutes:** "The speaker grants Part D once, in their own account. Every project consent is a copy of that grant that can't be wider. A demo reset builds a fresh rehearsal project and makes such a copy, and the audit log only grows. Revoking inside a rehearsal project is the demonstration and affects only that project. Revoking anywhere else, removing a tick, or pressing *Withdraw* is real. It goes through one procedure that revokes every affected project, deletes the registered copies and blocks future resets. Admins can't grant consent; they can only record a withdrawal the speaker asked for. The golden project uses stock voices and was reviewed and approved once by real people, so it holds nobody's identity."
+- **Viva in 2 minutes:** "The speaker grants a standing consent once, in their own account. Every project consent is a copy of that grant that can't be wider. A demo reset builds a fresh rehearsal project and makes such a copy, and the audit log only grows. Revoking inside a rehearsal project is the demonstration and affects only that project. Revoking anywhere else, removing a tick, or pressing *Withdraw* is real. It goes through one procedure that revokes every affected project, deletes the registered copies and blocks future resets. Admins can't grant consent; they can only record a withdrawal the speaker asked for. The golden project uses stock voices and was reviewed and approved once by real people, so it holds nobody's identity."

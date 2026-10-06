@@ -1,6 +1,6 @@
 # ADR 0007: Append-only, hash-chained audit records
 
-**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, independent review. **Amended 2026-10-06 by ADR 0020** (new audited actions).
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, independent review.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.10; CLAUDE.md §5
 
 ## Context
@@ -24,9 +24,9 @@ Every consent grant and revocation, approval, regeneration and export must produ
 - `canonical_json` means sorted keys, UTF-8, no whitespace, timestamps as ISO-8601 UTC strings with microseconds, and no floats (decimals as strings).
 
 **Writing.**
-- Records are written only through `audit.services.record(...)`, **inside the same transaction** as the action they describe. *(amended by ADR 0020, 2026-10-06)* Exception: `DEMO_RESET_REFUSED` records a refusal, so there is no action transaction to share; it is written in its own transaction.
+- Records are written only through `audit.services.record(...)`, **inside the same transaction** as the action they describe.
 - Appends are serialised by `select_for_update()` on a single `AuditChainHead` row, so the chain stays linear. **`AuditChainHead` is always locked last** (the global lock order is in ADR 0003), which prevents deadlocks with consent and job locks.
-- **What is audited:** consent grants, revocations and expiries; approvals and invalidations; regeneration requests; exports; check overrides and acknowledgements; provider-chain and policy changes; provider fallbacks and Gemini skips; job state changes. *(amended by ADR 0020, 2026-10-06)* Also: `SEED_BUILT`, `DEMO_RESET`, `DEMO_RESET_REFUSED`, `OFFLINE_COPY_REGISTERED`, `OFFLINE_COPY_DELETED` and `IDENTITY_WITHDRAWN`. `CONSENT_GRANTED` gains the reason `DEMO_RESET` and `parent_consent_id`; `CONSENT_REVOKED` gains `removed_uses` (narrowing) and the reason `EXPIRED`. One action may write more than one record (for example a withdrawal: `IDENTITY_WITHDRAWN` plus one `CONSENT_REVOKED` per scope), all in the same transaction. **Not audited:** heartbeats and status polls (they would bury the evidence).
+- **What is audited:** consent grants, revocations and expiries; approvals and invalidations; regeneration requests; exports; check overrides and acknowledgements; provider-chain and policy changes; provider fallbacks and Gemini skips; job state changes. **Not audited:** heartbeats and status polls (they would bury the evidence).
 
 **Append-only.** PostgreSQL triggers, created in a Django migration, reject `UPDATE` and `DELETE` (row-level) and **`TRUNCATE`** (statement-level; added after review) on the table. *(Changed in the review: a separate restricted database role is now **optional hardening**, not part of the MVP, because it adds database administration the team hasn't done before. The threat model below reflects this.)*
 

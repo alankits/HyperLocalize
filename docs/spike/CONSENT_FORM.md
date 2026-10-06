@@ -127,7 +127,7 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 
 **What your cloned voice will say.** Your cloned voice will speak Tamil translations drafted by AI, about **[demo topic — to be filled in]**. Until a reviewer checks them, they may contain errors, including wrong numbers or a missing "not". Unreviewed versions are heard by the team, and, in a live demo regeneration, by the panel.
 
-**Demo seed and golden project.** Your voice is **never** put into the golden (pre-prepared) demo project, which uses stock voices only. Your recordings and cloned audio go into the **demo seed** (the copy each demo reset is built from) only if you tick both D1 and D2. The seed is registered and deleted on withdrawal, on removing D1 or D2, or at the Part D end date.
+**Interim limit.** Until the team's demo-reset design is approved, your voice is **not** put into any demo seed or golden (pre-prepared) demo project. Under the proposed design, the golden project uses stock voices only.
 
 | Use after the spike | YES | NO |
 |---|---|---|
@@ -143,7 +143,7 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 - **Revoking inside a normal project** ends the use of your voice **in that project only**.
 - **To withdraw a Part D use, or everything**, untick that use or press *Withdraw* on your consent page, or tell the §8 contact or the faculty guide. This is a real withdrawal: §8 then applies to that use, or to everything.
 
-Adding a use back later needs a new signed form. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is designed (ADR 0020, accepted 2026-10-06) but not yet built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
+Adding a use back later needs a new signed form. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is proposed (ADR 0020) and not yet approved or built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
 
 ---
 
