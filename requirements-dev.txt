@@ -1,0 +1,4 @@
+-r requirements.txt
+# Development only: static ffmpeg/ffprobe binaries for machines without a system
+# ffmpeg. The Docker image installs ffmpeg from the distribution instead.
+static-ffmpeg==3.0

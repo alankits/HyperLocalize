@@ -1,0 +1,3 @@
+# Application dependencies (ADR 0009: Django, no DRF; ADR 0002: PostgreSQL).
+Django==6.1.1
+psycopg[binary]==3.3.6

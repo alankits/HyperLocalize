@@ -1,0 +1,52 @@
+# Docker Compose stack (ADR 0012): web, two worker lanes (ADR 0003) and PostgreSQL.
+# Not yet run: Docker is not installed on the development laptop (prerequisite P9).
+# Start: docker compose up --build   (then: docker compose exec web python manage.py migrate)
+x-app: &app
+  build: .
+  env_file: .env
+  environment:
+    HL_DB_HOST: db
+    HL_DB_PORT: "5432"
+    HL_DB_NAME: hyperlocalize
+    HL_DB_USER: hl
+    HL_DB_PASSWORD: ${HL_DB_PASSWORD:-hl-dev-password}
+    HL_MEDIA_ROOT: /media/hl
+  volumes:
+    - media:/media/hl
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: hyperlocalize
+      POSTGRES_USER: hl
+      POSTGRES_PASSWORD: ${HL_DB_PASSWORD:-hl-dev-password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hl -d hyperlocalize"]
+      interval: 5s
+      retries: 10
+
+  web:
+    <<: *app
+    ports:
+      - "127.0.0.1:8000:8000"   # bound to localhost only; nothing is exposed to the network
+
+  worker-default:
+    <<: *app
+    command: ["python", "manage.py", "run_worker", "--lane", "default"]
+
+  worker-synthesis:
+    <<: *app
+    command: ["python", "manage.py", "run_worker", "--lane", "synthesis"]
+    # Memory limit chosen by the user (2026-10-05, SPIKE_PLAN P9): 8 GB for the
+    # service that hosts the local inference subprocess.
+    mem_limit: 8g
+
+volumes:
+  pgdata:
+  media:
