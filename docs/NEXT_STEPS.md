@@ -13,7 +13,7 @@
   - **Round-2 consent review** (1 blocker, 4 major, 4 minor; `CONSENT_FORM_REVIEW.md` round 2): **P1–P8 approved and applied** to `CONSENT_FORM.md`, with P6 also reordering `TEST_SCRIPT.md` §7.
   - **P9 approved and applied** to `SPIKE_PLAN.md`: P6 permissions aligned; in M4, A's listeners rate both clones. Rule 4 when ECAPA is skipped uses **Option A**: A's clone "same person?" median ≥ 3 **and** B's clone ≤ 2. If B hasn't given 3.4 and 3.6, the condition is not met.
   - **Interim rule approved:** no real voice in any demo-reset snapshot or golden project until ADR 0020 is approved (ADR 0012 note, SPIKE_PLAN §6, consent Part D).
-  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. Round-1 review: needs changes (2 blockers); revision 2 applied all 14 fixes. Round-2 review: approve with changes; **revision 3** applied N1–N7, the simplification and the N4 consent wording (approved by the user). **Round-3 review: approve with changes** (M1–M6; `docs/adr/0020-REVIEW.md`). **Not approved.**
+  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. Round-1 review: needs changes (2 blockers); revision 2 applied all 14 fixes. Round-2 review: approve with changes; **revision 3** applied N1–N7, the simplification and the N4 consent wording (approved by the user). Round-3 review: approve with changes; **revision 4** applied M1–M6 (M4 option a: the golden project is built once by hand, stock voices, real approval). **Spot-check: ready for user approval.** **Not approved yet.**
 - Prerequisites: P4 done; P5 partly done; P8 partly done; P3 pending; P9 (Docker) added. Details in `SPIKE_PLAN.md` §1 and `STATUS.md`.
 
 ## Order change caused by the consent fixes
@@ -39,11 +39,12 @@ The form may now be signed only **after** the test script is frozen and every Ap
 9. **Spike runs:** need P3, P9 and the keys in `.env`.
 
 ## Exact next action
-**User decisions on ADR 0020** (round 3 in `docs/adr/0020-REVIEW.md`):
-1. M1: the gate also requires a project version to be ⊆ the latest standing version.
-2. M2: consent form wording, "revoking in a normal project ends that project only; to withdraw, untick or press *Withdraw*, or tell the §8 contact", plus the same hint in the revoke dialog.
-3. M4: the golden project is built once, by hand, through the real flow with stock voices and real human review and approval, and is never reset (option a, recommended). The alternative is a replayed approval (option b).
-4. M3, M5, M6: the minors (lock order by id; widening needs new paper evidence; "demo seed copies" wording in the form).
-5. Then a spot-check of M1, M2 and M4 by the reviewer, and the user's approval of ADR 0020.
+**User decision:** approve ADR 0020 (revision 4), or request changes.
+
+On approval, the assistant will:
+- set ADR 0020 to Accepted;
+- apply its amendments to ADRs 0006, 0007, 0011, 0012 and 0014;
+- update SPIKE_PLAN §6's T-3 row ("Snapshot for `demo_reset`" → "build the demo seed"), and replace the interim rule with ADR 0020;
+- flag the UML diagrams to update (class diagram, Consent states, UC7).
 
 Until then the interim rule applies, and no Part D signature. The team's steps 1–2 above are still open; the assistant does not fill them in. No merges, no spike runs on real data, no recordings and no freezes until approved.

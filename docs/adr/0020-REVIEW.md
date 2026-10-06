@@ -116,7 +116,7 @@ With these cuts the reviewer estimates about 2–3 days [reviewer ESTIMATE, not 
 | **Reviewed** | Revision 3 of ADR 0020, and the N4 wording in `CONSENT_FORM.md` Part D |
 | **Reviewer** | `critical-reviewer` agent (fresh context) |
 | **Verdict** | **Approve with changes:** 0 blockers, 3 major, 4 minor. The reviewer says that after M1, M2 and M4 are fixed, the ADR is ready for the user's approval with a spot-check, not another full round. |
-| **Status** | M7 (this status line) applied. **M1–M6 not applied; waiting for the user.** ADR 0020 stays Proposed. |
+| **Status** | M7 applied in round 3. **M1–M6 applied in revision 4** (2026-10-06; user approval, M4 option a). See the spot-check. ADR 0020 stays Proposed. |
 
 The assistant checked M3 against ADR 0003: its lock order ranks lock *types* (IdentityOwner → Job → artefacts → AuditChainHead), not several rows of the same type. Accurate.
 
@@ -137,3 +137,21 @@ The assistant checked M3 against ADR 0003: its lock order ranks lock *types* (Id
 **Honesty:** no banned claims. The [ESTIMATE] label and "designed to be enforced … [CONFIRMED] only when tests 4–9 pass" are correct. The 2–3 day estimate is optimistic for 16 tests including concurrency tests. No one may sign Part D before both the form and ADR 0020 are approved.
 
 **Biggest viva risk:** "Who approved the golden project?" (M4).
+
+## Spot-check of revision 4 (2026-10-06)
+
+| | |
+|---|---|
+| **Reviewed** | Revision 4 of ADR 0020 and the consent form Part D, §6 and §8 |
+| **Reviewer** | `critical-reviewer` agent (fresh context), spot-check only |
+| **Result** | **M1–M6 fixed.** No new blockers or majors. **Ready for user approval: yes.** |
+
+The reviewer found these minor leftovers. **The assistant applied all of them in the same commit**, as wording consistency with the approved fixes:
+- §5 narrowing now names languages, processors and an earlier `expires_at`, not only uses.
+- ADR line "demo-reset snapshot" → "demo seed" (M6 leftover).
+- Test 15: the golden project is identified by a `GOLDEN_PROJECT_ID` setting that `check_providers` reads.
+- §4: after a stack rebuild, the golden project is built again by hand, with a new real approval.
+- The revision 4 history line now says the ADR itself is still Proposed.
+- The round-3 status line above is updated.
+
+Harmless difference: the consent form also names the faculty guide as a withdrawal contact, but the dialog text doesn't. §8 names both.

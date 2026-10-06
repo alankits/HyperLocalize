@@ -83,7 +83,7 @@ These limits apply to the spike. Part D can change them **only for the uses you 
 | A phone copy, if a phone was used to record | The phone, recorded in airplane mode with cloud backup off | Straight after transfer to the laptop by cable: the recording is deleted, **then the phone's "recently deleted" folder is emptied**. The deletion is logged. |
 | Copies on Kaggle (only if 3.2 is YES) | Private Kaggle dataset and notebook output | We run Kaggle's delete commands straight after the results are downloaded, and on withdrawal. **Limits:** a job already running on Kaggle **cannot be stopped** and may finish. **Whether deleting removes its output is not yet verified.** We test this in the spike and will tell you the result. Output produced after you withdraw is **never imported**. What Kaggle keeps internally after deletion is outside our control. |
 | Copies at Groq (only if 3.3 is YES) | Groq servers | Sent only with Zero Data Retention on (see 3.3). What Groq keeps internally is outside our control. |
-| Part D copies (only if you tick D1–D4) | The team laptop only: `~/hl-spike-media/` and the HyperLocalize system's media storage on the same laptop, including any golden (pre-prepared) demo project and export packages. Same rules as above: outside git, not in any cloud-synced folder, excluded from backups. The backup screen recording (D3) is kept in the same folder. Kaggle copies only if D4 is YES, with the limits above. | On Part D's fixed end date, within the same number of working days as §8 item 2, or earlier if you withdraw |
+| Part D copies (only if you tick D1–D4) | The team laptop only: `~/hl-spike-media/` and the HyperLocalize system's media storage on the same laptop, including the demo seed copies and export packages. The golden (pre-prepared) demo project uses stock voices only and holds no copy of your voice. Same rules as above: outside git, not in any cloud-synced folder, excluded from backups. The backup screen recording (D3) is kept in the same folder. Kaggle copies only if D4 is YES, with the limits above. | On Part D's fixed end date, within the same number of working days as §8 item 2, or earlier if you withdraw |
 | Ratings and numbers (scores, error counts) | `docs/EVALUATION.md` in the repository | Kept, under your pseudonym "Speaker A" or "Speaker B". This is **pseudonymised, not anonymous**: teammates and examiners may know who Speaker A is, and scores in git history stay there. |
 
 **Every deletion is written down in the spike log** (what, where, when, by whom). Short-lived temporary files on the laptop are **designed** to be deleted when each run ends. This is checked in the withdrawal test below, and logged after each run.
@@ -106,7 +106,7 @@ You can withdraw **any or all** permissions **at any time, without giving a reas
 
 When you withdraw:
 1. **As soon as the contact receives your request (aim: the same day):** we stop any processing of your voice **on the laptop**. On Kaggle, a job already running may finish, but its output is never imported.
-2. **Within [N, e.g. 2] working days:** we delete your test clip (Speaker A), reference and held-out clips, their transcripts, any cloned audio of you, **and all copies**, including the demo reset snapshot, the golden (pre-prepared) demo project, export packages, the backup screen recording, transcripts made by speech-to-text, and any copy in the HyperLocalize system. We run Kaggle's delete commands for any copies there (with the limits in §6). **Audio already sent to Groq cannot be recalled by us. Exports copied off the laptop cannot be recalled either.**
+2. **Within [N, e.g. 2] working days:** we delete your test clip (Speaker A), reference and held-out clips, their transcripts, any cloned audio of you, **and all copies**, including the demo seed copies, export packages, the backup screen recording, transcripts made by speech-to-text, and any copy in the HyperLocalize system. We run Kaggle's delete commands for any copies there (with the limits in §6). **Audio already sent to Groq cannot be recalled by us. Exports copied off the laptop cannot be recalled either.**
 3. We record the deletions in the spike log and tell you when they are done.
 
 **What is kept after withdrawal:** the spike-log lines (pseudonyms, file names, durations and file hashes; no audio, transcripts or names) and the scores already in `docs/EVALUATION.md`, under your pseudonym.
@@ -127,7 +127,7 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 
 **What your cloned voice will say.** Your cloned voice will speak Tamil translations drafted by AI, about **[demo topic — to be filled in]**. Until a reviewer checks them, they may contain errors, including wrong numbers or a missing "not". Unreviewed versions are heard by the team, and, in a live demo regeneration, by the panel.
 
-**Interim limit.** Until the team's demo-reset design is approved, your voice is **not** put into any demo-reset snapshot or golden (pre-prepared) demo project.
+**Interim limit.** Until the team's demo-reset design is approved, your voice is **not** put into any demo seed or golden (pre-prepared) demo project. Under the proposed design, the golden project uses stock voices only.
 
 | Use after the spike | YES | NO |
 |---|---|---|
@@ -138,7 +138,12 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 
 *If you tick any of D1–D4, the HyperLocalize system will also record your consent in its own consent records, where you can view and revoke it. This form does not replace that.*
 
-**What counts as a real withdrawal.** A withdrawal is real if you give it to the §8 contact or the faculty guide, **or** if you revoke your consent in the HyperLocalize system anywhere **outside a project marked *Demo rehearsal***, including the *Withdraw* button on your consent page. A revocation **inside** a project marked *Demo rehearsal* (on stage or in a team rehearsal) is a demonstration, **not** a real withdrawal. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is proposed (ADR 0020) and not yet approved or built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
+**What counts as a real withdrawal.** In the HyperLocalize system:
+- **Revoking inside a project marked *Demo rehearsal*** (on stage or in a team rehearsal) is a demonstration, **not** a withdrawal.
+- **Revoking inside a normal project** ends the use of your voice **in that project only**.
+- **To withdraw a Part D use, or everything**, untick that use or press *Withdraw* on your consent page, or tell the §8 contact or the faculty guide. This is a real withdrawal: §8 then applies to that use, or to everything.
+
+Adding a use back later needs a new signed form. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is proposed (ADR 0020) and not yet approved or built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
 
 ---
 
