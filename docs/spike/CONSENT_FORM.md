@@ -123,6 +123,8 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 - **D3** lifts the playback limit, for the evaluation panel only.
 - **D4** lifts the Kaggle limit (as in 3.2) during development.
 
+**D2 needs D1.** The demo is built from a development copy of your recordings, so D2 counts only if you also tick D1. If you tick D2 without D1, D2 is treated as NO.
+
 **All other §5 limits still apply**, including no face or video, no commercial use and nothing in git.
 
 **What your cloned voice will say.** Your cloned voice will speak Tamil translations drafted by AI, about **[demo topic — to be filled in]**. Until a reviewer checks them, they may contain errors, including wrong numbers or a missing "not". Unreviewed versions are heard by the team, and, in a live demo regeneration, by the panel.
