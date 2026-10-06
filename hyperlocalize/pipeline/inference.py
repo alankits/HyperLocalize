@@ -92,6 +92,12 @@ def _child_main():
     for line in sys.stdin:
         try:
             req = json.loads(line)
+            if req.get("op") == "transcribe":
+                from hyperlocalize.pipeline.providers.whisper import transcribe_in_child
+
+                sys.stdout.write(json.dumps(transcribe_in_child(req["wav_path"], req.get("language"))) + "\n")
+                sys.stdout.flush()
+                continue
             adapter = get_adapter(req["adapter"])
             if adapter is None:
                 raise InferenceError(f"adapter {req['adapter']!r} not available in this mode")

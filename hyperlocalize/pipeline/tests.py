@@ -172,3 +172,28 @@ class JobQueueTests(TestCase):
         finally:
             jobs.HANDLERS.pop("flaky_test")
             jobs.LANES.pop("flaky_test")
+
+
+import os as _os
+import unittest as _unittest
+
+
+@_unittest.skipUnless(_os.environ.get("HL_TEST_WHISPER") == "1", "set HL_TEST_WHISPER=1 with the model downloaded")
+class FasterWhisperSmokeTests(TestCase):
+    """Optional: runs the real candidate model on synthetic non-speech audio (no real voice is used)."""
+
+    def test_non_speech_gives_no_invented_text(self):
+        import tempfile
+
+        from hyperlocalize import media_tools
+        from hyperlocalize.pipeline.providers.base import Unavailable, get_adapter
+
+        base.registered()
+        adapter = get_adapter("faster_whisper_transcription")
+        self.assertTrue(adapter.available())
+        with tempfile.TemporaryDirectory() as d:
+            mp4, wav = _os.path.join(d, "t.mp4"), _os.path.join(d, "t.wav")
+            media_tools.make_test_video(mp4, 6)
+            media_tools.extract_audio(mp4, wav)
+            with self.assertRaises(Unavailable):
+                adapter.transcribe(wav, "en")

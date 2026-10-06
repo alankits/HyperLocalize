@@ -205,7 +205,7 @@ def registered(stage=None):
 
 DEFAULT_CHAINS = {
     # Candidate real adapters first (each disabled unless configured), mocks last in dev/test.
-    "transcription": ["manual_transcript", "mock_transcription"],
+    "transcription": ["manual_transcript", "faster_whisper_transcription", "mock_transcription"],
     "localization": ["gemini_localization", "mock_localization"],
     "meaning_check": ["gemini_meaning_check", "mock_meaning_check"],
     "speech_stock": ["mock_stock_voice"],
@@ -215,7 +215,7 @@ DEFAULT_CHAINS = {
 
 def _load_adapters():
     # Import adapter modules so their @register decorators run.
-    from . import gemini, manual, mock  # noqa: F401
+    from . import gemini, manual, mock, whisper  # noqa: F401
 
 
 def chain_for(stage):

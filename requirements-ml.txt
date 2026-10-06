@@ -1,0 +1,3 @@
+-r requirements-dev.txt
+# Optional local AI candidates (the spike decides which stay; ADR 0017).
+faster-whisper==1.2.1
