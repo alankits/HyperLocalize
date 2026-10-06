@@ -1,6 +1,6 @@
 # ADR 0020: Demo reset by rebuild, offline-copy register, and identity withdrawal
 
-**Status:** **Proposed** (2026-10-06), waiting for approval.
+**Status:** **Accepted** (approved by the user 2026-10-06). The amendments below were applied to ADRs 0006, 0007, 0011, 0012 and 0014 on the same day, marked *(amended by ADR 0020, 2026-10-06)*.
 
 **History:**
 - **Revision 2** (2026-10-06): applied all 14 round-1 review findings.
@@ -9,7 +9,7 @@
 
 Reviews: `docs/adr/0020-REVIEW.md`.
 
-**Amends**, if approved (those ADRs are not edited until then):
+**Amends:**
 - ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep);
 - ADR 0007: the list of audited actions;
 - ADR 0011: the Administrator and Identity Owner rows, and the viva line;
@@ -254,7 +254,7 @@ Under ADR 0011 only the owner revokes in the system, so the speaker must be **pr
 - **Locking several owners in one command** relies on locking them in ascending id order to avoid deadlocks. The demo has at most two owners.
 - **The database fills with rehearsal projects.** That is acceptable for a demo; the UI filter hides them.
 - **Scope:** 1 model, about 8 fields, 3 commands and 16 tests [ESTIMATE: about 2–3 days, the reviewer's figure, not measured]. If the build runs short, the fallback is **no cloned voice in any demo project** (stock-only demo, SPIKE_PLAN §6).
-- **Spike phase:** there is no system yet. During the spike, withdrawal is done by hand and logged in the spike log (consent form §8). This ADR applies from the first system build. Until it is approved, the interim rule applies: no real voice in any demo seed or golden project.
+- **Spike phase:** there is no system yet. During the spike, withdrawal is done by hand and logged in the spike log (consent form §8). This ADR applies from the first system build. It supersedes the 2026-10-06 interim rule (no real voice in any snapshot or golden project): the snapshot no longer exists, and the golden project is permanently stock-voice only.
 
 ## Consequences
 

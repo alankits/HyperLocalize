@@ -12,8 +12,8 @@
 - **2026-10-06:**
   - **Round-2 consent review** (1 blocker, 4 major, 4 minor; `CONSENT_FORM_REVIEW.md` round 2): **P1–P8 approved and applied** to `CONSENT_FORM.md`, with P6 also reordering `TEST_SCRIPT.md` §7.
   - **P9 approved and applied** to `SPIKE_PLAN.md`: P6 permissions aligned; in M4, A's listeners rate both clones. Rule 4 when ECAPA is skipped uses **Option A**: A's clone "same person?" median ≥ 3 **and** B's clone ≤ 2. If B hasn't given 3.4 and 3.6, the condition is not met.
-  - **Interim rule approved:** no real voice in any demo-reset snapshot or golden project until ADR 0020 is approved (ADR 0012 note, SPIKE_PLAN §6, consent Part D).
-  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. Round-1 review: needs changes (2 blockers); revision 2 applied all 14 fixes. Round-2 review: approve with changes; **revision 3** applied N1–N7, the simplification and the N4 consent wording (approved by the user). Round-3 review: approve with changes; **revision 4** applied M1–M6 (M4 option a: the golden project is built once by hand, stock voices, real approval). **Spot-check: ready for user approval.** **Not approved yet.**
+  - **Interim rule** (approved, then superseded the same day by ADR 0020): no real voice in any demo-reset snapshot or golden project.
+  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. Round-1 review: needs changes (2 blockers); revision 2 applied all 14 fixes. Round-2 review: approve with changes; **revision 3** applied N1–N7, the simplification and the N4 consent wording (approved by the user). Round-3 review: approve with changes; **revision 4** applied M1–M6 (M4 option a: the golden project is built once by hand, stock voices, real approval). Spot-check: ready. **Accepted by the user 2026-10-06; amendments applied to ADRs 0006, 0007, 0011, 0012 and 0014; interim rule superseded.**
 - Prerequisites: P4 done; P5 partly done; P8 partly done; P3 pending; P9 (Docker) added. Details in `SPIKE_PLAN.md` §1 and `STATUS.md`.
 
 ## Order change caused by the consent fixes
@@ -39,12 +39,16 @@ The form may now be signed only **after** the test script is frozen and every Ap
 9. **Spike runs:** need P3, P9 and the keys in `.env`.
 
 ## Exact next action
-**User decision:** approve ADR 0020 (revision 4), or request changes.
+**All open design decisions in this thread are closed.** The next steps are with the team (steps 1–2 above):
+- names on the paper forms;
+- the media folder, cloud-sync and backup checks, and disk encryption;
+- the faculty ethics question and countersignature;
+- the consent blanks;
+- the TEST_SCRIPT §4 fact check;
+- Docker (P9), the HF approvals (P3), the Groq evidence (P5) and the Ubuntu release (P8).
 
-On approval, the assistant will:
-- set ADR 0020 to Accepted;
-- apply its amendments to ADRs 0006, 0007, 0011, 0012 and 0014;
-- update SPIKE_PLAN §6's T-3 row ("Snapshot for `demo_reset`" → "build the demo seed"), and replace the interim rule with ADR 0020;
-- flag the UML diagrams to update (class diagram, Consent states, UC7).
+Then the timed read-through and the script freeze (step 3).
 
-Until then the interim rule applies, and no Part D signature. The team's steps 1–2 above are still open; the assistant does not fill them in. No merges, no spike runs on real data, no recordings and no freezes until approved.
+**Suggested (optional):** a short `critical-reviewer` consistency pass over the amended ADRs 0006, 0007, 0011, 0012 and 0014, to confirm they match ADR 0020.
+
+The consent form is still a draft and needs your approval (step 5) after the blanks and Appendix A texts exist. No Part D signature before that. No merges, no spike runs on real data, no recordings and no freezes until approved.

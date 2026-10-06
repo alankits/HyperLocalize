@@ -127,7 +127,7 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 
 **What your cloned voice will say.** Your cloned voice will speak Tamil translations drafted by AI, about **[demo topic — to be filled in]**. Until a reviewer checks them, they may contain errors, including wrong numbers or a missing "not". Unreviewed versions are heard by the team, and, in a live demo regeneration, by the panel.
 
-**Interim limit.** Until the team's demo-reset design is approved, your voice is **not** put into any demo seed or golden (pre-prepared) demo project. Under the proposed design, the golden project uses stock voices only.
+**Demo seed and golden project.** Your voice is **never** put into the golden (pre-prepared) demo project, which uses stock voices only. Your recordings and cloned audio go into the **demo seed** (the copy each demo reset is built from) only if you tick both D1 and D2. The seed is registered and deleted on withdrawal, on removing D1 or D2, or at the Part D end date.
 
 | Use after the spike | YES | NO |
 |---|---|---|

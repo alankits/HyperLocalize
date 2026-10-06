@@ -1,6 +1,6 @@
 # ADR 0006: Consent gate, checks at each stage boundary, revocation cascade
 
-**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, and **independent review, which found a critical locking flaw, now fixed**.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, and **independent review, which found a critical locking flaw, now fixed**. **Amended 2026-10-06 by ADR 0020** (§1 gate, §4 locked saves, §5 cascade scope, purge and expiry; standing Part D grant in §8).
 **Source:** `docs/PHASE0_DISCOVERY.md` §3.4; CLAUDE.md §5; ADRs 0003, 0005, 0014, 0019
 
 ## Context
@@ -29,7 +29,10 @@ Consent records are **versioned**: each change inserts a new Consent row (ADR 00
 - the **latest** Consent version for that owner and scope is ACTIVE;
 - it is not expired (`expires_at` is in the future);
 - it covers the use, project and language;
-- if a `job` is given, its `cancel_requested` flag is not set.
+- if a `job` is given, its `cancel_requested` flag is not set;
+- *(amended by ADR 0020, 2026-10-06)* the IdentityOwner is not withdrawn (`withdrawn_at` is not set);
+- *(amended by ADR 0020, 2026-10-06)* the version has a parent `STANDING_PART_D` version, and the owner's **latest** standing version is ACTIVE, not expired, and contains the Part D use the project needs (`STANDARD`: D1; `DEMO_REHEARSAL`: D1 and D2; `remote_voice_processing`: D4);
+- *(amended by ADR 0020, 2026-10-06)* the version is still **within** that latest standing version (uses, languages, processors, `expires_at`).
 
 Identity-using methods require a `ConsentCheck` (ADR 0005).
 
@@ -64,22 +67,25 @@ Identity-using methods require a `ConsentCheck` (ADR 0005).
 - Under that lock, a save re-reads the **latest** Consent version for the scope. It saves the artefact only if that version is ACTIVE, not expired, **and the same version as the job's `ConsentCheck`**.
 - So either the save commits first and the revocation that follows quarantines the artefact, or the revocation commits first and the save sees a newer REVOKED version and aborts.
 - Test: a save attempted after revocation that still carries version N must be refused.
+- *(amended by ADR 0020, 2026-10-06)* Under the same lock, the save also runs the full §1 gate (withdrawal and the standing-grant conditions), so a save that commits after a narrowing or withdrawal is refused.
 
 **5. Revocation transaction** (under the IdentityOwner lock). Insert a new REVOKED Consent version. Then:
 - cancel QUEUED jobs;
 - set `cancel_requested` on RUNNING and DISPATCHED jobs;
-- quarantine every `SynthesisedSegment` and `RenderedScene` recorded under that owner's consent;
+- quarantine every `SynthesisedSegment` and `RenderedScene` recorded under a Consent version **in the revoked scope** (same owner, use and project); other projects of the same owner are untouched *(amended by ADR 0020, 2026-10-06)*;
 - invalidate affected approvals;
 - mark affected exports `CONSENT_REVOKED`;
 - queue `purge_identity_data`;
 - write the audit record.
 
 **Purge** (runs **immediately**; no 7-day wait, *changed after independent review*):
-- deletes the quarantined cloned audio, the VoiceProfile reference clip, and every `RemoteCopy` on Kaggle;
+- deletes the quarantined cloned audio, the audio and video files of quarantined `RenderedScene`s, the package files of exports marked `CONSENT_REVOKED` (status `PURGED`), the reference clip of each VoiceProfile whose consent is in the revoked scope, and every `RemoteCopy` of those VoiceProfiles on Kaggle *(amended by ADR 0020, 2026-10-06)*;
 - keeps only hashes and identifiers for audit;
 - shows any deletion that hasn't succeeded yet as **"deletion pending"**, retries it, and audits it.
 
-**Expiry:** a periodic sweep in the `default` lane runs the same cascade for consents whose `expires_at` has passed.
+**Expiry:** a periodic sweep in the `default` lane runs the same cascade for consents whose `expires_at` has passed. *(amended by ADR 0020, 2026-10-06)* When an owner's standing Part D grant expires, the sweep runs ADR 0020's narrowing procedure (to nothing, reason `EXPIRED`), which also purges the owner's `OfflineCopy` files.
+
+**Narrowing and withdrawal** *(amended by ADR 0020, 2026-10-06)*. Removing a Part D use, language or processor, or withdrawing entirely, goes through ADR 0020 §5's single narrowing procedure. It runs this cascade on every project scope that no longer passes the gate, and marks the matching `OfflineCopy` rows for deletion. A revocation inside a `DEMO_REHEARSAL` project is a demonstration: it affects only that project, and the next `demo_reset` derives a fresh grant.
 
 **6. How a running job stops, by runtime.**
 
@@ -97,7 +103,7 @@ After any stop:
 
 **7. Exports already downloaded cannot be recalled.** This is stated in the UI and the docs.
 
-**8. Consent evidence.** Each Consent version stores who granted it, when, the scope, the uses, the **named processors** (Kaggle for reference audio and cloned output; Google Gemini free tier for script text only, with its training and human-review terms; Groq **only if** `external_transcription` is granted), and the signed consent form.
+**8. Consent evidence.** Each Consent version stores who granted it, when, the scope, the uses, the **named processors** (Kaggle for reference audio and cloned output; Google Gemini free tier for script text only, with its training and human-review terms; Groq **only if** `external_transcription` is granted), and the signed consent form. *(amended by ADR 0020, 2026-10-06)* Every project version also references the owner's `STANDING_PART_D` version as its parent and is no wider than it; widening the standing grant needs a new signed paper form ID as evidence.
 
 **9. Demo safety.**
 - **Main path:** the live revocation demo uses a **local** cloned-voice job. CPU synthesis is slow, so revocation reliably lands mid-job, and killing the subprocess is visible within seconds.

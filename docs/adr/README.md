@@ -35,4 +35,4 @@ Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `d
 
 | ADR | Title | Status |
 |---|---|---|
-| [0020](0020-demo-reset-and-identity-withdrawal.md) | Demo reset by rebuild, offline-copy register, identity withdrawal (amends 0006, 0012, 0014) | **Proposed** (2026-10-06) |
+| [0020](0020-demo-reset-and-identity-withdrawal.md) | Demo reset by rebuild, offline-copy register, identity withdrawal (amends 0006, 0007, 0011, 0012, 0014) | **Accepted** (2026-10-06) |
