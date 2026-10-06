@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Audit · {{ project.name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'projects:detail' project.pk %}">← {{ project.name }}</a></p>
+<h1>Audit trail and evidence</h1>
+<div class="grid">
+  <div class="panel">
+    <h2 style="margin-top:0">Hash chain</h2>
+    <p>Head: seq {{ head.seq }} · <code>{{ head.hash|truncatechars:24 }}</code></p>
+    {% if verify.ok is None %}<a class="button secondary" href="?verify=1">Verify the whole chain now</a>
+    {% elif verify.ok %}<p><span class="badge ok">verified</span> {{ verify.count }} records recomputed; no mismatch.</p>
+    {% else %}<p><span class="badge bad">MISMATCH</span> at seq {{ verify.bad }}: {{ verify.message }}</p>{% endif %}
+    <p class="muted">Tamper-evident, not tamper-proof: editing a stored record breaks the chain and the verifier finds it, but someone with database access could rebuild the whole chain (ADR 0007). Each export carries a copy of the chain head.</p>
+  </div>
+  <div class="panel">
+    <h2 style="margin-top:0">Quality decisions</h2>
+    <p>{{ overrides|length }} rule check override(s), {{ acks }} AI flag acknowledgement(s).</p>
+    {% for c in overrides %}<div class="check"><span class="badge">{{ c.check_type }}</span> segment {{ c.segment_translation.segment_id }} by {{ c.resolved_by }}: {{ c.reason }}</div>{% endfor %}
+  </div>
+</div>
+<div class="panel">
+  <form method="get" class="row">
+    <select name="action" style="width:auto"><option value="">All actions</option>{% for a in actions %}<option {% if a == action %}selected{% endif %}>{{ a }}</option>{% endfor %}</select>
+    <label style="margin:0"><input type="checkbox" name="jobs" value="1" {% if not hide_jobs %}checked{% endif %}> include job state changes</label>
+    <button class="secondary">Filter</button>
+  </form>
+  <table>
+    <tr><th>#</th><th>When (UTC)</th><th>Who</th><th>Action</th><th>Entity</th><th>Consent</th><th>Details (identifiers and hashes only)</th></tr>
+    {% for r in records %}
+    <tr><td>{{ r.seq }}</td><td class="muted">{{ r.timestamp|date:"Y-m-d H:i:s" }}</td><td>{{ r.actor_label }}</td><td><code>{{ r.action }}</code></td>
+      <td class="muted">{{ r.entity_type }}:{{ r.entity_id }}{% if r.scene_id %} · scene {{ r.scene_id }}{% endif %}</td>
+      <td class="muted">{{ r.consent_version }}</td><td class="mono">{{ r.details }}</td></tr>
+    {% empty %}<tr><td colspan="7" class="empty">No records.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

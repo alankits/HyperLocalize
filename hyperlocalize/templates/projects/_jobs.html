@@ -1,0 +1,21 @@
+<div id="jobs" {% if active %}hx-get="{% url 'projects:jobs' project.pk %}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  {% if jobs %}
+  <table>
+    <tr><th>Job</th><th>State</th><th>Progress</th></tr>
+    {% for j in jobs %}
+    <tr>
+      <td>{{ j.type }} <span class="muted">#{{ j.pk }}{% if j.scene_id %} · scene {{ j.scene.index|add:1 }}{% endif %}</span></td>
+      <td>
+        {% if j.status == "SUCCEEDED" %}<span class="badge ok">done</span>
+        {% elif j.status == "FAILED" %}<span class="badge bad">failed</span>
+        {% elif j.status == "CANCELLED" %}<span class="badge warn">cancelled</span>
+        {% else %}<span class="badge info">{{ j.status|lower }}</span>{% endif %}
+        {% if j.cancel_reason %}<div class="muted">{{ j.cancel_reason }}</div>{% endif %}
+      </td>
+      <td class="muted">{{ j.progress }}{% if j.error %}<div style="color:var(--bad)">{{ j.error|truncatechars:160 }}</div>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% if active %}<p class="muted">Updating while jobs run. Start a worker with <code>python manage.py run_worker</code> if nothing moves.</p>{% else %}<p class="muted">No jobs running. <a href="{% url 'projects:detail' project.pk %}">Refresh the page</a> to see results.</p>{% endif %}
+  {% else %}<p class="empty">No jobs yet.</p>{% endif %}
+</div>

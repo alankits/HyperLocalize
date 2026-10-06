@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Sign in · HyperLocalize{% endblock %}
+{% block content %}
+<div class="panel" style="max-width:380px;margin:40px auto">
+  <h1>Sign in</h1>
+  <p class="muted">Context-aware, identity-preserving video localization: every AI draft is reviewed by a person before release.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<ul class="problems">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    <label for="id_username">Username</label>{{ form.username }}
+    <label for="id_password">Password</label>{{ form.password }}
+    <p><button type="submit">Sign in</button></p>
+  </form>
+</div>
+{% endblock %}

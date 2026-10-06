@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}My consent · HyperLocalize{% endblock %}
+{% block content %}
+<h1>My consent: {{ owner.name }}</h1>
+{% if owner.withdrawn_at %}
+  <div class="panel gate blocked"><strong>You withdrew on {{ owner.withdrawn_at|date:"Y-m-d H:i" }}.</strong> Withdrawal is final: no further use of your identity is possible with this record.</div>
+{% endif %}
+<p class="muted">Only you can grant or widen your consent. Revoking here is enforced by the server: new generation is refused, running jobs are stopped, and your cloned audio is quarantined and deleted. Copies already downloaded by others cannot be recalled.</p>
+
+<div class="grid">
+<div class="panel">
+  <h2 style="margin-top:0">Standing consent</h2>
+  {% if standing %}
+    <p>Version {{ standing.version }} · <span class="badge {% if standing.status == 'ACTIVE' %}ok{% else %}bad{% endif %}">{{ standing.status }}</span> · until {{ standing.expires_at|date:"Y-m-d" }}</p>
+    <table>
+      <tr><td>Uses</td><td>{{ standing.uses|join:", "|default:"—" }}</td></tr>
+      <tr><td>Project kinds</td><td>{{ standing.permitted_purposes|join:", "|default:"—" }}</td></tr>
+      <tr><td>Offline copies</td><td>{{ standing.permitted_copy_kinds|join:", "|default:"—" }}</td></tr>
+      <tr><td>Languages</td><td>{{ standing.languages|join:", "|default:"—" }}</td></tr>
+      <tr><td>Evidence</td><td>{{ standing.evidence_ref }}</td></tr>
+    </table>
+  {% else %}<p class="empty">No standing consent yet.</p>{% endif %}
+  {% if not owner.withdrawn_at %}
+  <details {% if not standing %}open{% endif %}><summary>{% if standing %}Widen (needs a new signed form ID){% else %}Record standing consent{% endif %}</summary>
+    <form method="post" action="{% url 'identity:grant_standing' %}">{% csrf_token %}
+      <label>Uses</label>{% for v, l in uses %}<label><input type="checkbox" name="uses" value="{{ v }}" {% if v == 'voice_synthesis' %}checked{% endif %}> {{ v }}</label>{% endfor %}
+      <label>Project kinds</label>{% for v, l in purposes %}<label><input type="checkbox" name="purposes" value="{{ v }}" {% if v == 'STANDARD' %}checked{% endif %}> {{ v }}</label>{% endfor %}
+      <label>Offline copies allowed</label>{% for v, l in copy_kinds %}<label><input type="checkbox" name="copy_kinds" value="{{ v }}"> {{ v }}</label>{% endfor %}
+      <label>Languages (comma-separated codes)</label><input type="text" name="languages" value="ta">
+      <label>Expires on</label><input type="text" name="expires_on" placeholder="YYYY-MM-DD" required>
+      <label>Signed form ID and version (the form itself stays on paper, outside the system)</label><input type="text" name="evidence_ref" required>
+      <p><button>Record</button></p>
+    </form>
+  </details>
+  {% if standing.status == 'ACTIVE' %}
+  <details><summary>Narrow (remove something)</summary>
+    <form method="post" action="{% url 'identity:narrow' %}">{% csrf_token %}
+      {% for u in standing.uses %}<label><input type="checkbox" name="uses" value="{{ u }}"> remove use {{ u }}</label>{% endfor %}
+      {% for p in standing.permitted_purposes %}<label><input type="checkbox" name="permitted_purposes" value="{{ p }}"> remove {{ p }} projects</label>{% endfor %}
+      {% for k in standing.permitted_copy_kinds %}<label><input type="checkbox" name="permitted_copy_kinds" value="{{ k }}"> remove {{ k }}</label>{% endfor %}
+      <label>Remove languages (comma-separated)</label><input type="text" name="languages">
+      <p><button class="secondary">Narrow</button></p>
+    </form>
+  </details>
+  <details><summary>Withdraw everything (final)</summary>
+    <form method="post" action="{% url 'identity:withdraw' %}">{% csrf_token %}
+      <label>Type WITHDRAW to confirm</label><input type="text" name="confirm" autocomplete="off">
+      <p><button class="danger">Withdraw</button></p>
+    </form>
+  </details>
+  {% endif %}{% endif %}
+</div>
+
+<div class="panel">
+  <h2 style="margin-top:0">Projects using my identity</h2>
+  {% for r in rows %}
+    <h3>{{ r.project.name }} {% if r.project.purpose == 'DEMO_REHEARSAL' %}<span class="badge warn">Demo rehearsal</span>{% endif %}</h3>
+    {% if r.consent %}
+      <p>Version {{ r.consent.version }} · <span class="badge {% if r.check.0 %}ok{% else %}bad{% endif %}">{% if r.check.0 %}valid{% else %}{{ r.check.1 }}{% endif %}</span> · {{ r.consent.uses|join:", " }} · {{ r.consent.languages|join:", " }}</p>
+      <p class="muted">Cloned segments produced: {{ r.uses_count }} ({{ r.active_uses }} still active).</p>
+      {% if r.check.0 %}
+        <form method="post" action="{% url 'identity:revoke_project' r.project.pk %}">{% csrf_token %}
+          <p class="muted">{% if r.project.purpose == 'DEMO_REHEARSAL' %}This revokes only this rehearsal project (a demonstration). To withdraw for real, use Withdraw.{% else %}This ends the use of your voice in this project only. To remove a use or withdraw everything, change your standing consent or press Withdraw.{% endif %}</p>
+          <button class="danger">Revoke for this project</button>
+        </form>
+        <details><summary>Upload a reference clip for this project (3–30 s)</summary>
+          <form method="post" enctype="multipart/form-data" action="{% url 'identity:upload_profile' r.project.pk %}">{% csrf_token %}
+            <input type="file" name="clip" accept="audio/*,video/*" required>
+            <label>Exact transcript of the clip</label><input type="text" name="transcript" required>
+            <label>Language</label><input type="text" name="language" value="{{ r.consent.languages.0 }}">
+            <p><button class="secondary">Store clip</button></p>
+          </form>
+        </details>
+      {% endif %}
+      {% for vp in r.profiles %}<div class="muted">Reference clip #{{ vp.pk }}: {{ vp.status }} {% if vp.deleted_at %}(deleted {{ vp.deleted_at|date:"Y-m-d H:i" }}){% endif %}</div>{% endfor %}
+    {% else %}
+      <form method="post" action="{% url 'identity:grant_project' r.project.pk %}">{% csrf_token %}
+        <p class="muted">You are linked to a speaker in this project but have not consented.</p>
+        <input type="hidden" name="uses" value="voice_synthesis">
+        <label>Languages</label><input type="text" name="languages" value="ta">
+        <button>Grant consent for this project</button>
+      </form>
+    {% endif %}
+  {% empty %}<p class="empty">You are not linked to any project.</p>{% endfor %}
+</div>
+</div>
+
+<h2>History</h2>
+<div class="panel"><table>
+  <tr><th>When</th><th>Scope</th><th>Version</th><th>Status</th><th>Uses</th></tr>
+  {% for c in history %}<tr><td class="muted">{{ c.created_at|date:"Y-m-d H:i:s" }}</td><td>{% if c.project %}{{ c.project.name }}{% else %}standing{% endif %}</td><td>{{ c.version }}</td><td>{{ c.status }}</td><td>{{ c.uses|join:", " }}</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

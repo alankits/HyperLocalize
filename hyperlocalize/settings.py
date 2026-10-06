@@ -167,6 +167,8 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": _env("HL_LOG_LEVEL", "INFO")},
+    # Expected 403/404 refusals are not errors; keep test output readable.
+    "loggers": {"django.request": {"level": "ERROR" if HYPERLOCALIZE_MODE == "test" else "WARNING"}},
 }
 
 if HYPERLOCALIZE_MODE == "test":

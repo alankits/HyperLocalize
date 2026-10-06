@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}New project · HyperLocalize{% endblock %}
+{% block content %}
+<h1>Create a localization project</h1>
+<form method="post" class="panel" style="max-width:720px">{% csrf_token %}
+  <label>Project name</label><input type="text" name="name" value="{{ form.name }}" required>
+  <div class="grid">
+    <div><label>Source language (code)</label><input type="text" name="source_language" value="{{ form.source_language|default:'en' }}" required></div>
+    <div><label>Target locale (code)</label><input type="text" name="target_locale" value="{{ form.target_locale|default:'ta-IN' }}" required>
+      <div class="muted">The MVP has number rules for English → Tamil. Other pairs run, but their number checks show as unverifiable until rules exist.</div></div>
+  </div>
+  <label>Domain (optional)</label><input type="text" name="domain" value="{{ form.domain }}" placeholder="e.g. health information">
+  <h3>Target audience (context for localization)</h3>
+  <div class="grid">
+    <div><label>Formality</label><select name="formality"><option>neutral</option><option>formal</option><option>informal</option></select></div>
+    <div><label>Reading level</label><select name="reading_level"><option>general</option><option>simple</option><option>expert</option></select></div>
+  </div>
+  <label>Cultural notes for the localizer</label><textarea name="cultural_notes">{{ form.cultural_notes }}</textarea>
+  <h3>Data classification</h3>
+  <label><input type="radio" name="data_classification" value="PERSONAL" checked> May contain personal data: hosted free-tier AI is skipped</label>
+  <label><input type="radio" name="data_classification" value="SCRIPTED_TEAM"> Scripted, team-authored content: text may go to a free-tier hosted LLM (which may train on it)</label>
+  <p><button type="submit">Create project</button></p>
+</form>
+{% endblock %}

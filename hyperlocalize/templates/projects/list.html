@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Projects · HyperLocalize{% endblock %}
+{% block content %}
+<div class="row" style="justify-content:space-between">
+  <h1>Localization projects</h1>
+  <a class="button" href="{% url 'projects:create' %}">New project</a>
+</div>
+<div class="panel">
+  {% if projects %}
+  <table>
+    <tr><th>Project</th><th>Languages</th><th>Status</th><th>Created</th></tr>
+    {% for p in projects %}
+    {% with loc=p.localizations.first %}
+    <tr>
+      <td><a href="{% url 'projects:detail' p.pk %}">{{ p.name }}</a>{% if p.domain %}<div class="muted">{{ p.domain }}</div>{% endif %}</td>
+      <td>{{ p.source_language }} → {{ loc.target_locale }}</td>
+      <td><span class="badge info">{{ loc.get_status_display }}</span></td>
+      <td class="muted">{{ p.created_at|date:"Y-m-d H:i" }}</td>
+    </tr>
+    {% endwith %}
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="empty">No projects yet. Create one to start the workflow.</p>
+  {% endif %}
+</div>
+{% endblock %}

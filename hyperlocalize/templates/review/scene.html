@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Scene {{ scene.index|add:1 }} · {{ project.name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'projects:detail' project.pk %}">← {{ project.name }}</a>
+  {% if prev_id %} · <a href="{% url 'review:scene' prev_id %}">previous scene</a>{% endif %}
+  {% if next_id %} · <a href="{% url 'review:scene' next_id %}">next scene</a>{% endif %}</p>
+<div class="scene-head">
+  <h1>Scene {{ scene.index|add:1 }} <span class="muted">{{ scene.start_ms }}–{{ scene.end_ms }} ms</span></h1>
+  <span><span class="badge {% if scene.status == 'ACCEPTED' %}ok{% elif scene.status == 'NEEDS_REGENERATION' or scene.status == 'CHANGES_REQUESTED' %}warn{% else %}info{% endif %}">{{ scene.get_status_display }}</span>
+  {% if open_checks %}<span class="badge bad">{{ open_checks }} open check(s)</span>{% else %}<span class="badge ok">no open checks</span>{% endif %}</span>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <h2 style="margin-top:0">Localized preview</h2>
+    {% if render %}
+      {% if render.status == "ACTIVE" %}
+      <video controls preload="metadata" src="{% url 'review:preview_video' render.pk %}">
+        <track default kind="subtitles" srclang="{{ loc.target_locale }}" label="{{ loc.target_locale }}" src="{% url 'review:preview_vtt' render.pk %}">
+      </video>
+      {% else %}<p class="badge bad">This preview was {{ render.status|lower }} (consent revoked).</p>{% endif %}
+      <p class="muted">Version {{ render.version }}
+        {% if render.is_mock %}<span class="badge mock">MOCK OUTPUT: tone, not speech</span>{% endif %}
+        {% if not render_current %}<span class="badge warn">out of date: a newer draft exists</span>{% endif %}</p>
+      <table>{% for speaker, info in render.rendering_modes.items %}<tr><td>{{ speaker }}</td><td><span class="badge {% if info.mode == 'CLONED_VOICE' %}info{% endif %}">{{ info.mode }}</span></td><td class="muted">{{ info.note }}</td></tr>{% endfor %}</table>
+      <p class="muted">The rendering mode is decided by the server from the speaker's current consent, never by this page.</p>
+    {% else %}<p class="empty">No preview yet; it is generated after the localized draft.</p>{% endif %}
+  </div>
+  <div class="panel gate {% if scene.status == 'ACCEPTED' %}open{% elif open_checks %}blocked{% endif %}">
+    <h2 style="margin-top:0">Human review</h2>
+    {% if is_reviewer %}
+      <form method="post" action="{% url 'review:accept' scene.pk %}">{% csrf_token %}
+        <label>Comment (optional)</label><input type="text" name="comment">
+        <p><button {% if open_checks or not render_current or scene.status != 'IN_REVIEW' %}disabled{% endif %}>Accept scene</button>
+        {% if open_checks %}<span class="muted">Resolve the open checks first.</span>{% elif not render_current %}<span class="muted">Wait for the current preview.</span>{% endif %}</p>
+      </form>
+      <details {% if scene.status == 'CHANGES_REQUESTED' %}open{% endif %}><summary>Request changes and regenerate this scene only</summary>
+        <form method="post" action="{% url 'review:changes' scene.pk %}">{% csrf_token %}
+          <label>What to regenerate</label>
+          <select name="target"><option value="SCRIPT">Localized script (re-run localization with my instruction)</option><option value="PREVIEW">Preview only (re-render speech and video)</option></select>
+          <label>Reason</label><input type="text" name="reason" required>
+          <label>Instruction to the localizer (context for the regeneration)</label><textarea name="instruction" placeholder="e.g. use a warmer, simpler register; keep the warning first"></textarea>
+          <p><button class="secondary">Regenerate</button></p>
+        </form>
+      </details>
+    {% else %}<p class="muted">Only a Reviewer / Linguist can accept or request changes.</p>{% endif %}
+    <h3>Recent decisions</h3>
+    {% for r in reviews %}<div class="muted">{{ r.created_at|date:"H:i" }} {{ r.reviewer }}: {{ r.get_decision_display }} {{ r.comment }}</div>{% empty %}<div class="empty">None yet.</div>{% endfor %}
+    {% for g in regenerations %}<div class="muted">Regeneration ({{ g.get_target_display }}) by {{ g.requested_by }}: {{ g.reason }}{% if g.job %} · job {{ g.job.status|lower }}{% endif %}</div>{% endfor %}
+  </div>
+</div>
+
+<h2>Segments</h2>
+<div class="panel">
+{% for row in rows %}
+  <div class="segment">
+    <div class="row" style="justify-content:space-between">
+      <strong>{{ row.segment.speaker_track.label }} · {{ row.segment.start_ms }}–{{ row.segment.end_ms }} ms</strong>
+      {% if row.t %}<span>
+        <span class="badge">v{{ row.t.version }} {{ row.t.origin }}</span>
+        <span class="badge">{{ row.t.adapter }}</span>
+        {% if row.t.is_mock %}<span class="badge mock">MOCK</span>{% endif %}
+        {% if row.t.is_fallback %}<span class="badge warn">fallback provider</span>{% endif %}
+        <span class="badge info">{{ row.t.get_adaptation_type_display }}</span>
+      </span>{% endif %}
+    </div>
+    <div class="src">Source: {{ row.segment.source_text }}</div>
+    {% if row.t %}
+      <div class="tgt">{{ row.t.subtitle_text }}</div>
+      {% if row.t.speech_text != row.t.subtitle_text %}<div class="muted">Speech script: {{ row.t.speech_text }}</div>{% endif %}
+      {% if row.t.rationale %}<div class="muted">Stated reason (the model's own explanation, not verified): {{ row.t.rationale }}</div>{% endif %}
+      {% if row.t.context_inputs %}<div class="muted">Context used: {{ row.t.context_inputs|join:", " }}</div>{% elif row.t.origin == "AI" %}<div class="muted">No context was used (context-free fallback).</div>{% endif %}
+      <div>
+      {% for c in row.checks %}
+        <div class="check">
+          {% if c.status == "PASS" %}<span class="badge ok">{{ c.check_type }}: pass</span>
+          {% elif c.resolution %}<span class="badge">{{ c.check_type }}: {{ c.status|lower }} → {{ c.resolution|lower }}</span> <span class="muted">{{ c.reason }}</span>
+          {% else %}
+            <span class="badge {% if c.kind == 'HARD' %}bad{% else %}warn{% endif %}">{% if c.kind == 'HARD' %}rule{% else %}AI flag{% endif %} · {{ c.check_type }}: {{ c.status|lower }}</span>
+            {% if c.detail.is_mock %}<span class="badge mock">MOCK</span>{% endif %}
+            <span class="muted">{{ c.detail.messages|join:"; " }}</span>
+            {% if is_reviewer %}
+            <form method="post" action="{% url 'review:resolve' c.pk %}" class="row" style="margin-top:4px">{% csrf_token %}
+              <input type="hidden" name="resolution" value="{% if c.kind == 'HARD' %}OVERRIDDEN{% else %}ACKNOWLEDGED{% endif %}">
+              <input type="text" name="reason" placeholder="{% if c.kind == 'HARD' %}Override reason (audited){% else %}What you checked (audited){% endif %}" style="max-width:420px" required>
+              <button class="secondary">{% if c.kind == 'HARD' %}Override with reason{% else %}Acknowledge{% endif %}</button>
+            </form>
+            {% endif %}
+          {% endif %}
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}<div class="empty">No localized draft yet.</div>{% endif %}
+    {% if is_reviewer and row.t %}
+      <details><summary>Edit the localized text (creates a new human version)</summary>
+        <form method="post" action="{% url 'review:edit' row.segment.pk %}">{% csrf_token %}
+          <label>Subtitle text</label><textarea name="subtitle_text" required>{{ row.t.subtitle_text }}</textarea>
+          <label>Speech script (leave empty to use the subtitle text)</label><textarea name="speech_text">{% if row.t.speech_text != row.t.subtitle_text %}{{ row.t.speech_text }}{% endif %}</textarea>
+          <p><button>Save edit</button></p>
+        </form>
+      </details>
+    {% endif %}
+    {% if row.history|length > 1 %}<details><summary>Version history</summary>
+      {% for h in row.history %}<div class="muted">v{{ h.version }} · {{ h.origin }} · {{ h.adapter }} · {{ h.created_at|date:"H:i:s" }}: {{ h.subtitle_text|truncatechars:90 }}</div>{% endfor %}</details>{% endif %}
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

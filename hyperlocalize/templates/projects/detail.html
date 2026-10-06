@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} · HyperLocalize{% endblock %}
+{% block content %}
+<div class="scene-head">
+  <h1>{{ project.name }}</h1>
+  <span class="muted">{{ project.source_language }} → {{ loc.target_locale }} · your roles:
+    {% for r in roles %}<span class="badge">{{ r|title|cut:"_" }}</span> {% empty %}none{% endfor %}
+    {% if project.purpose == "DEMO_REHEARSAL" %}<span class="badge warn">Demo rehearsal project</span>{% endif %}</span>
+</div>
+<ol class="steps">{% for s in steps %}<li class="{% if s.done %}done{% elif s.current %}current{% endif %}">{{ forloop.counter }}. {{ s.name }}</li>{% endfor %}</ol>
+
+<div class="grid">
+  <div class="panel">
+    <h2 style="margin-top:0">Source video</h2>
+    {% if video %}
+      <p>{{ video.original_name }} · {{ video.duration_ms|floatformat:0 }} ms · <span class="badge {% if video.status == 'ANALYZED' %}ok{% elif video.status == 'FAILED' %}bad{% else %}info{% endif %}">{{ video.get_status_display }}</span></p>
+      {% if video.transcript_adapter %}<p class="muted">Transcript: <code>{{ video.transcript_adapter }}</code> {% if video.transcript_is_mock %}<span class="badge mock">MOCK</span>{% else %}<span class="badge ok">not AI-generated</span>{% endif %}</p>{% endif %}
+      {% if video.error %}<p style="color:var(--bad)">{{ video.error }}</p>{% endif %}
+      <p class="muted">SHA-256 <code>{{ video.sha256|truncatechars:20 }}</code></p>
+    {% elif can_upload %}
+      <form method="post" action="{% url 'projects:upload' project.pk %}" enctype="multipart/form-data">{% csrf_token %}
+        <label>Video (MP4/MOV/MKV/WebM; MVP limit 5 min / 500 MB)</label><input type="file" name="video" accept="video/*" required>
+        <label>Human-made transcript (optional SRT/VTT). Without one, the configured transcription provider runs.</label><input type="file" name="transcript" accept=".srt,.vtt,text/vtt">
+        <p><button type="submit">Upload and analyze</button></p>
+      </form>
+    {% else %}<p class="empty">No video yet. A Media Operator or Manager uploads it.</p>{% endif %}
+  </div>
+  <div class="panel">
+    <h2 style="margin-top:0">Jobs</h2>
+    <div id="jobs" hx-get="{% url 'projects:jobs' project.pk %}" hx-trigger="load" hx-swap="outerHTML"><p class="muted">Loading jobs…</p></div>
+  </div>
+</div>
+
+<h2>Scenes</h2>
+<div class="panel">
+  {% if scenes %}
+  <table>
+    <tr><th>Scene</th><th>Time</th><th>Status</th><th>Preview</th><th>Open checks</th><th></th></tr>
+    {% for s in scenes %}
+    <tr>
+      <td>Scene {{ s.scene.index|add:1 }} {% if s.mock %}<span class="badge mock">MOCK OUTPUT</span>{% endif %}</td>
+      <td class="muted">{{ s.scene.start_ms }}–{{ s.scene.end_ms }} ms</td>
+      <td><span class="badge {% if s.scene.status == 'ACCEPTED' %}ok{% elif s.scene.status == 'NEEDS_REGENERATION' or s.scene.status == 'CHANGES_REQUESTED' %}warn{% else %}info{% endif %}">{{ s.scene.get_status_display }}</span></td>
+      <td>{% if s.render %}v{{ s.render.version }} {% for m in s.modes %}<span class="badge">{{ m }}</span>{% endfor %}{% else %}<span class="muted">not yet</span>{% endif %}</td>
+      <td>{% if s.open_checks %}<span class="badge bad">{{ s.open_checks }}</span>{% else %}<span class="badge ok">0</span>{% endif %}</td>
+      <td><a class="button secondary" href="{% url 'review:scene' s.scene.pk %}">Review</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="empty">Scenes appear after analysis.</p>{% endif %}
+</div>
+
+<div class="grid">
+  <div class="panel gate {% if loc.status == 'APPROVED' or loc.status == 'EXPORTED' %}open{% elif approval_problems %}blocked{% endif %}">
+    <h2 style="margin-top:0">Approval gate</h2>
+    <p>Localization status: <span class="badge info">{{ loc.get_status_display }}</span></p>
+    {% if approval %}<p class="muted">Latest approval #{{ approval.pk }} by {{ approval.approver }} · {{ approval.status }}{% if approval.invalidated_reason %} ({{ approval.invalidated_reason }}){% endif %}</p>{% endif %}
+    {% if approval_problems %}<p>Approval is blocked:</p><ul class="problems">{% for p in approval_problems %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+    {% if is_manager and loc.status != 'APPROVED' and loc.status != 'EXPORTED' and scenes %}
+      <form method="post" action="{% url 'review:approve' project.pk %}">{% csrf_token %}<button {% if approval_problems %}disabled{% endif %}>Approve this version</button></form>
+    {% endif %}
+  </div>
+  <div class="panel gate {% if loc.status == 'EXPORTED' %}open{% endif %}">
+    <h2 style="margin-top:0">Export</h2>
+    <p class="muted">Export needs a valid approval, no MOCK output in the approved version, and valid consent for every identity used.</p>
+    {% if is_manager and loc.status == 'APPROVED' or is_manager and loc.status == 'EXPORTED' %}
+      <form method="post" action="{% url 'exports:request' project.pk %}">{% csrf_token %}<button>Build export package</button></form>
+    {% endif %}
+    {% for e in exports %}
+      <p>Export #{{ e.pk }} · <span class="badge {% if e.status == 'ACTIVE' %}ok{% elif e.status == 'PENDING' %}info{% else %}bad{% endif %}">{{ e.status }}</span>
+      {% if e.status == 'ACTIVE' %}<a href="{% url 'exports:download' e.pk %}">download .zip</a> <span class="muted">manifest <code>{{ e.manifest_sha256|truncatechars:16 }}</code></span>{% endif %}
+      {% if e.error %}<span class="muted">{{ e.error }}</span>{% endif %}</p>
+    {% empty %}<p class="empty">No exports yet.</p>{% endfor %}
+  </div>
+</div>
+
+<h2>Context and people</h2>
+<div class="grid">
+  <div class="panel">
+    <h3>Audience profile</h3>
+    <form method="post" action="{% url 'projects:audience' project.pk %}">{% csrf_token %}
+      <div class="grid"><div><label>Formality</label><input type="text" name="formality" value="{{ project.audience.formality }}"></div>
+      <div><label>Reading level</label><input type="text" name="reading_level" value="{{ project.audience.reading_level }}"></div></div>
+      <label>Cultural notes</label><textarea name="cultural_notes">{{ project.audience.cultural_notes }}</textarea>
+      {% if is_manager %}<p><button class="secondary">Save audience</button></p>{% endif %}
+    </form>
+    <p class="muted">Context passed to localization: neighbouring segments, speaker, audience profile, glossary, timing budget, reviewer instruction. Visual context is not implemented.</p>
+  </div>
+  <div class="panel">
+    <h3>Glossary</h3>
+    <table>{% for g in glossary %}<tr><td>{{ g.source_term }}</td><td>{{ g.target_term|default:"—" }}{% if g.do_not_translate %} <span class="badge">keep</span>{% endif %}<div class="muted">{{ g.accepted_forms|join:", " }}</div></td></tr>{% empty %}<tr><td class="empty">No terms.</td></tr>{% endfor %}</table>
+    <form method="post" action="{% url 'projects:glossary' project.pk %}">{% csrf_token %}
+      <div class="grid"><div><label>Source term</label><input type="text" name="source_term" required></div><div><label>Target term</label><input type="text" name="target_term"></div></div>
+      <label>Accepted inflected forms (comma-separated)</label><input type="text" name="accepted_forms">
+      <label><input type="checkbox" name="do_not_translate"> Do not translate</label>
+      <p><button class="secondary">Add term</button></p>
+    </form>
+  </div>
+  <div class="panel">
+    <h3>Speakers and identity</h3>
+    {% for sp in speakers %}
+      <form method="post" action="{% url 'projects:assign_speaker' project.pk sp.pk %}" class="row">{% csrf_token %}
+        <strong>{{ sp.label }}</strong>
+        <select name="identity_owner" style="width:auto"><option value="">— no identity (stock voice) —</option>
+          {% for o in owners %}<option value="{{ o.pk }}" {% if sp.identity_owner_id == o.pk %}selected{% endif %}>{{ o.name }}</option>{% endfor %}</select>
+        <button class="secondary">Link</button>
+      </form>
+    {% empty %}<p class="empty">Speakers appear after analysis.</p>{% endfor %}
+    <p class="muted">Linking grants nothing. A cloned voice is used only while the owner's own consent is valid; otherwise the backend falls back to a stock voice.</p>
+    <h3>Members</h3>
+    <table>{% for m in members %}<tr><td>{{ m.user.username }}</td><td>{{ m.get_role_display }}</td></tr>{% endfor %}</table>
+    {% if is_manager %}
+    <form method="post" action="{% url 'projects:add_member' project.pk %}" class="row">{% csrf_token %}
+      <input type="text" name="username" placeholder="username" style="width:140px" required>
+      <select name="role" style="width:auto">{% for v, l in role_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select>
+      <button class="secondary">Add</button>
+    </form>{% endif %}
+    <p><a href="{% url 'audit:project' project.pk %}">Audit trail and evidence →</a></p>
+  </div>
+</div>
+{% endblock %}

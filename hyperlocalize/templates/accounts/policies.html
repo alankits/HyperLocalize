@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Policies · HyperLocalize{% endblock %}
+{% block content %}
+<h1>Policies and providers</h1>
+<p class="muted">UC8. Administrators set policies and provider chains. They cannot grant consent on anyone's behalf.</p>
+<form method="post">{% csrf_token %}
+<div class="grid">
+  <div class="panel">
+    <h2>Policies</h2>
+    {% for key, value, is_bool in policies %}
+      {% if is_bool %}
+        <label><input type="checkbox" name="{{ key }}" {% if value %}checked{% endif %}> {{ key|cut:"_"|capfirst }} <code>{{ key }}</code></label>
+      {% else %}
+        <label>{{ key }}</label><input type="number" name="{{ key }}" value="{{ value }}" min="1">
+      {% endif %}
+    {% endfor %}
+    <p class="muted">synthesis_allowed off → every scene is SUBTITLES_ONLY. cloning_allowed off → STOCK_VOICE for everyone.</p>
+  </div>
+  <div class="panel">
+    <h2>Provider chains</h2>
+    <p class="muted">Ordered adapter names per stage; the first available adapter runs, and the one that ran is shown to the reviewer.</p>
+    {% for stage, chain in chains %}<label>{{ stage }}</label><input type="text" name="chain_{{ stage }}" value="{{ chain }}">{% endfor %}
+    <h3>Adapters available in this mode</h3>
+    <table><tr><th>Name</th><th>Stage</th><th>Ready</th></tr>
+      {% for a in adapters %}<tr><td><code>{{ a.name }}</code> {% if a.is_mock %}<span class="badge mock">MOCK</span>{% endif %}<div class="muted">{{ a.description }}</div></td><td>{{ a.stage }}</td><td>{% if a.available %}<span class="badge ok">yes</span>{% else %}<span class="badge warn">not configured</span>{% endif %}</td></tr>{% endfor %}
+    </table>
+  </div>
+</div>
+<button type="submit">Save</button>
+</form>
+{% endblock %}
