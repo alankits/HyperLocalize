@@ -1,27 +1,51 @@
 # HyperLocalize — Implementation Status
 
-**Current phase:** Phase 0: Discovery and Design. **No application code exists.** Throwaway spike tooling exists in `spike/` (not part of the app).
-**Branch:** `master` holds the Phase 0 design (merged 2026-10-05). The spike tooling is on `phase0/spike-scripts` and is **not merged**: the user said not to merge yet (2026-10-05).
+**Current phase:** Phase 1: MVP build (authorized by the user 2026-10-06). **Application code exists** in `hyperlocalize/` (Django modular monolith). The throwaway spike tooling in `spike/` is separate.
+**Branch:** `phase0/spike-scripts` (local only; **no GitHub remote is configured**). `master` holds the Phase 0 design. The user said not to merge yet.
 **Resume a session from:** this file → `docs/NEXT_STEPS.md` → `docs/adr/README.md`.
-**Canonical product definition:** `docs/PRODUCT.md` (set 2026-10-06). The health/ORS, English → Tamil material is the **spike and demo scenario**, not the product.
+**Canonical product definition:** `docs/PRODUCT.md`. The health/ORS, English → Tamil material is the **spike and demo scenario**, not the product.
+**How to run:** `README.md`. In short: `scripts/run_dev.sh`, then `python manage.py seed_demo`.
 
-Status values: Implemented (tested) / Partial / Stubbed / Not started.
+Labels: [IMPLEMENTED] = written **and** tested (tests listed); [PARTIAL]; [DESIGNED] = in an accepted ADR, not built; [BLOCKED]; [NOT MEASURED].
 
-| # | Use case | Status |
-|---|----------|--------|
-| 1 | Create and Generate a Localization Project | Not started |
-| 2 | Upload and Analyze Source Video | Not started |
-| 3 | Generate Context-Aware Localization Preview | Not started |
-| 4 | Generate Localized Preview | Not started |
-| 5 | Review and Regenerate a Scene | Not started |
-| 6 | Approve and Export Localization Package | Not started |
-| 7 | Revoke Consent and Stop Identity | Not started |
-| 8 | Administer Users, Providers and Policies | Not started |
-| 9 | Inspect Quality, Audit and Evidence | Not started |
+## Use cases
 
-## Stubs / mocks
+| # | Use case | Status | Notes |
+|---|----------|--------|-------|
+| 1 | Create and Generate a Localization Project | [IMPLEMENTED] | Create, configure audience and glossary, add members, start the pipeline. Tests: `tests/test_workflow.py`, `tests/test_views.py` |
+| 2 | Upload and Analyze Source Video | [IMPLEMENTED] with MOCK or human transcript | ffprobe validation before acceptance, 5 min / 500 MB MVP limits, audio extraction, shot-cut detection, scenes and segments. **No real ASR model is integrated yet** (spike decides, ADR 0017): the transcript comes from a human-made SRT/VTT, or from `MockTranscriptionProvider` |
+| 3 | Generate Context-Aware Localization Preview | [IMPLEMENTED] with MOCK; real candidate adapter [PARTIAL] | Context: neighbouring segments, speaker, audience profile, glossary, timing budget, reviewer instruction. **Visual context is not implemented.** The Gemini candidate adapter is written and tested against a fake HTTP layer only; **it has never been called live** (needs `HL_GEMINI_API_KEY`). Rule checks (ADR 0008) and AI flags are implemented |
+| 4 | Generate Localized Preview | [IMPLEMENTED] with MOCK voices | Backend-resolved rendering mode (CLONED / STOCK / SUBTITLES_ONLY), speech in a killable inference subprocess, bounded tempo, mixing, subtitles, scene preview MP4. **No real TTS or voice model yet** (ADR 0018): voices are MOCK tones |
+| 5 | Review and Regenerate a Scene | [IMPLEMENTED] | Edits create HUMAN versions; override with a reason / acknowledge; accept; scene-only regeneration (script with an instruction, or preview) |
+| 6 | Approve and Export Localization Package | [IMPLEMENTED] | Approval gate (all scenes accepted, no blocking checks, current previews, consent CP8, separation of duties). Export refused for MOCK output or invalid consent (CP9). Package: video, SRT, VTT, script, quality report, evidence manifest with the audit chain head |
+| 7 | Revoke Consent and Stop Identity | [IMPLEMENTED] with MOCK voices | Standing and project consent, gate, locked saves, scope-only cascade, **mid-job kill tested**, purge, withdrawal, expiry sweep. ADR 0020 demo commands: see below |
+| 8 | Administer Users, Providers and Policies | [PARTIAL] | Policies and provider chains page; users via Django admin is **not wired** (accounts are created by `seed_demo` or `createsuperuser`). Quota warnings: usage ledger model exists; **warnings not implemented** |
+| 9 | Inspect Quality, Audit and Evidence | [IMPLEMENTED] | Audit trail filters, chain verification on demand, overrides list; `verify_audit_chain` command |
 
-None yet. Planned mocks (ADR 0005) will be listed here when written.
+## Stubs / mocks (ADR 0005; never exportable)
+
+| Mock | Where | What it does |
+|---|---|---|
+| `MockTranscriptionProvider` | `pipeline/providers/mock.py` | Placeholder "[MOCK] Transcript segment N." every 4 s |
+| `MockTranslationProvider` | same | Copies the source, applies glossary target terms, prefix "[MOCK locale]" |
+| `MockMeaningCheckProvider` | same | Flags source segments that contain a negation word (a keyword rule, not AI) |
+| `MockStockVoiceProvider` | same | 440 Hz beeping tone, not speech |
+| `MockClonedVoiceProvider` | same | 660 Hz beeping tone; imitates no one |
+
+Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`, the UI shows MOCK badges, and export is refused while any mock artefact is in the approved snapshot (tested).
+
+## Tests
+
+**MEASURED (2026-10-06):** 102 tests pass on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
+
+## Known limitations (MVP build)
+
+- **No real AI model has been run.** Every quality, speed or accuracy figure is NOT MEASURED.
+- Docker is not installed on the laptop: `docker-compose.yml` and `Dockerfile` are **written but never run**. Development uses `scripts/dev_postgres.sh` (embedded PostgreSQL 17 binaries) and the `static-ffmpeg` package.
+- The demo video is synthetic (test patterns and a tone). The demo script's health facts are [UNVERIFIED] (TEST_SCRIPT §4).
+- Tamil number-word stems, unit forms and glossary forms are drafts or empty until a Tamil-literate rater fills them in, so many checks are UNVERIFIABLE by design (fail-safe).
+- Retention sweeps (previews 30 days, exports 90 days) are [DESIGNED] (ADR 0004), not implemented.
+- CP0 / CP3 (external ASR, Kaggle upload) have no code path yet, because no remote provider is integrated.
 
 ## Design documents
 

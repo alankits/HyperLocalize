@@ -136,18 +136,18 @@ Design principles:
 
 ---
 
-## 9. Current phase: Phase 0 — Discovery and Design
+## 9. Current phase: Phase 1 — MVP build (authorized by the user, 2026-10-06)
 
-**Do not write application code until Phase 0 is complete and approved.**
+The user authorized implementation on 2026-10-06 ("take the project from Phase 0 to a working, demonstrable MVP"). Phase 0's design questions are answered by ADRs 0001–0014 and 0020 (accepted) and `docs/PRODUCT.md`. ADRs 0015–0019 (identity feasibility and the AI providers) still wait for the spike: until then the app runs on clearly labelled MOCK providers and candidate adapters behind the provider interfaces (ADR 0005).
 
-Phase 0 must resolve:
-1. **What "identity-preserving" means** technically, compared across options, including the ethical and consent implications of each.
-2. **What "context-aware" means** technically: which inputs (transcript, visual scenes, on-screen text, audience profile, glossary/terminology) and what method.
-3. **Demo-scope MVP:** the thinnest end-to-end slice that proves the core workflow and the differentiators.
-4. **Tech stack and architecture options** with trade-offs, delivered as ADR proposals.
-5. **Core data model** covering Project, Video, Scene, Localization, Consent, Review, Approval, Export, and AuditRecord, aligned with the UML.
-6. **Evaluation plan:** how localization quality, consent enforcement, and review effectiveness will be measured.
-7. **Differentiation analysis:** what genuinely distinguishes HyperLocalize from existing dubbing and localization tools, classified honestly.
+The Phase 0 questions and where they are answered:
+1. Identity-preserving → ADR 0015 (provisional) and ADRs 0006 and 0020.
+2. Context-aware → ADR 0016 (method provisional) and Phase 0 §4.
+3. Demo-scope MVP → Phase 0 §5 and `docs/PRODUCT.md` §7.
+4. Stack and architecture → ADRs 0001–0012.
+5. Core data model → ADR 0014 (as amended by ADR 0020).
+6. Evaluation plan → Phase 0 §8 and `docs/SPIKE_PLAN.md`.
+7. Differentiation → Phase 0 §9.
 
 ---
 
