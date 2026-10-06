@@ -6,8 +6,8 @@
 - **Revision 2** (2026-10-06): applied all 14 round-1 review findings.
 - **Revision 3** (2026-10-06): applied the round-2 findings N1–N7 and the reviewer's simplification (no cloned voice in the golden project, no `DB_BACKUP` kind, one narrowing path), with the user's approval.
 - **Revision 4** (2026-10-06): applied round-3 findings M1–M6, with M4 option (a): the golden project is built once by hand through the real flow and never reset. The fixes were approved by the user.
-- **Revision 6** (2026-10-06): final-consistency-review fixes: blocker B1 (rehearsal consents never inherit Kaggle use, so the form's D4 "during development" limit holds) and non-blocking items 1–6. No consent form change.
 - **Revision 5** (2026-10-06): product-framing fix MF2 (`docs/PRODUCT.md`). The standing consent is now a **product-level** owner consent with generic fields (`permitted_purposes[]`, `permitted_copy_kinds[]`, uses, languages, processors, expiry). The spike consent form's Part D ticks (D1–D4) are only **mapped** onto it (§1, table), instead of being stored as product consent values. The behaviour for the spike speakers is **intended** to be unchanged; review round 4 found one accidental change (the gate for rehearsal projects) and it is fixed. See `0020-REVIEW.md` round 4. Also: N8 (the revocation-demo note, §10) is added to the history, and the Amends list is completed.
+- **Revision 6** (2026-10-06): final-consistency-review fixes: blocker B1 (rehearsal consents never inherit Kaggle use, so the form's D4 "during development" limit holds) and non-blocking items 1–6, plus the re-check items (ADR 0006 §9 in Amends; remote voice processors defined; D4 removal effect; `SEED_BUILD_REFUSED`). No consent form change.
 - *Note:* ADR 0020 was briefly marked Accepted on 2026-10-06 (commits `6c917e6`, `2e7538c`) and was **reverted to Proposed** the same day at the user's request. The amendments to other ADRs were rolled back.
 
 **The ADR itself is still Proposed.**
@@ -16,7 +16,7 @@ Reviews: `docs/adr/0020-REVIEW.md`.
 
 **Amends**, if approved (those ADRs are not edited until then):
 - ADR 0003: lock order among several rows of the same type (ascending id);
-- ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep, and a narrowing-and-withdrawal paragraph), §8 (standing consent as parent);
+- ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep, and a narrowing-and-withdrawal paragraph), §8 (standing consent as parent), §9 (in rehearsal projects the demo fallback becomes the checkpoint tests only; no Kaggle-dispatched fallback);
 - ADR 0007: the list of audited actions, and the own-transaction exception for `DEMO_RESET_REFUSED`;
 - ADR 0011: the Administrator and Identity Owner rows, and the viva line;
 - ADR 0012: demo-resilience items 1 (`check_providers`), 2 (golden project: stock voice only, built once through the real flow), 3 (screen recording) and 7 (demo reset), plus the revocation-demo note (§10 here);
@@ -132,7 +132,7 @@ There are three commands. **Each one first takes `select_for_update()` on every 
 - the reference clip;
 - any pre-rendered cloned audio (when the demo plan pre-renders; *spike note: Plans B, C and D*).
 
-It refuses unless (a) the owner's latest standing version is ACTIVE, unexpired, permits both `STANDARD` and `DEMO_REHEARSAL`, and its `uses` include `voice_synthesis` and its `languages` include the seed's language; and (b) the source project's consent scope passes the full gate under the lock, and none of the copied artefacts is `QUARANTINED`, `PURGED` or deletion-pending. It registers every seed file as an `OfflineCopy`. Audit: `SEED_BUILT`.
+It refuses unless (a) the owner's latest standing version is ACTIVE, unexpired, permits both `STANDARD` and `DEMO_REHEARSAL`, and its `uses` include `voice_synthesis` and its `languages` include the seed's language; and (b) the source project's consent scope passes the full gate under the lock, and none of the copied artefacts is `QUARANTINED`, `PURGED` or deletion-pending. It registers every seed file as an `OfflineCopy`. Audit: `SEED_BUILT`, or `SEED_BUILD_REFUSED` with the reason (written in its own transaction, like `DEMO_RESET_REFUSED`).
 
 **`manage.py demo_reset`** never overwrites the database, deletes rows or restores files.
 
@@ -143,7 +143,7 @@ It **refuses** (audit: `DEMO_RESET_REFUSED`, with the reason) if:
 
 Otherwise it does the following, in one transaction under the lock:
 - creates a **new** `DEMO_REHEARSAL` project, "Demo (reset <timestamp>)";
-- creates a derived Consent version for that project (§1) with **uses = parent.uses ∩ {`voice_synthesis`}**, languages = the seed's language, processors = parent.processors without remote processors, and expires_at = parent.expires_at. A rehearsal project therefore can never use `remote_voice_processing` (fixes final-review B1);
+- creates a derived Consent version for that project (§1) with **uses = parent.uses ∩ {`voice_synthesis`}**, languages = the seed's language, processors = parent.processors without **remote voice processors** (processors that receive the reference clip or produce cloned audio off the laptop; in the MVP that is Kaggle only. Text-only processors such as the translation LLM are not affected), and expires_at = parent.expires_at. A rehearsal project therefore can never use `remote_voice_processing` (fixes final-review B1);
 - **copies** the seed reference clip to a new storage key and creates a new VoiceProfile through the normal gate (CP1). The project's revocation purges that copy, never the seed;
 - imports pre-rendered cloned audio as new copies through the normal locked save (CP5);
 - writes `DEMO_RESET` and `CONSENT_GRANTED (reason: DEMO_RESET, parent_consent_id)` audit records.
@@ -195,7 +195,7 @@ These are **warnings for accidental drift, not tamper resistance**. A re-encoded
 
 **Narrowing: the single withdrawal path** (fixes N2; simplification). A new standing version that narrows anything (uses, permitted purposes, permitted copy kinds, languages, processors, or an earlier `expires_at`), or a withdrawal, runs **one** procedure. In one transaction, under the IdentityOwner lock (ADR 0006 §4):
 1. Insert the new standing version, with the narrowed `uses`, `permitted_purposes`, `permitted_copy_kinds`, `languages`, `processors` or `expires_at`, or with status `REVOKED` for a withdrawal.
-2. For **every** project scope of that owner, `STANDARD` and `DEMO_REHEARSAL` alike, that no longer passes the gate, run the ADR 0006 §5 cascade. That inserts a REVOKED version, cancels or flags jobs, quarantines artefacts, invalidates approvals, marks exports and queues the purge. Removing `remote_voice_processing` therefore revokes it everywhere, including `STANDARD` projects (for the spike speakers: unticking D4).
+2. For **every** project scope of that owner, `STANDARD` and `DEMO_REHEARSAL` alike, that no longer passes the gate, run the ADR 0006 §5 cascade. That inserts a REVOKED version, cancels or flags jobs, quarantines artefacts, invalidates approvals, marks exports and queues the purge. Removing `remote_voice_processing` therefore revokes it everywhere, including `STANDARD` projects (for the spike speakers: unticking D4). This stops future remote work and deletes remote copies (ADR 0006 `RemoteCopy`). It does **not** delete cloned audio already imported, which was saved under `voice_synthesis`; that goes only if `voice_synthesis` is removed or on withdrawal.
 3. Mark the owner's `OfflineCopy` rows `DELETION_PENDING` for what was removed: a removed copy kind → the copies of that kind; `STANDARD` or `DEMO_REHEARSAL` removed from `permitted_purposes` → `DEMO_SEED_*` (the seed is useless without both); `voice_synthesis` removed from `uses`, or a copy's language removed from `languages` → every affected `OfflineCopy` of that owner; withdrawal → all.
 4. For a withdrawal, also set `IdentityOwner.withdrawn_at`, `withdrawn_by` and `withdrawal_evidence`.
 
@@ -228,9 +228,9 @@ These are stated in the docs and the consent form, and are covered by a **manual
 
 ### 7. Audit (amends ADR 0007's action list and ADR 0014 invariant 6)
 
-New actions: `SEED_BUILT`, `DEMO_RESET`, `DEMO_RESET_REFUSED`, `OFFLINE_COPY_REGISTERED`, `OFFLINE_COPY_DELETED` and `IDENTITY_WITHDRAWN`. `CONSENT_GRANTED` gains a reason, `DEMO_RESET`, plus `parent_consent_id`. `CONSENT_REVOKED` gains `removed: {field: values}` for a narrowing, and the reason `EXPIRED` for the sweep.
+New actions: `SEED_BUILT`, `SEED_BUILD_REFUSED`, `DEMO_RESET`, `DEMO_RESET_REFUSED`, `OFFLINE_COPY_REGISTERED`, `OFFLINE_COPY_DELETED` and `IDENTITY_WITHDRAWN`. `CONSENT_GRANTED` gains a reason, `DEMO_RESET`, plus `parent_consent_id`. `CONSENT_REVOKED` gains `removed: {field: values}` for a narrowing, and the reason `EXPIRED` for the sweep.
 
-Each record carries who, what, when, project (where there is one) and consent version, as ADR 0007 requires. `DEMO_RESET_REFUSED` has no action to share a transaction with, so it is written in its own transaction.
+Each record carries who, what, when, project (where there is one) and consent version, as ADR 0007 requires. `DEMO_RESET_REFUSED` and `SEED_BUILD_REFUSED` have no action to share a transaction with, so each is written in its own transaction.
 
 **Invariant 6** becomes: "Every audited action writes **at least one** AuditRecord, in the same transaction."
 
