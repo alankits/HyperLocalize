@@ -55,16 +55,16 @@ The form may now be signed only **after** the test script is frozen and every Ap
   - SF7: Phase 0 header and §0 stack;
   - SF8: team size is now one developer.
 
-## Exact next action
-**User decisions:**
-1. ADR 0020 revision 5: the round-4 review is done and all its fixes are applied (`0020-REVIEW.md` round 4). Approve it or request changes.
-2. Optionally, apply SF2–SF5 and SF7 (wording only).
-3. SF8: record that the project now has one developer, then discuss the solo plan.
-
-Still waiting on you:
-- the `external_transcription` choice after the spike: (a) local ASR only, or (b) add a D5 tick;
-- the GitHub remote;
-- Docker (P9);
-- the team items in steps 1–2 above.
-
-No merges, no spike runs on real data, no recordings and no freezes until approved.
+## Exact next action (2026-10-06, MVP build in progress)
+- **Built and tested:** the full workflow (UC1–UC9) on MOCK providers, a human transcript and human edits; consent gate and mid-job revocation; ADR 0020 demo commands; faster-whisper and Gemini candidate adapters. 114 tests pass (1 optional skipped). See `STATUS.md`.
+- **In flight:** an independent code review of the consent and audit code. Apply its fixes first.
+- **Still to do:**
+  - documentation set: README quick start, architecture, user manual, developer guide, viva notes, `EVALUATION.md`;
+  - a final end-to-end HTTP demo run;
+  - mermaid render check of `docs/uml/`.
+- **User decisions:**
+  - (1) the solo-plan Speaker B option (`docs/SOLO_PLAN.md`);
+  - (2) external transcription after the spike: (a) local ASR only or (b) add a D5 tick;
+  - (3) the GitHub remote URL;
+  - (4) install Docker: `sudo apt install docker.io docker-compose-v2`.
+- No merges, no real-data spike, no recordings until approved.
