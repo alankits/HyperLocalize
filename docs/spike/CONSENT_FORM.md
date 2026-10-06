@@ -119,7 +119,7 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 
 **Each tick lifts only the §5 limits named here:**
 - **D1** lifts the "no machine-translated text" limit only. The cloned audio is heard by the team, R1 and R2.
-- **D2** lifts the "no machine-translated text" limit and the playback limit, for the evaluation panel and the viva or expo audience.
+- **D2** lifts the "no machine-translated text" limit and the playback limit, for the evaluation panel, the viva or expo audience, and the team's demo rehearsals.
 - **D3** lifts the playback limit, for the evaluation panel only.
 - **D4** lifts the Kaggle limit (as in 3.2) during development.
 
@@ -132,13 +132,13 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 | Use after the spike | YES | NO |
 |---|---|---|
 | D1. Keep my recordings to **develop and test** HyperLocalize on the team laptop | ☐ | ☐ |
-| D2. Play my real and cloned voice in the **live demo**, including the live consent-revocation demo, to the evaluation panel and any viva or expo audience. *The on-stage revocation is a demonstration; it does not end your real consent.* | ☐ | ☐ |
+| D2. Play my real and cloned voice in the **live demo and its team rehearsals**, including the live consent-revocation demo, to the evaluation panel and any viva or expo audience. *A revocation inside a project marked* Demo rehearsal*, on stage or in a team rehearsal, is a demonstration; it does not end your real consent.* | ☐ | ☐ |
 | D3. Include my cloned voice in the **backup screen recording** of the demo, kept on the team laptop (outside git and cloud sync) and shown only to the panel | ☐ | ☐ |
 | D4. Kaggle processing (as in 3.2) during development | ☐ | ☐ |
 
 *If you tick any of D1–D4, the HyperLocalize system will also record your consent in its own consent records, where you can view and revoke it. This form does not replace that.*
 
-**What counts as a real withdrawal.** A withdrawal is real if you give it to the §8 contact or the faculty guide, **or** if you revoke your consent in the HyperLocalize system outside a demo. The on-stage revocation in D2 is **not** a real withdrawal. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is proposed (ADR 0020) and not yet approved or built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
+**What counts as a real withdrawal.** A withdrawal is real if you give it to the §8 contact or the faculty guide, **or** if you revoke your consent in the HyperLocalize system anywhere **outside a project marked *Demo rehearsal***, including the *Withdraw* button on your consent page. A revocation **inside** a project marked *Demo rehearsal* (on stage or in a team rehearsal) is a demonstration, **not** a real withdrawal. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is proposed (ADR 0020) and not yet approved or built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
 
 ---
 

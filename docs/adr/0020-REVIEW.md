@@ -66,7 +66,7 @@ The fixes for #1–#3 change the consent model (a standing owner grant, derived 
 | **Reviewed** | Revision 2 of ADR 0020 (all 14 round-1 fixes applied) |
 | **Reviewer** | `critical-reviewer` agent (fresh context). It read ADRs 0006, 0011 and 0014, the consent form and round 1; it did not reread 0007 or 0012. |
 | **Verdict** | **Approve with changes:** 0 blockers, 4 major, 3 minor. Text changes only, no redesign. |
-| **Status** | **Not applied.** Waiting for the user. ADR 0020 stays Proposed. |
+| **Status** | **Applied in revision 3** (2026-10-06, with the user's approval of N1–N7, the simplification and the N4 form wording). See round 3. |
 
 The assistant checked N1–N3 against the files and found them accurate:
 - revision 2 §3 takes no IdentityOwner lock;
@@ -108,3 +108,32 @@ With these cuts the reviewer estimates about 2–3 days [reviewer ESTIMATE, not 
 - The standing grant with narrower derived copies is a clean answer to ADR 0011.
 - Rebuild-not-restore, with the manual restore named as a residual risk, matches ADR 0007.
 - Withdrawal is final.
+
+## Round 3: short final review (revision 3, 2026-10-06)
+
+| | |
+|---|---|
+| **Reviewed** | Revision 3 of ADR 0020, and the N4 wording in `CONSENT_FORM.md` Part D |
+| **Reviewer** | `critical-reviewer` agent (fresh context) |
+| **Verdict** | **Approve with changes:** 0 blockers, 3 major, 4 minor. The reviewer says that after M1, M2 and M4 are fixed, the ADR is ready for the user's approval with a spot-check, not another full round. |
+| **Status** | M7 (this status line) applied. **M1–M6 not applied; waiting for the user.** ADR 0020 stays Proposed. |
+
+The assistant checked M3 against ADR 0003: its lock order ranks lock *types* (IdentityOwner → Job → artefacts → AuditChainHead), not several rows of the same type. Accurate.
+
+**Round-2 fixes:**
+- Fixed: N1, N2, N3, N5, N6, N7 and the simplification. The simplification has a gap (M4).
+- Partly fixed: N4. The form's "real withdrawal" paragraph promises more than the ADR delivers (M2).
+
+| # | Severity | Section | Problem | Proposed fix |
+|---|---|---|---|---|
+| M1 | **Major** | §1 gate, §5 step 2 | The gate re-checks the standing grant only for ACTIVE, expiry and Part D use. The subset rule (languages, processors) is checked only at creation, so narrowing languages or processors cascades nothing. | The gate also requires the scope's version to be ⊆ the **latest** standing version (uses, languages, processors, `expires_at`). Extend tests 8 and 11. |
+| M2 | **Major** | Consent form "What counts as a real withdrawal" vs ADR §5 | The form says any revocation outside a rehearsal project is "a real withdrawal" (which §8 says deletes everything). In the ADR, revoking in a `STANDARD` project ends **that project only**; the standing grant, seed and recording stay. | Form: "Revoking inside a normal project ends that project's use only. To withdraw a Part D use or everything, untick it or press *Withdraw* on your consent page, or tell the §8 contact." Add the same hint to the `STANDARD` revoke dialog. |
+| M3 | Minor (viva) | §3 lock line | ADR 0003 doesn't order several IdentityOwners. | "Several IdentityOwners are locked in ascending id order." |
+| M4 | **Major** | §2 golden, §3 `--stock-only` | `--stock-only` claims to give "completed review, approval, export", but no step creates them. A scripted Approval invites "who approved this?" | (a) Build the golden project **once, by hand, through the real flow** with stock voices and real human review and approval; never reset it. Or (b) the seed stores stock audio, and the reset replays approval as `actor=system, replayed_from=<id>`, labelled "replayed". Make sure the rehearsal filter doesn't hide it. |
+| M5 | Minor (viva) | §1 "Changing it means a new standing version" | Nothing stops the owner re-adding a use in the app without new paper evidence. | Any widening needs a new paper form ID as evidence; only narrowing can be done in the app alone. |
+| M6 | Minor (consistency) | Consent form §6 Part D row, §8 item 2 | Both still say "demo reset snapshot", and §6 implies the golden project holds voice copies. | Say "demo seed copies", and "the golden project uses stock voices only". |
+| M7 | Minor (honesty) | This file, round 2 status | Stale. | **Applied** (above). |
+
+**Honesty:** no banned claims. The [ESTIMATE] label and "designed to be enforced … [CONFIRMED] only when tests 4–9 pass" are correct. The 2–3 day estimate is optimistic for 16 tests including concurrency tests. No one may sign Part D before both the form and ADR 0020 are approved.
+
+**Biggest viva risk:** "Who approved the golden project?" (M4).
