@@ -38,6 +38,14 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 
 **MEASURED (2026-10-06):** 126 tests pass, 1 optional skipped (latest run after the code-review fixes; earlier counts: 102, 114) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
 
+**End-to-end over HTTP (MEASURED 2026-10-06):** `scripts/e2e_check.py` against a live dev server and worker: **15/15 steps passed**:
+- consent, then a cloned-voice preview (MOCK);
+- human review and approval;
+- the MOCK export refused;
+- revocation → preview 410, approval invalidated, stock fallback, reference clip deleted;
+- a subtitles-only real export downloaded with its evidence manifest;
+- the auditor verifying the chain.
+
 ## Known limitations (MVP build)
 
 - **No real AI model has been run.** Every quality, speed or accuracy figure is NOT MEASURED.

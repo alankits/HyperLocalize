@@ -14,6 +14,8 @@
 | Providers | `pipeline/tests.py` | Mocks are absent in demo mode; chain fallback and Administrator order; data-use rule; Gemini parsing, quota handling and key-in-header against a **fake** HTTP layer; transcript parsing; job cancel and retry |
 | Checks | `localization/tests.py` | Numbers (digits, words, Tamil digits, Indian grouping, the fail-safe for number words, an unknown language pair); units; conversions; glossary; structure; scene planning |
 
+**End-to-end over HTTP (MEASURED 2026-10-06):** `scripts/e2e_check.py`, run against a live server and worker on a separate database: **15/15 steps passed**.
+
 **Not tested:**
 - any real AI model on real data;
 - the Docker images;
