@@ -1,6 +1,8 @@
 # ADR 0011: Authentication and authorisation: Django sessions + project-scoped roles
 
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05. The defaults for Q10, Q12 and Q13 were accepted with it.
+
+> **Amended by ADR 0020 (accepted 2026-10-06):** the Identity Owner grants a standing consent and may narrow or withdraw it in the app (widening needs a new signed form); the Administrator runs the demo commands, which only derive narrower project consents, and may record a withdrawal requested through the §8 channel. The Administrator still cannot grant or widen consent. Where this ADR and ADR 0020 differ, **ADR 0020 takes precedence**. See ADR 0020 for the exact rules.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.9; ADR 0009
 
 ## Context

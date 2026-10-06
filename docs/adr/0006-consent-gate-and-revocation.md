@@ -1,6 +1,8 @@
 # ADR 0006: Consent gate, checks at each stage boundary, revocation cascade
 
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, and **independent review, which found a critical locking flaw, now fixed**.
+
+> **Amended by ADR 0020 (accepted 2026-10-06):** §1 gate (withdrawal; standing consent; project consent within the latest standing version), §4 (locked saves run the full gate), §5 (scope-only cascade; purge of render and export files; expiry; single narrowing path), §8 (standing consent as parent), §9 (no Kaggle fallback in rehearsal projects). Where this ADR and ADR 0020 differ, **ADR 0020 takes precedence**. See ADR 0020 for the exact rules.
 **Source:** `docs/PHASE0_DISCOVERY.md` §3.4; CLAUDE.md §5; ADRs 0003, 0005, 0014, 0019
 
 ## Context

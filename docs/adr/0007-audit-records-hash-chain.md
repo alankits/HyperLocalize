@@ -1,6 +1,8 @@
 # ADR 0007: Append-only, hash-chained audit records
 
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, independent review.
+
+> **Amended by ADR 0020 (accepted 2026-10-06):** new audited actions (SEED_BUILT, SEED_BUILD_REFUSED, DEMO_RESET, DEMO_RESET_REFUSED, OFFLINE_COPY_REGISTERED, OFFLINE_COPY_DELETED, IDENTITY_WITHDRAWN; CONSENT_GRANTED for standing consent; CONSENT_REVOKED `removed`); refusals are written in their own transaction; one action may write several records. Where this ADR and ADR 0020 differ, **ADR 0020 takes precedence**. See ADR 0020 for the exact rules.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.10; CLAUDE.md §5
 
 ## Context

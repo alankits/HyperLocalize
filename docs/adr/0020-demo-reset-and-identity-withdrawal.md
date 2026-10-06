@@ -1,6 +1,6 @@
 # ADR 0020: Demo reset by rebuild, offline-copy register, and identity withdrawal
 
-**Status:** **Proposed** (2026-10-06), waiting for approval.
+**Status:** **Accepted** (2026-10-06). Accepted under the user's rule of 2026-10-06: "mark ADR 0020 accepted only if the final review has no blockers". The final consistency review found one blocker (B1), which revision 6 fixed. The re-check found one bookkeeping blocker (ADR 0006 §9 not in the Amends list), which was fixed. The narrow diff check returned **BLOCKERS: none** (`0020-REVIEW.md` round 5). **Designed, not implemented.**
 
 **History:**
 - **Revision 2** (2026-10-06): applied all 14 round-1 review findings.
@@ -10,11 +10,10 @@
 - **Revision 6** (2026-10-06): final-consistency-review fixes: blocker B1 (rehearsal consents never inherit Kaggle use, so the form's D4 "during development" limit holds) and non-blocking items 1–6, plus the re-check items (ADR 0006 §9 in Amends; remote voice processors defined; D4 removal effect; `SEED_BUILD_REFUSED`). No consent form change.
 - *Note:* ADR 0020 was briefly marked Accepted on 2026-10-06 (commits `6c917e6`, `2e7538c`) and was **reverted to Proposed** the same day at the user's request. The amendments to other ADRs were rolled back.
 
-**The ADR itself is still Proposed.**
 
 Reviews: `docs/adr/0020-REVIEW.md`.
 
-**Amends**, if approved (those ADRs are not edited until then):
+**Amends** (each amended ADR carries a precedence note pointing here; where they differ, **this ADR takes precedence**):
 - ADR 0003: lock order among several rows of the same type (ascending id);
 - ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep, and a narrowing-and-withdrawal paragraph), §8 (standing consent as parent), §9 (in rehearsal projects the demo fallback becomes the checkpoint tests only; no Kaggle-dispatched fallback);
 - ADR 0007: the list of audited actions, and the own-transaction exception for `DEMO_RESET_REFUSED`;
@@ -195,7 +194,7 @@ These are **warnings for accidental drift, not tamper resistance**. A re-encoded
 
 **Narrowing: the single withdrawal path** (fixes N2; simplification). A new standing version that narrows anything (uses, permitted purposes, permitted copy kinds, languages, processors, or an earlier `expires_at`), or a withdrawal, runs **one** procedure. In one transaction, under the IdentityOwner lock (ADR 0006 §4):
 1. Insert the new standing version, with the narrowed `uses`, `permitted_purposes`, `permitted_copy_kinds`, `languages`, `processors` or `expires_at`, or with status `REVOKED` for a withdrawal.
-2. For **every** project scope of that owner, `STANDARD` and `DEMO_REHEARSAL` alike, that no longer passes the gate, run the ADR 0006 §5 cascade. That inserts a REVOKED version, cancels or flags jobs, quarantines artefacts, invalidates approvals, marks exports and queues the purge. Removing `remote_voice_processing` therefore revokes it everywhere, including `STANDARD` projects (for the spike speakers: unticking D4). This stops future remote work and deletes remote copies (ADR 0006 `RemoteCopy`). It does **not** delete cloned audio already imported, which was saved under `voice_synthesis`; that goes only if `voice_synthesis` is removed or on withdrawal.
+2. For **every** project scope of that owner, `STANDARD` and `DEMO_REHEARSAL` alike, that no longer passes the gate, run the ADR 0006 §5 cascade. That inserts a REVOKED version, cancels or flags jobs, quarantines artefacts, invalidates approvals, marks exports and queues the purge. Removing `remote_voice_processing` therefore revokes it everywhere, including `STANDARD` projects (for the spike speakers: unticking D4). This stops future remote work and deletes our remote copies (ADR 0006 `RemoteCopy`; Kaggle's internal retention is outside our control, §6). It does **not** delete cloned audio already imported, which was saved under `voice_synthesis`; that goes only if `voice_synthesis` is removed or on withdrawal.
 3. Mark the owner's `OfflineCopy` rows `DELETION_PENDING` for what was removed: a removed copy kind → the copies of that kind; `STANDARD` or `DEMO_REHEARSAL` removed from `permitted_purposes` → `DEMO_SEED_*` (the seed is useless without both); `voice_synthesis` removed from `uses`, or a copy's language removed from `languages` → every affected `OfflineCopy` of that owner; withdrawal → all.
 4. For a withdrawal, also set `IdentityOwner.withdrawn_at`, `withdrawn_by` and `withdrawal_evidence`.
 

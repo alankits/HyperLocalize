@@ -1,6 +1,8 @@
 # ADR 0014: Core data model (UML-ready)
 
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05; revised the same day after independent review.
+
+> **Amended by ADR 0020 (accepted 2026-10-06):** Project.purpose; Consent.kind / parent_consent / permitted_purposes / permitted_copy_kinds; IdentityOwner withdrawal fields; Export status PURGED; the new OfflineCopy model; invariants 1, 2 and 6; new invariant 8. Where this ADR and ADR 0020 differ, **ADR 0020 takes precedence**. See ADR 0020 for the exact rules.
 **Source:** `docs/PHASE0_DISCOVERY.md` §7; ADRs 0003, 0005–0008, 0011, 0013
 
 ## Context

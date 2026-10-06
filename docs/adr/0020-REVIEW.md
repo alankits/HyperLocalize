@@ -179,3 +179,13 @@ Harmless difference: the consent form also names the faculty guide as a withdraw
 | B4 | Minor | "The project now has one developer" was stated as a recorded fact. | Marked user-reported and not yet recorded (SF8). |
 | B5 | Minor | Source list incomplete; "stop running work" attributed to CLAUDE.md; budget listed as an MVP item. | Sources extended; running-job stop attributed to ADR 0006; budget moved to a constraint line. |
 | B6 | Minor | Phase 0 §9 novelty row still said "for high-stakes domains". | "(emphasis …)". |
+
+## Round 5: final consistency review, re-check and narrow diff check (2026-10-06)
+
+| Step | Result |
+|---|---|
+| Final consistency review (revision 5 with the round-4 fixes; consent form with "D2 needs D1") | **1 blocker**, B1: derived rehearsal consents could inherit Kaggle use, but form D4 covers development only. Plus 6 non-blocking items. All fixed in **revision 6** (no consent form change). |
+| Blocker re-check (revision 6) | B1 fixed. **1 bookkeeping blocker:** ADR 0006 §9 was missing from the Amends list. Plus 3 minor notes. All fixed. |
+| Narrow diff check (commit `ed0e781`) | **BLOCKERS: none.** One minor honesty note ("deletes our remote copies; Kaggle's internal retention excepted"), applied. |
+
+**Outcome:** ADR 0020 **accepted 2026-10-06**, under the user's rule that it is accepted only when the final review has no blockers. The amended ADRs (0003, 0006, 0007, 0011, 0012, 0014) carry precedence notes that point to ADR 0020.

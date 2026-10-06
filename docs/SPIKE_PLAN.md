@@ -174,7 +174,7 @@ These rules are written now, before any results exist, so that the results can't
 
 | When | What |
 |---|---|
-| T-3 days | Pre-render the cloned-voice previews (overnight CPU or Kaggle). They are imported through the consent checks and reviewed. Snapshot for `demo_reset`. **Interim rule [CONFIRMED 2026-10-06]:** no demo-reset snapshot or golden project may contain a real speaker's voice until ADR 0020 is approved. |
+| T-3 days | Pre-render the cloned-voice previews (overnight CPU or Kaggle). They are imported through the consent checks and reviewed. Build the demo seed (`build_demo_seed`, ADR 0020), and the evening before run `check_providers` and a trial `demo_reset`. The golden project uses stock voices only. *(The 2026-10-06 interim rule is superseded by ADR 0020.)* |
 | T-1 day | `check_providers` (free quotas, model cache, Kaggle hours if used). Rehearse from `demo_reset`. Record the backup screen recording. |
 | Live: review | Open the pre-rendered previews and **say how they were made** ("rendered overnight on this laptop", or "on a free Kaggle GPU yesterday"). |
 | Live: regenerate | Request changes on a scene → regenerate with the **stock voice on CPU** so the full loop is visible. A live Kaggle dispatch is **optional and off the critical path**. |

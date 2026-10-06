@@ -1,6 +1,8 @@
 # ADR 0012: Deployment: Docker Compose on a laptop, with a demo-resilience plan
 
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05; revised 2026-10-05 for the zero-budget Q4 answer. The Q18 default (local laptop demo) was accepted with it.
+
+> **Amended by ADR 0020 (accepted 2026-10-06):** item 1 (`check_providers` drift warnings), item 2 (golden project: stock voices only, built once by hand through the real flow, never reset), item 3 (one screen recording per speaker, registered as an OfflineCopy), item 7 (demo reset rebuilds and never restores), and the revocation demo (the speaker must be present). The interim rule below is superseded. Where this ADR and ADR 0020 differ, **ADR 0020 takes precedence**. See ADR 0020 for the exact rules.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.11; Q2, Q4, Q8 answers
 
 ## Context
@@ -48,5 +50,5 @@ Q4 (revised): **zero budget**, no local GPU, free tiers and open-source models o
 - **−** Not production deployment. It is described as a demo deployment only.
 - **Viva in 2 minutes:** "Four containers on a laptop, using free hosted AI where allowed and local open-source models otherwise. If the network fails we switch to the all-local chain. We have a provider and quota check, a reset fixture, a completed golden project and a recorded run, and we say openly when we use any of them."
 
-## Interim rule (2026-10-06)
+## Interim rule (2026-10-06): superseded by ADR 0020 on 2026-10-06
 **[CONFIRMED 2026-10-06, user approval]** Until ADR 0020 (proposed) is approved, no `demo_reset` snapshot or golden project may contain a real speaker's voice (recordings or cloned audio). Both use stock voices only. This comes from round 2 of the consent review (`docs/spike/CONSENT_FORM_REVIEW.md`). It does not change the rest of this ADR.

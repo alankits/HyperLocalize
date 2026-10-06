@@ -1,6 +1,8 @@
 # ADR 0003: Postgres-backed job queue with explicit job states
 
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, independent review.
+
+> **Amended by ADR 0020 (accepted 2026-10-06):** lock order among several rows of the same type (ascending id). Where this ADR and ADR 0020 differ, **ADR 0020 takes precedence**. See ADR 0020 for the exact rules.
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.5
 
 ## Context
