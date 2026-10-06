@@ -13,7 +13,7 @@
   - **Round-2 consent review** (1 blocker, 4 major, 4 minor; `CONSENT_FORM_REVIEW.md` round 2): **P1–P8 approved and applied** to `CONSENT_FORM.md`, with P6 also reordering `TEST_SCRIPT.md` §7.
   - **P9 approved and applied** to `SPIKE_PLAN.md`: P6 permissions aligned; in M4, A's listeners rate both clones. Rule 4 when ECAPA is skipped uses **Option A**: A's clone "same person?" median ≥ 3 **and** B's clone ≤ 2. If B hasn't given 3.4 and 3.6, the condition is not met.
   - **Interim rule approved:** no real voice in any demo-reset snapshot or golden project until ADR 0020 is approved (ADR 0012 note, SPIKE_PLAN §6, consent Part D).
-  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. **Independent critical review run; results in `docs/adr/0020-REVIEW.md`. Not approved; the ADR itself is unchanged.**
+  - **ADR 0020 proposed** (`docs/adr/0020-demo-reset-and-identity-withdrawal.md`): the demo reset rebuilds instead of restoring, an `OfflineCopy` register, and owner-level withdrawal. It amends ADRs 0006, 0012 and 0014. Round-1 review: needs changes (2 blockers). **Revision 2** applies all 14 fixes. **Round-2 review: approve with changes** (N1–N7, plus a simplification; `docs/adr/0020-REVIEW.md`). **Not approved.**
 - Prerequisites: P4 done; P5 partly done; P8 partly done; P3 pending; P9 (Docker) added. Details in `SPIKE_PLAN.md` §1 and `STATUS.md`.
 
 ## Order change caused by the consent fixes
@@ -39,9 +39,10 @@ The form may now be signed only **after** the test script is frozen and every Ap
 9. **Spike runs:** need P3, P9 and the keys in `.env`.
 
 ## Exact next action
-**User decision:** read `docs/adr/0020-REVIEW.md`, then choose one:
-1. Apply the review's fixes to ADR 0020 (all, or a numbered subset), then re-review.
-2. Approve ADR 0020 as it is.
-3. Reject or rework it.
+**User decisions on ADR 0020** (see `docs/adr/0020-REVIEW.md` round 2):
+1. Apply N1–N7.
+2. Apply the reviewer's simplification: drop `DEMO_GOLDEN` (the golden project is stock-voice only), drop the `DB_BACKUP` kind, and use one withdrawal path.
+3. Approve the consent-form tweak (N4): "outside a project marked *Demo rehearsal*", and D2 also covers rehearsals.
+4. Then approve ADR 0020, or ask for another review round.
 
 Until then the interim rule applies. The team's steps 1–2 above (names, media folder, faculty, blanks, fact check, Docker, Groq evidence, Ubuntu release) are still open; the assistant does not fill them in. No merges, no spike runs on real data, no recordings and no freezes until approved.

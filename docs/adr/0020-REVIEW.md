@@ -1,12 +1,14 @@
 # Independent review: ADR 0020 (demo reset and identity withdrawal)
 
+## Round 1 (revision 1)
+
 | | |
 |---|---|
 | **Reviewed** | `docs/adr/0020-demo-reset-and-identity-withdrawal.md` as of commit `5f16834` (Proposed) |
 | **Reviewer** | `critical-reviewer` agent (fresh context), 2026-10-06, at the user's request |
 | **Context read** | ADRs 0006, 0007, 0011, 0012, 0014; `CONSENT_FORM.md` (§6, §8, Part D); `CONSENT_FORM_REVIEW.md` round 2. The reviewer may have read the consent form before the round-2 P1–P8 edits landed; this doesn't change any finding. |
 | **Verdict** | **Needs changes:** 2 blockers, 6 major, 6 minor |
-| **Status** | **Not applied. ADR 0020 is unchanged and not approved.** Waiting for the user's decision. |
+| **Status** | **Applied in revision 2** (2026-10-06, user chose "apply all, then re-review"). See round 2. |
 
 The assistant checked both blockers against the files and found them accurate. ADR 0011 line 32 says the Administrator "**Cannot grant consent on anyone's behalf**". ADR 0006 §5 quarantines and purges everything "recorded under that owner's consent", including the VoiceProfile reference clip (lines 71 and 78), not just one project's scope.
 
@@ -56,3 +58,53 @@ Rebuilding instead of restoring is judged to be the right core idea.
 ## Assistant's note (not part of the review)
 
 The fixes for #1–#3 change the consent model (a standing owner grant, derived versions, a project purpose flag) and amend ADRs 0006, 0007, 0011 and 0014. They need the user's approval before ADR 0020 is revised. #12 would also change the consent form.
+
+## Round 2 (revision 2, 2026-10-06)
+
+| | |
+|---|---|
+| **Reviewed** | Revision 2 of ADR 0020 (all 14 round-1 fixes applied) |
+| **Reviewer** | `critical-reviewer` agent (fresh context). It read ADRs 0006, 0011 and 0014, the consent form and round 1; it did not reread 0007 or 0012. |
+| **Verdict** | **Approve with changes:** 0 blockers, 4 major, 3 minor. Text changes only, no redesign. |
+| **Status** | **Not applied.** Waiting for the user. ADR 0020 stays Proposed. |
+
+The assistant checked N1–N3 against the files and found them accurate:
+- revision 2 §3 takes no IdentityOwner lock;
+- the ADR 0006 §4 locked save re-reads only its own scope's latest version;
+- `STANDARD` grants have no parent.
+
+**Round-1 findings:**
+- Fixed: #1, #2, #4–#6 and #9–#14.
+- Partly fixed: #3 (N2, N4), #7 (N3) and #8 (N5).
+
+| # | Severity | Section | Problem | Proposed fix |
+|---|---|---|---|---|
+| N1 | Major | §3, §4 commands | `demo_reset`, `build_demo_seed` and `register_offline_copy` take no IdentityOwner lock. If a withdrawal commits between the reset's check and its commit, the withdrawn voice is copied back with nothing queued to purge it. | All three `select_for_update()` the IdentityOwner first and re-check `withdrawn_at` and the latest standing version under the lock. Add a withdraw-vs-reset concurrency test, in both orders. |
+| N2 | Major | §5 D2 and golden rows | Removing D2 makes derived grants fail the gate, but no cascade runs: running jobs aren't cancelled, artefacts aren't quarantined, and an in-flight CP5/CP7 save still succeeds because its own scope is still ACTIVE. | Any standing narrowing runs the ADR 0006 cascade, in the same transaction, on every scope that no longer passes. CP5, CP7 and CP9 call the full gate (parent and `withdrawn_at`) under the lock. Test: a save after D2 removal is refused. |
+| N3 | Major | §1, §5 D1 and D4 rows | `STANDARD`-project grants have no parent. They aren't capped at the Part D end date, and removing D4 misses them. | Make **every** project consent derived from the standing grant (the owner grants in `STANDARD` projects, the system in demo projects; all must be ⊆ the parent). This removes the D1 special case. |
+| N4 | Major | §5 vs consent form Part D | The form says a revocation "outside a demo" is real. The ADR treats any revocation in a rehearsal project, including team rehearsals, as not real. The form tweak is only proposed. | Approve the form tweak with this ADR, before any Part D signature, and make D2's text also cover rehearsals. |
+| N5 | Minor | §1 vs §5 golden row, test 10 | "The system creates a new standing version" contradicts "granted_by: the owner" and test 10. The audit record for a partial withdrawal is unspecified. | Actor = the owner, reason `GOLDEN_REVOCATION`. A narrowing writes `CONSENT_REVOKED` with `removed_uses`. |
+| N6 | Minor | §6 | Part D copies in `~/hl-spike-media/` are outside the system purge. | Add them to §6 and to the manual withdrawal checklist. |
+| N7 | Minor | §8 | `processors[]` isn't defined for standing or derived versions. `OfflineCopy` has no consent-version link. The test count is inconsistent (15 vs 14). | Derived processors ⊆ the parent; add `consent_version` to `OfflineCopy`; use one test count. |
+
+**Overengineering (reviewer's simplification):**
+- **Drop `DEMO_GOLDEN`.** Build the golden project stock-voice only, or as just another rehearsal build. This removes the golden-revocation row, test 5, and the misclick risk (N9).
+- **Drop the `DB_BACKUP` kind.** Keep the no-backup rule and the unregistered-file warning, and make the whole-`media/` hash scan a warning only.
+- **One withdrawal path.** Any standing narrowing runs the cascade on failing scopes, plus `DELETION_PENDING` on the matching `OfflineCopy` kinds.
+
+With these cuts the reviewer estimates about 2–3 days [reviewer ESTIMATE, not measured].
+
+**Honesty:**
+- "The §8 promise **becomes** something the code enforces" and Options row C "Yes, in code" overclaim, because nothing is built. Use "is designed to be enforced … for registered copies inside the system's media folder".
+- The labels are otherwise correct.
+
+**Demo and viva risks:**
+- **N8:** only the owner can revoke (ADR 0011), so the speaker must be present and logged in for every revocation demo. Say so in ADR 0012, with the fallback of running the checkpoint tests on screen.
+- **N9:** a misclick on revoke in the golden project removes D2 permanently. Fix with the `DEMO_GOLDEN` cut, or a confirmation dialog.
+- "STANDARD consent outlives Part D?" Fixed by N3.
+- "Removed D2 but the job kept saving?" Fixed by N2.
+
+**Good:**
+- The standing grant with narrower derived copies is a clean answer to ADR 0011.
+- Rebuild-not-restore, with the manual restore named as a residual risk, matches ADR 0007.
+- Withdrawal is final.
