@@ -33,6 +33,7 @@ MAX_TEMPO = Decimal("1.15")  # bounded tempo adjustment, ±15 % (SPIKE_PLAN M5; 
 
 # --------------------------------------------------------------------------- queueing
 
+@transaction.atomic
 def enqueue_render(scene, localization, *, actor=None, reason=""):
     """Queue a preview render for one scene, replacing any render still queued for it."""
     for old in jobs.active_jobs(type="render_scene", scene=scene).filter(status="QUEUED"):
