@@ -135,3 +135,34 @@ def consent_expiry_sweep(job, ctx):
     from hyperlocalize.identity import services as identity
 
     identity.expire_due()
+
+
+@register_handler("retention_sweep")
+def retention_sweep(job, ctx):
+    """ADR 0004 retention defaults (Policy values): previews after N days, export packages after M days.
+    The source video is kept until the project is deleted. Each deletion is audited."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from hyperlocalize.accounts.models import Policy
+    from hyperlocalize.exports.models import Export
+    from hyperlocalize.projects.storage import get_storage
+    from hyperlocalize.rendering.models import RenderedScene
+
+    storage = get_storage()
+    now = timezone.now()
+    preview_cut = now - timedelta(days=int(Policy.get("preview_retention_days")))
+    export_cut = now - timedelta(days=int(Policy.get("export_retention_days")))
+    for r in RenderedScene.objects.filter(status="ACTIVE", created_at__lt=preview_cut):
+        storage.delete(r.video_key)
+        RenderedScene.objects.filter(pk=r.pk).update(status="PURGED")
+        with transaction.atomic():
+            audit.record(actor=None, action="RETENTION_DELETED", entity=r, project_id=r.localization.project_id,
+                         details={"kind": "preview", "age_days": (now - r.created_at).days})
+    for e in Export.objects.filter(status="ACTIVE", created_at__lt=export_cut):
+        storage.delete(e.package_key)
+        Export.objects.filter(pk=e.pk).update(status="PURGED")
+        with transaction.atomic():
+            audit.record(actor=None, action="RETENTION_DELETED", entity=e, project_id=e.approval.localization.project_id,
+                         details={"kind": "export", "package_sha256": e.package_sha256})

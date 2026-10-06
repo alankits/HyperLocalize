@@ -476,3 +476,21 @@ def create_voice_profile(actor, owner, project, uploaded_audio, *, transcript, l
         for p in (raw, wav):
             if os.path.exists(p):
                 os.unlink(p)
+
+
+@transaction.atomic
+def create_identity_owner(actor, *, user, name):
+    """A Manager (in any project) or an Administrator links a user account as an identity owner (Q10).
+    This records that the person exists; it grants no consent."""
+    from hyperlocalize.accounts.models import ProjectMembership, Role
+
+    is_manager = ProjectMembership.objects.filter(user=actor, role=Role.LOCALIZATION_MANAGER).exists()
+    if not (is_manager or getattr(actor, "is_administrator", False)):
+        raise PermissionDenied("Only a Localization Manager or an Administrator can invite an identity owner.")
+    if IdentityOwner.objects.filter(user=user).exists():
+        raise ValidationError("This account is already linked to an identity owner.")
+    if not name.strip():
+        raise ValidationError("A name is required.")
+    owner = IdentityOwner.objects.create(name=name.strip(), user=user)
+    audit.record(actor=actor, action="IDENTITY_OWNER_CREATED", entity=owner, details={"user": user.get_username()})
+    return owner

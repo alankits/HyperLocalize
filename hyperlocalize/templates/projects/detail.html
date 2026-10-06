@@ -107,6 +107,15 @@
       </form>
     {% empty %}<p class="empty">Speakers appear after analysis.</p>{% endfor %}
     <p class="muted">Linking grants nothing. A cloned voice is used only while the owner's own consent is valid; otherwise the backend falls back to a stock voice.</p>
+    {% if is_manager %}
+    <details><summary>Invite an identity owner (an existing user account)</summary>
+      <form method="post" action="{% url 'identity:invite_owner' %}" class="row">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <input type="text" name="username" placeholder="username" style="width:140px" required>
+        <input type="text" name="name" placeholder="person's name" style="width:180px" required>
+        <button class="secondary">Record</button>
+      </form>
+    </details>{% endif %}
     <h3>Members</h3>
     <table>{% for m in members %}<tr><td>{{ m.user.username }}</td><td>{{ m.get_role_display }}</td></tr>{% endfor %}</table>
     {% if is_manager %}

@@ -70,6 +70,8 @@ class Command(BaseCommand):
                 if new:
                     user.set_password(password)
                     user.is_administrator = username == "admin"
+                    # Django admin is used only for user/membership management (UC8).
+                    user.is_staff = user.is_superuser = username == "admin"
                     user.save()
                     created.append(username)
             speaker = User.objects.get(username="speaker")

@@ -25,6 +25,7 @@ class Command(BaseCommand):
             while True:
                 if time.monotonic() - last_recovery > 60:
                     jobs.recover_stale()
+                    jobs.enqueue_periodic()  # consent expiry (ADR 0006) and retention (ADR 0004) sweeps
                     last_recovery = time.monotonic()
                 job = jobs.work_once(lanes)
                 if job is None:

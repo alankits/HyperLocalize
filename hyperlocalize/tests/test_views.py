@@ -115,3 +115,40 @@ class LoginRateLimitTests(TestCase):
             self.client.post(url, {"username": "manager", "password": "wrong"})
         r = self.client.post(url, {"username": "manager", "password": "Test-pass-12345"})
         self.assertEqual(r.status_code, 429)
+
+
+class AdminAndSweepTests(MediaRootMixin, TestCase):
+    def setUp(self):
+        self.users = make_users()
+        self.project = make_project(self.users)
+
+    def test_only_manager_or_admin_invites_identity_owner(self):
+        from django.core.exceptions import PermissionDenied
+
+        with self.assertRaises(PermissionDenied):
+            identity.create_identity_owner(self.users["reviewer"], user=self.users["speaker"], name="X")
+        owner = identity.create_identity_owner(self.users["manager"], user=self.users["speaker"], name="Speaker")
+        self.assertFalse(owner.consents.exists())  # inviting grants nothing
+
+    def test_periodic_sweeps_are_queued_once(self):
+        first = jobs.enqueue_periodic()
+        self.assertEqual({j.type for j in first}, {"consent_expiry_sweep", "retention_sweep"})
+        self.assertEqual(jobs.enqueue_periodic(), [])
+        self.assertTrue(all(j.status == "SUCCEEDED" for j in jobs.drain()))
+
+    def test_retention_sweep_deletes_old_previews(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        projects.upload_video(self.users["operator"], self.project, video_upload(), transcript_upload())
+        jobs.drain()
+        r = RenderedScene.objects.first()
+        RenderedScene.objects.filter(pk=r.pk).update(created_at=timezone.now() - timedelta(days=31))
+        from django.db import transaction
+
+        with transaction.atomic():
+            jobs.enqueue("retention_sweep")
+        jobs.drain()
+        r.refresh_from_db()
+        self.assertEqual(r.status, "PURGED")

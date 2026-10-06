@@ -28,7 +28,24 @@ LANES = {
     "build_export": Lane.DEFAULT,
     "purge_identity_data": Lane.DEFAULT,
     "consent_expiry_sweep": Lane.DEFAULT,
+    "retention_sweep": Lane.DEFAULT,
 }
+
+PERIODIC = {"consent_expiry_sweep": timedelta(minutes=10), "retention_sweep": timedelta(hours=1)}
+
+
+def enqueue_periodic(now=None):
+    """Queue each periodic sweep if none is active and the last one is older than its interval."""
+    now = now or timezone.now()
+    queued = []
+    for job_type, interval in PERIODIC.items():
+        if active_jobs(type=job_type).exists():
+            continue
+        last = Job.objects.filter(type=job_type).order_by("-created_at").first()
+        if last is None or last.created_at < now - interval:
+            with transaction.atomic():
+                queued.append(enqueue(job_type))
+    return queued
 
 HANDLERS = {}  # type → callable(job, ctx); filled by register_handler
 

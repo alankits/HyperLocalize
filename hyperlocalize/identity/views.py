@@ -153,3 +153,23 @@ def upload_profile(request, project_id):
     except (ValidationError, PermissionDenied) as exc:
         messages.error(request, _err(exc))
     return redirect("identity:consent")
+
+
+@login_required
+@require_POST
+def invite_owner(request):
+    """A Manager links an existing user account as an identity owner (no consent is created)."""
+    from hyperlocalize.accounts.models import User
+
+    back = request.POST.get("next") or "/"
+    if not back.startswith("/") or back.startswith("//"):
+        back = "/"
+    user = User.objects.filter(username=request.POST.get("username", "").strip()).first()
+    try:
+        if user is None:
+            raise ValidationError("No such user account.")
+        services.create_identity_owner(request.user, user=user, name=request.POST.get("name", ""))
+        messages.success(request, "Identity owner recorded. They grant consent themselves, from their own account.")
+    except (ValidationError, PermissionDenied) as exc:
+        messages.error(request, _err(exc))
+    return redirect(back)
