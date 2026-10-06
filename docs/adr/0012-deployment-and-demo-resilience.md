@@ -47,7 +47,7 @@ Q4 (revised): **zero budget**, no local GPU, free tiers and open-source models o
 - **+** The demo survives a provider or network outage, honestly.
 - **−** No remote access for evaluators between reviews. Acceptable.
 - **−** Not production deployment. It is described as a demo deployment only.
-- **Viva in 2 minutes:** "Four containers on a laptop, using free hosted AI where allowed and local open-source models otherwise. If the network fails we switch to the all-local chain. We have a provider and quota check, a reset fixture, a completed golden project and a recorded run, and we say openly when we use any of them."
+- **Viva in 2 minutes:** "Four containers on a laptop, using free hosted AI where allowed and local open-source models otherwise. If the network fails we switch to the all-local chain. We have a provider and quota check, a rebuild-only demo reset, a stock-voice golden project and a recorded run, and we say openly when we use any of them."
 
 ## Interim rule (2026-10-06): superseded
 The interim rule (no real voice in any demo-reset snapshot or golden project until ADR 0020 is approved) was **superseded on 2026-10-06** when ADR 0020 was accepted. The snapshot no longer exists (item 7). The golden project is permanently stock-voice only (item 2). A demo seed may hold a real voice only with the speaker's Part D D1 and D2, registered as `OfflineCopy` rows.

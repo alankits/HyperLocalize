@@ -85,13 +85,13 @@ Identity-using methods require a `ConsentCheck` (ADR 0005).
 
 **Expiry:** a periodic sweep in the `default` lane runs the same cascade for consents whose `expires_at` has passed. *(amended by ADR 0020, 2026-10-06)* When an owner's standing Part D grant expires, the sweep runs ADR 0020's narrowing procedure (to nothing, reason `EXPIRED`), which also purges the owner's `OfflineCopy` files.
 
-**Narrowing and withdrawal** *(amended by ADR 0020, 2026-10-06)*. Removing a Part D use, language or processor, or withdrawing entirely, goes through ADR 0020 §5's single narrowing procedure. It runs this cascade on every project scope that no longer passes the gate, and marks the matching `OfflineCopy` rows for deletion. A revocation inside a `DEMO_REHEARSAL` project is a demonstration: it affects only that project, and the next `demo_reset` derives a fresh grant.
+**Narrowing and withdrawal** *(amended by ADR 0020, 2026-10-06)*. Narrowing the standing grant (uses, Part D uses, languages, processors, or an earlier `expires_at`), or withdrawing entirely, goes through ADR 0020 §5's single narrowing procedure. It runs this cascade on every project scope that no longer passes the gate, and marks the matching `OfflineCopy` rows for deletion. A revocation inside a `DEMO_REHEARSAL` project is a demonstration: it affects only that project, and the next `demo_reset` derives a fresh grant.
 
 **6. How a running job stops, by runtime.**
 
 | Runtime | How it stops | Time to stop | What may remain outside our control |
 |---|---|---|---|
-| **Local inference subprocess** | The worker checks the flag and the gate about once a second and **kills the subprocess**. Temp audio is deleted. The job ends `CANCELLED (CONSENT_REVOKED)`. | Seconds (measured in spike M9) | Nothing |
+| **Local inference subprocess** | The worker checks the flag and the gate about once a second and **kills the subprocess**. Temp audio is deleted. The job ends `CANCELLED (CONSENT_REVOKED)`. | TARGET: seconds; to be measured in spike M9 | Nothing |
 | **Kaggle batch** | Polling stops. The job ends `CANCELLED (CONSENT_REVOKED)`. `kaggle kernels delete` and `kaggle datasets delete` are run. Output is **never imported**: CP5 fails under the lock. | Immediate on our side | Remote compute may run to completion. **Whether `kernels delete` stops it, and whether it removes the kernel's output, are both [UNVERIFIED]** (spike M9). Kaggle's retention after deletion is outside our control. |
 
 After any stop:

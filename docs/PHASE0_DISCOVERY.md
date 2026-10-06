@@ -537,7 +537,7 @@ The candidate tools below come from my training knowledge and need verifying (li
 2. An Export always references a VALID Approval, and its consent versions were all ACTIVE at export time.
 3. Any edit or new render after approval → that Approval becomes INVALIDATED.
 4. Translations, renders, and consent versions are append-only (new versions, no overwrites).
-5. Every state-changing action writes exactly one AuditRecord in the same transaction.
+5. Every state-changing action writes at least one AuditRecord in the same transaction. *(Updated 2026-10-06 to match ADR 0014 invariant 6 as amended by ADR 0020.)*
 
 ### 7.3 State machines [PROPOSED]
 
@@ -612,7 +612,7 @@ All values below are **TARGETS (to be set)**. There are no measured results yet.
 
 | Metric | Method |
 |---|---|
-| Audit completeness | Automated test: every state-changing endpoint produces exactly one audit record; the chain verifier passes |
+| Audit completeness | Automated test: every state-changing endpoint produces at least one audit record; the chain verifier passes |
 | Processing time per video minute (per stage) | Measured from job timestamps |
 | Cost per video minute | Measured from provider usage |
 | Failure handling | Tests for corrupt, oversized, or unsupported uploads, provider timeouts, retries, and partial pipeline failure |

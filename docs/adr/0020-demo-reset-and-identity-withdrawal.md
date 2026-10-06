@@ -4,17 +4,18 @@
 
 **History:**
 - **Revision 2** (2026-10-06): applied all 14 round-1 review findings.
-- **Revision 3** (2026-10-06): applied the round-2 findings N1–N7 and the reviewer's simplification (no cloned voice in the golden project, no `DB_BACKUP` kind, one narrowing path), with the user's approval.
-- **Revision 4** (2026-10-06): applied round-3 findings M1–M6, with M4 option (a): the golden project is built once by hand through the real flow and never reset. The fixes were approved by the user; **the ADR itself is still Proposed.**
+- **Revision 3** (2026-10-06): applied the round-2 findings N1–N8 (N8 is the revocation-demo note, §10) and the reviewer's simplification (no cloned voice in the golden project, no `DB_BACKUP` kind, one narrowing path), with the user's approval.
+- **Revision 4** (2026-10-06): applied round-3 findings M1–M6, with M4 option (a): the golden project is built once by hand through the real flow and never reset. The fixes were approved by the user. The ADR was then accepted on the same day.
 
 Reviews: `docs/adr/0020-REVIEW.md`.
 
 **Amends:**
-- ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep);
-- ADR 0007: the list of audited actions;
+- ADR 0003: lock order among several rows of the same type (ascending id);
+- ADR 0006: §1 (the gate), §4 (locked saves call the full gate), §5 (cascade scope, purge, expiry sweep, and a new narrowing-and-withdrawal paragraph), §8 (standing grant as parent), §6 table (stop time labelled as a TARGET);
+- ADR 0007: the list of audited actions, and the own-transaction exception for `DEMO_RESET_REFUSED`;
 - ADR 0011: the Administrator and Identity Owner rows, and the viva line;
 - ADR 0012: demo-resilience items 1 (`check_providers`), 2 (golden project: stock voice only, built once through the real flow), 3 (screen recording) and 7 (demo reset), plus the revocation-demo note (§10 here);
-- ADR 0014: Project, Consent, IdentityOwner, Export, the new `OfflineCopy` model, invariant 6, and a new invariant 8.
+- ADR 0014: Project, Consent, IdentityOwner, Export, the new `OfflineCopy` model, invariants 1, 2 and 6, and a new invariant 8.
 
 **Source:** consent review #2 (`docs/spike/CONSENT_FORM_REVIEW.md`); `docs/STATUS.md` known issues; ADRs 0006, 0007, 0011, 0012, 0014; consent form §6, §8 and Part D.
 
@@ -50,7 +51,7 @@ ADR 0012 item 7 says: "`manage.py demo_reset` restores a database and media snap
 | Scalability | Demo-only in every option | | | |
 | Viva: explain in 2 minutes | Easy to explain, hard to defend | Hard to defend ("your reset deletes audit records") | **Moderate**: "the speaker grants once; every project consent is a narrower copy; revoking in a rehearsal is the demo, revoking anywhere else is real" | Easy, but the demo is fragile |
 
-## Decision (proposed)
+## Decision
 
 **Option C.**
 

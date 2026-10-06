@@ -143,7 +143,7 @@ Each use is a separate tick. Part D extends the expiry in §8 **for the ticked u
 - **Revoking inside a normal project** ends the use of your voice **in that project only**.
 - **To withdraw a Part D use, or everything**, untick that use or press *Withdraw* on your consent page, or tell the §8 contact or the faculty guide. This is a real withdrawal: §8 then applies to that use, or to everything.
 
-Adding a use back later needs a new signed form. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is proposed (ADR 0020) and not yet approved or built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
+Adding a use back later needs a new signed form. After a real withdrawal, the team will not use any demo reset to bring your voice back. *The system's support for this is designed (ADR 0020, accepted 2026-10-06) but not yet built. Until it exists, a team member deletes the copies by hand (§8) and logs each deletion in the spike log.*
 
 ---
 

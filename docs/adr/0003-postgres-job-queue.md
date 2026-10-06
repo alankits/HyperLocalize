@@ -1,6 +1,6 @@
 # ADR 0003: Postgres-backed job queue with explicit job states
 
-**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, independent review.
+**Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget runtimes, independent review. **Amended 2026-10-06 by ADR 0020** (lock order among rows of the same type).
 **Source:** `docs/PHASE0_DISCOVERY.md` §6.5
 
 ## Context
@@ -56,6 +56,8 @@ The two lanes are two processes and two Compose services running the same code. 
 2. `Job`
 3. artefact rows
 4. `AuditChainHead`, **always last**
+
+*(amended by ADR 0020, 2026-10-06)* When a transaction locks several rows of the same type (for example two `IdentityOwner`s in `demo_reset`), it locks them in **ascending id order**.
 
 A concurrency test runs revocation, saves and audit writes in parallel.
 

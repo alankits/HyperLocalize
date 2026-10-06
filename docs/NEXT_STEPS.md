@@ -49,6 +49,12 @@ The form may now be signed only **after** the test script is frozen and every Ap
 
 Then the timed read-through and the script freeze (step 3).
 
-**Suggested (optional):** a short `critical-reviewer` consistency pass over the amended ADRs 0006, 0007, 0011, 0012 and 0014, to confirm they match ADR 0020.
+**Consistency pass done (2026-10-06):** consistent, with minor fixes. All the wording fixes are applied, including the spike live script (no live approval invalidation in a rehearsal project) and the ADR 0003 lock order.
+
+**One open user decision:** after the spike, `external_transcription` (Groq speech-to-text) can't pass the gate, because Part D has no tick for it. Choose:
+- (a) local ASR only after the spike (no form change; recommended);
+- (b) add a Part D tick D5 for external transcription (a consent form change).
+
+**GitHub:** no remote is configured. Nothing has been pushed; all commits are local only.
 
 The consent form is still a draft and needs your approval (step 5) after the blanks and Appendix A texts exist. No Part D signature before that. No merges, no spike runs on real data, no recordings and no freezes until approved.

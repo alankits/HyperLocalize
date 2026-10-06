@@ -24,7 +24,7 @@ Every consent grant and revocation, approval, regeneration and export must produ
 - `canonical_json` means sorted keys, UTF-8, no whitespace, timestamps as ISO-8601 UTC strings with microseconds, and no floats (decimals as strings).
 
 **Writing.**
-- Records are written only through `audit.services.record(...)`, **inside the same transaction** as the action they describe.
+- Records are written only through `audit.services.record(...)`, **inside the same transaction** as the action they describe. *(amended by ADR 0020, 2026-10-06)* Exception: `DEMO_RESET_REFUSED` records a refusal, so there is no action transaction to share; it is written in its own transaction.
 - Appends are serialised by `select_for_update()` on a single `AuditChainHead` row, so the chain stays linear. **`AuditChainHead` is always locked last** (the global lock order is in ADR 0003), which prevents deadlocks with consent and job locks.
 - **What is audited:** consent grants, revocations and expiries; approvals and invalidations; regeneration requests; exports; check overrides and acknowledgements; provider-chain and policy changes; provider fallbacks and Gemini skips; job state changes. *(amended by ADR 0020, 2026-10-06)* Also: `SEED_BUILT`, `DEMO_RESET`, `DEMO_RESET_REFUSED`, `OFFLINE_COPY_REGISTERED`, `OFFLINE_COPY_DELETED` and `IDENTITY_WITHDRAWN`. `CONSENT_GRANTED` gains the reason `DEMO_RESET` and `parent_consent_id`; `CONSENT_REVOKED` gains `removed_uses` (narrowing) and the reason `EXPIRED`. One action may write more than one record (for example a withdrawal: `IDENTITY_WITHDRAWN` plus one `CONSENT_REVOKED` per scope), all in the same transaction. **Not audited:** heartbeats and status polls (they would bury the evidence).
 
