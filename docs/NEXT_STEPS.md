@@ -55,16 +55,28 @@ The form may now be signed only **after** the test script is frozen and every Ap
   - SF7: Phase 0 header and §0 stack;
   - SF8: team size is now one developer.
 
-## Exact next action (2026-10-06, MVP build in progress)
-- **Built and tested:** the full workflow (UC1–UC9) on MOCK providers, a human transcript and human edits; consent gate and mid-job revocation; ADR 0020 demo commands; faster-whisper and Gemini candidate adapters. 114 tests pass (1 optional skipped). See `STATUS.md`.
-- **In flight:** an independent code review of the consent and audit code. Apply its fixes first.
-- **Still to do:**
-  - documentation set: README quick start, architecture, user manual, developer guide, viva notes, `EVALUATION.md`;
-  - a final end-to-end HTTP demo run;
-  - mermaid render check of `docs/uml/`.
-- **User decisions:**
-  - (1) the solo-plan Speaker B option (`docs/SOLO_PLAN.md`);
-  - (2) external transcription after the spike: (a) local ASR only or (b) add a D5 tick;
-  - (3) the GitHub remote URL;
-  - (4) install Docker: `sudo apt install docker.io docker-compose-v2`.
-- No merges, no real-data spike, no recordings until approved.
+## Exact next action (2026-10-06, end of the MVP build session)
+**Done and verified:**
+- MVP workflow UC1–UC9 on MOCK providers, a human transcript and human edits.
+- Consent gate and revocation, including a mid-job kill.
+- ADR 0020 demo commands.
+- Candidate adapters: faster-whisper and Gemini.
+- Independent code review: 1 blocker and 6 majors, all fixed (`docs/CODE_REVIEW.md`).
+- 126 tests pass, 1 optional skipped.
+- End-to-end HTTP check: 15/15.
+- Documentation set: README, ARCHITECTURE, USER_MANUAL, DEVELOPER, TESTING, EVALUATION, VIVA, UML.
+
+**User actions and decisions (blocking the real-data spike and real providers):**
+1. GitHub: give the URL of an empty private repo; the assistant adds the remote and pushes. Nothing is backed up yet.
+2. Install Docker: `sudo apt install docker.io docker-compose-v2`. Then the assistant runs `docker compose up` and records the result.
+3. Solo plan (`docs/SOLO_PLAN.md`): choose the Speaker B option (A: volunteer; B: dataset impostor set, which needs approval). Recruit a Tamil-literate rater (R1).
+4. External transcription after the spike: (a) local ASR only, or (b) add a D5 tick.
+5. Optional: put the Gemini free-tier key in `.env` (`HL_GEMINI_API_KEY`) to try the candidate adapter live, on SCRIPTED_TEAM projects only.
+
+**Next engineering tasks (no approval needed):**
+- importing pre-rendered cloned audio into the demo seed;
+- free-quota warnings;
+- a mermaid render check of `docs/uml/`;
+- a browser walk-through with screenshots for the PPT.
+
+No merges, no real-data spike, no recordings until approved.
