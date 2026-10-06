@@ -1,0 +1,50 @@
+# Tamil number-word stems for the ADR 0008 fail-safe rule.
+# A Tamil word in the target that STARTS WITH any stem below makes the number
+# check UNVERIFIABLE (a reviewer must look). These are NOT parsed into values.
+#
+# STATUS: DRAFT written by the assistant, [UNVERIFIED]. R1/R2 must review and
+# correct this list before the rules are frozen (hlspike.freeze).
+# Stems are cut short on purpose so sandhi forms still match
+# (e.g. இருபத matches இருபது and இருபத்தைந்து).
+# Known false-alarm sources, accepted because they fail safe:
+#   ஒரு also means "a"; ஆறு also means "river"; எட்டு is also a verb.
+# Deliberately left out: கால் (quarter; also "leg"), too ambiguous.
+பூஜ்ஜிய   # 0
+ஒன்று     # 1
+ஒன்ற      # 1 (combined forms)
+ஒரு       # 1 / "a"
+இரண்ட    # 2
+மூன்ற    # 3
+நான்க    # 4
+ஐந்த      # 5
+ஆறு       # 6
+ஏழு       # 7
+எட்டு     # 8
+ஒன்ப      # 9
+பத்து     # 10
+பதின      # 11-19 (combined forms)
+பன்னிர    # 12
+இருபத    # 20s
+முப்பத   # 30s
+நாற்பத   # 40s
+ஐம்பத    # 50s
+அறுபத    # 60s
+எழுபத    # 70s
+எண்பத    # 80s
+தொண்ணூ   # 90s
+நூறு      # 100
+நூற்      # 100 (combined forms)
+இருநூ     # 200
+முந்நூ    # 300
+நானூ      # 400
+ஐந்நூ     # 500
+அறுநூ     # 600
+எழுநூ     # 700
+எண்ணூ     # 800
+தொள்ளாயிர # 900
+ஆயிர      # 1000
+லட்ச      # lakh
+இலட்ச     # lakh (alternative spelling)
+கோடி      # crore
+அரை       # half
+புள்ளி    # decimal point

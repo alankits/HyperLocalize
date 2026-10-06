@@ -168,3 +168,7 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": _env("HL_LOG_LEVEL", "INFO")},
 }
+
+if HYPERLOCALIZE_MODE == "test":
+    # Fast, insecure hashing for tests only.
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

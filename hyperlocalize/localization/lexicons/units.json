@@ -1,0 +1,139 @@
+{
+ "_comment": "Unit lexicon for the critical-content checks (ADR 0008). 'source' holds source-language forms by language code; 'latin_target' holds Latin abbreviations accepted in any target; 'target' holds target-language forms by language code, matched as word prefixes. Target forms are added from a rater's review, not from memory (ADR 0008). Empty target lists mean a unit written in the target script cannot be verified yet.",
+ "entries": [
+  {
+   "canonical": "L",
+   "source": {
+    "en": [
+     "litre",
+     "litres",
+     "liter",
+     "liters"
+    ]
+   },
+   "latin_target": [
+    "L"
+   ],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "ml",
+   "source": {
+    "en": [
+     "millilitre",
+     "millilitres",
+     "milliliter",
+     "milliliters",
+     "ml"
+    ]
+   },
+   "latin_target": [
+    "mL"
+   ],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "mg",
+   "source": {
+    "en": [
+     "milligram",
+     "milligrams",
+     "mg"
+    ]
+   },
+   "latin_target": [],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "teaspoonful",
+   "source": {
+    "en": [
+     "teaspoonful",
+     "teaspoonfuls",
+     "teaspoon",
+     "teaspoons",
+     "tsp"
+    ]
+   },
+   "latin_target": [],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "minute",
+   "source": {
+    "en": [
+     "minute",
+     "minutes",
+     "min",
+     "mins"
+    ]
+   },
+   "latin_target": [],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "hour",
+   "source": {
+    "en": [
+     "hour",
+     "hours",
+     "hr",
+     "hrs"
+    ]
+   },
+   "latin_target": [],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "day",
+   "source": {
+    "en": [
+     "day",
+     "days"
+    ]
+   },
+   "latin_target": [],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "month",
+   "source": {
+    "en": [
+     "month",
+     "months"
+    ]
+   },
+   "latin_target": [],
+   "target": {
+    "ta": []
+   }
+  },
+  {
+   "canonical": "year",
+   "source": {
+    "en": [
+     "year",
+     "years"
+    ]
+   },
+   "latin_target": [],
+   "target": {
+    "ta": []
+   }
+  }
+ ]
+}

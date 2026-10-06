@@ -67,6 +67,7 @@ class Video(models.Model):
     original_name = models.CharField(max_length=255)  # display only; never used in a path
     storage_key = models.CharField(max_length=200)
     audio_key = models.CharField(max_length=200, blank=True)  # extracted mono WAV
+    transcript_key = models.CharField(max_length=200, blank=True)  # optional human transcript (SRT/VTT)
     sha256 = models.CharField(max_length=64)
     duration_ms = models.IntegerField()
     container = models.CharField(max_length=64)
