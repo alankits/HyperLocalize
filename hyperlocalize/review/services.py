@@ -62,6 +62,7 @@ def request_changes(actor, scene, *, target, reason, instruction=""):
     if not reason.strip():
         raise ValidationError("Give a reason for the regeneration.")
     with transaction.atomic():
+        Localization.objects.select_for_update().get(pk=localization.pk)  # lock order: Localization → Scene → Job
         scene = Scene.objects.select_for_update().get(pk=scene.pk)
         if scene.status in (Scene.Status.PENDING, Scene.Status.REGENERATING):
             raise ValidationError("This scene is still being generated.")
@@ -105,8 +106,9 @@ def approval_problems(actor, localization):
     for c in _consent_versions_in(localization, scenes):
         cons = Consent.objects.select_related("identity_owner").get(pk=c["consent_id"])
         check, reason = consent.evaluate(cons.identity_owner, Use.VOICE_SYNTHESIS, project, language)
-        if check is None or check.consent_id != cons.pk:
-            problems.append(f"Consent for {cons.identity_owner} is no longer valid ({reason or 'changed'}).")
+        if check is None:
+            # Identifier only: names never go into the append-only log (review #11).
+            problems.append(f"Consent for identity owner #{cons.identity_owner_id} is no longer valid ({reason}).")
     if Policy.get("separation_of_duties") and actor is not None:
         editors = set(_last_editors(localization, scenes))
         if actor.pk in editors:
@@ -190,19 +192,21 @@ def invalidate_if_approved(localization, *, reason):
     return changed
 
 
-def on_identity_revoked(project, affected_scene_ids, *, reason):
-    """Part of the revocation cascade (ADR 0006 §5): invalidate approvals, mark exports, set the
-    affected scenes to NEEDS_REGENERATION and queue a stock-voice fallback render, which must be
-    reviewed again. Caller holds the owner lock."""
+def on_identity_revoked(localization, owner, affected_scene_ids, *, reason):
+    """Part of the revocation cascade (ADR 0006 §5, scoped by ADR 0020): invalidate an approval and block
+    exports ONLY if they contain this owner's identity (or an affected scene). Caller holds the owner lock
+    and the Localization lock. Fallback renders are queued by the caller after commit."""
     from hyperlocalize.exports import services as exports
-    from hyperlocalize.rendering import services as rendering
 
-    localization = Localization.objects.get(project=project)
-    invalidate_if_approved(localization, reason=f"consent revoked ({reason})")
-    exports.mark_consent_revoked(localization)
-    loc_services.mark_scenes(affected_scene_ids, Scene.Status.NEEDS_REGENERATION)
-    for scene in Scene.objects.filter(pk__in=affected_scene_ids):
-        rendering.enqueue_render(scene, localization, reason="fallback after consent revocation")
+    owner_consent_ids = set(Consent.objects.filter(identity_owner=owner).values_list("pk", flat=True))
+    uses_owner = any(
+        c["consent_id"] in owner_consent_ids or sc["scene_id"] in affected_scene_ids
+        for a in Approval.objects.filter(localization=localization, status=Approval.Status.VALID)
+        for sc in a.snapshot["scenes"] for c in (sc["consent_versions"] or [{"consent_id": None}])
+    )
+    if affected_scene_ids or uses_owner:
+        invalidate_if_approved(localization, reason=f"consent revoked ({reason})")
+    exports.mark_consent_revoked(localization, owner_consent_ids)
 
 
 def require_manager(actor, project):

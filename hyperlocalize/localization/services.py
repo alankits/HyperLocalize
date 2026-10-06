@@ -182,6 +182,7 @@ def save_translation(localization, segment, *, actor, origin, subtitle_text, spe
     """Append a new version and run its checks (hard rules + AI flags). Never edits an old version."""
     project = localization.project
     with transaction.atomic():
+        Localization.objects.select_for_update().get(pk=localization.pk)  # lock order: Localization first
         Segment.objects.select_for_update().get(pk=segment.pk)  # serialise version numbers per segment
         version = (SegmentTranslation.objects.filter(segment=segment, localization=localization)
                    .aggregate(m=Max("version"))["m"] or 0) + 1
@@ -316,7 +317,7 @@ def blocking_checks(localization, scenes=None):
 
 def mark_scenes(scene_ids, status):
     with transaction.atomic():
-        for scene in Scene.objects.select_for_update().filter(pk__in=scene_ids):
+        for scene in Scene.objects.select_for_update().filter(pk__in=scene_ids).order_by("pk"):
             scene.status = status
             scene.save(update_fields=["status"])
 

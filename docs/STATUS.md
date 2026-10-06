@@ -36,7 +36,7 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 
 ## Tests
 
-**MEASURED (2026-10-06):** 102 tests pass on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
+**MEASURED (2026-10-06):** 126 tests pass, 1 optional skipped (latest run after the code-review fixes; earlier counts: 102, 114) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
 
 ## Known limitations (MVP build)
 
@@ -45,7 +45,8 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 - The demo video is synthetic (test patterns and a tone). The demo script's health facts are [UNVERIFIED] (TEST_SCRIPT §4).
 - Tamil number-word stems, unit forms and glossary forms are drafts or empty until a Tamil-literate rater fills them in, so many checks are UNVERIFIABLE by design (fail-safe).
 - Retention sweeps (previews 30 days, exports 90 days) are [DESIGNED] (ADR 0004), not implemented.
-- CP0 / CP3 (external ASR, Kaggle upload) have no code path yet, because no remote provider is integrated.
+- CP0 / CP3 (external ASR, Kaggle upload) have no code path yet, because no remote provider is integrated. The `external_transcription` consent use is therefore **not enforced by any gate** today.
+- Independent code review of the consent and audit code: 1 blocker and 6 majors, **all fixed** (`docs/CODE_REVIEW.md`).
 
 ## Design documents
 

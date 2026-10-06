@@ -105,7 +105,8 @@ class ClonedRenderTests(MediaRootMixin, IdentitySetup, TestCase):
         cloned = list(SynthesisedSegment.objects.filter(rendering_mode="CLONED_VOICE"))
         self.assertTrue(cloned)
         keys = [s.audio_key for s in cloned]
-        identity.revoke_project_consent(self.users["speaker"], self.owner, self.project)
+        with self.captureOnCommitCallbacks(execute=True):  # fallback renders are queued after commit
+            identity.revoke_project_consent(self.users["speaker"], self.owner, self.project)
         for s in cloned:
             s.refresh_from_db()
             self.assertEqual(s.status, "QUARANTINED")

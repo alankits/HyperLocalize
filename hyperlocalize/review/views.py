@@ -2,7 +2,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseGone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -128,22 +128,28 @@ def _render_for(request, render_id):
     r = get_object_or_404(RenderedScene.objects.select_related("scene__video__project", "localization"), pk=render_id)
     require_member(request.user, r.scene.video.project)
     if r.status != "ACTIVE":
-        # CP10: quarantined or purged previews are never served.
-        raise Http404("This preview is no longer available.")
+        return None  # CP10: quarantined or purged previews are never served
     language = r.localization.target_locale.split("-")[0]
     for c in r.consent_versions:
         if not rendering._recheck(c, r.scene.video.project, language):
-            raise Http404("Consent for this preview is no longer valid.")
+            return None
     return r
+
+
+GONE = "This preview is no longer available (consent revoked, or deleted)."
 
 
 @login_required
 def preview_video(request, render_id):
     r = _render_for(request, render_id)
+    if r is None:
+        return HttpResponseGone(GONE)  # 410 Gone, as ADR 0006 §3 specifies
     return FileResponse(get_storage().open(r.video_key), content_type="video/mp4")
 
 
 @login_required
 def preview_vtt(request, render_id):
     r = _render_for(request, render_id)
+    if r is None:
+        return HttpResponseGone(GONE)
     return HttpResponse(r.subtitles_vtt, content_type="text/vtt; charset=utf-8")

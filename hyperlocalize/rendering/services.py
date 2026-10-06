@@ -124,8 +124,8 @@ def render_scene(job, ctx):
             def poll():
                 ctx.checkpoint()
                 if check is not None:  # CP4 while the cloned segment is being synthesised
-                    again, reason = consent.evaluate(seg.speaker_track.identity_owner, Use.VOICE_SYNTHESIS, project, language)
-                    if again is None or again.consent_id != check.consent_id:
+                    again, reason = consent.evaluate(seg.speaker_track.identity_owner, Use.VOICE_SYNTHESIS, project, language, job)
+                    if again is None:
                         raise jobs.JobCancelled("CONSENT_REVOKED")
 
             if check is not None:
@@ -133,7 +133,7 @@ def render_scene(job, ctx):
                 request["reference_clip"] = str(storage.local_path(profile.storage_key))
                 request["reference_text"] = profile.transcript
             result = inference.call(request, poll=poll)
-            syn = _save_synthesised(seg, t, localization, result, mode, adapter, check, project, out_path)
+            syn = _save_synthesised(seg, t, localization, result, mode, adapter, check, project, out_path, job)
             if syn is None:  # CP5 refused: consent changed between synthesis and save
                 raise jobs.JobCancelled("CONSENT_REVOKED")
             synthesised.append(syn)
@@ -142,7 +142,7 @@ def render_scene(job, ctx):
             placements.append((storage.local_path(syn.audio_key), seg.start_ms - scene.start_ms, syn.tempo))
         ctx.checkpoint("mixing")
         for item in consent_versions:  # CP6 before render / mix
-            owner_check = _recheck(item, project, language)
+            owner_check = _recheck(item, project, language, job)
             if not owner_check:
                 raise jobs.JobCancelled("CONSENT_REVOKED")
         speech_path = os.path.join(workdir, "speech.wav") if placements else None
@@ -153,12 +153,20 @@ def render_scene(job, ctx):
                                       video_path, speech_track=speech_path)
         storage.finalise(video_key)
         vtt = scene_vtt(segments, translations, scene.start_ms)
-        if not _save_render(scene, localization, video_key, vtt, synthesised, translations, consent_versions, modes, project):
+        if not _save_render(scene, localization, video_key, vtt, synthesised, translations, consent_versions, modes, project, job):
             storage.delete(video_key)
             raise jobs.JobCancelled("CONSENT_REVOKED")
     except jobs.JobCancelled:
+        owners = set()
         for syn in synthesised:  # segments saved earlier in this job are quarantined, then purged
-            _quarantine_synth(syn)
+            if _quarantine_synth(syn) and syn.consent_id:
+                owners.add(syn.consent.identity_owner_id)
+        with transaction.atomic():
+            for owner_id in sorted(owners):
+                jobs.enqueue("purge_identity_data", identity_owner_id=owner_id, project=project,
+                             payload={"reason": "render cancelled"})
+            # A cancelled regeneration must not leave the scene stuck in REGENERATING (review #4).
+            Scene.objects.filter(pk=scene.pk, status=Scene.Status.REGENERATING).update(status=Scene.Status.CHANGES_REQUESTED)
         raise
     finally:
         inference.kill()
@@ -167,15 +175,17 @@ def render_scene(job, ctx):
         os.rmdir(workdir)
 
 
-def _recheck(item, project, language):
+def _recheck(item, project, language, job=None):
+    """The owner's LATEST consent in this project still passes the full gate (CP6–CP10).
+    Artefacts made before a revocation are quarantined by the cascade, so they are refused by status."""
     from hyperlocalize.identity.models import Consent
 
     c = Consent.objects.get(pk=item["consent_id"])
-    current, _ = consent.evaluate(c.identity_owner, Use.VOICE_SYNTHESIS, project, language)
-    return current is not None and current.consent_id == c.pk
+    current, _ = consent.evaluate(c.identity_owner, Use.VOICE_SYNTHESIS, project, language, job)
+    return current is not None
 
 
-def _save_synthesised(seg, t, localization, result, mode, adapter, check, project, wav_path):
+def _save_synthesised(seg, t, localization, result, mode, adapter, check, project, wav_path, job=None):
     storage = get_storage()
     slot = max(seg.duration_ms, 1)
     tempo = Decimal("1.000")
@@ -184,7 +194,7 @@ def _save_synthesised(seg, t, localization, result, mode, adapter, check, projec
     with transaction.atomic():
         if check is not None:
             consent.lock_owner(check.identity_owner_id)  # CP5: lock the person, not the consent version
-            if not consent.locked_save_allowed(check, project):
+            if not consent.locked_save_allowed(check, project, job):
                 os.unlink(wav_path)
                 return None
         key, sha = storage.save_file(wav_path, ".wav")
@@ -203,7 +213,9 @@ def _save_synthesised(seg, t, localization, result, mode, adapter, check, projec
     return syn
 
 
-def _save_render(scene, localization, video_key, vtt, synthesised, translations, consent_versions, modes, project):
+def _save_render(scene, localization, video_key, vtt, synthesised, translations, consent_versions, modes, project, job=None):
+    from hyperlocalize.localization.models import Localization
+
     storage = get_storage()
     with transaction.atomic():
         from hyperlocalize.identity.models import Consent
@@ -211,10 +223,13 @@ def _save_render(scene, localization, video_key, vtt, synthesised, translations,
         owner_ids = sorted({Consent.objects.get(pk=c["consent_id"]).identity_owner_id for c in consent_versions})
         for oid in owner_ids:  # CP7: locked save, owners in ascending id order
             consent.lock_owner(oid)
+        Localization.objects.select_for_update().get(pk=localization.pk)  # lock order: owners → Localization → Scene
         language = localization.target_locale.split("-")[0]
         for item in consent_versions:
-            if not _recheck(item, project, language):
+            if not _recheck(item, project, language, job):
                 return False
+        if job is not None and type(job).objects.filter(pk=job.pk, cancel_requested=True).exists():
+            return False
         version = (RenderedScene.objects.filter(scene=scene, localization=localization).aggregate(m=Max("version"))["m"] or 0) + 1
         render = RenderedScene.objects.create(
             scene=scene, localization=localization, version=version, video_key=video_key, subtitles_vtt=vtt,
@@ -282,6 +297,25 @@ def _quarantine_synth(syn):
     if syn.status == ArtefactStatus.ACTIVE:
         storage.quarantine(syn.audio_key)
         SynthesisedSegment.objects.filter(pk=syn.pk).update(status=ArtefactStatus.QUARANTINED)
+        return True
+    return False
+
+
+def identity_scene_ids(owner, project):
+    """Scenes with ACTIVE identity artefacts of this owner in this project (read-only)."""
+    syns = SynthesisedSegment.objects.filter(consent__identity_owner=owner, consent__project=project, status=ArtefactStatus.ACTIVE)
+    ids = set(syns.values_list("segment__scene_id", flat=True))
+    ids |= set(RenderedScene.objects.filter(synthesised_segments__in=syns, status=ArtefactStatus.ACTIVE).values_list("scene_id", flat=True))
+    return sorted(ids)
+
+
+def enqueue_fallback_renders(scene_ids, localization_id):
+    """After a revocation commits: re-render affected scenes; the backend then resolves STOCK_VOICE."""
+    from hyperlocalize.localization.models import Localization
+
+    localization = Localization.objects.get(pk=localization_id)
+    for scene in Scene.objects.filter(pk__in=scene_ids).order_by("pk"):
+        enqueue_render(scene, localization, reason="fallback after consent revocation")
 
 
 def quarantine_identity_artefacts(owner, project):
@@ -304,19 +338,28 @@ def quarantine_identity_artefacts(owner, project):
 
 
 def purge_quarantined(owner, project=None):
-    """Delete quarantined identity audio and render files (immediately, ADR 0006 §5). Keeps hashes."""
+    """Delete quarantined identity audio and render files (ADR 0006 §5). Keeps hashes. Each item is marked
+    PURGED only after its file is gone; failures stay QUARANTINED ("deletion pending") for the retry."""
     storage = get_storage()
     syns = SynthesisedSegment.objects.filter(consent__identity_owner=owner, status=ArtefactStatus.QUARANTINED)
     if project is not None:
         syns = syns.filter(consent__project=project)
     renders = RenderedScene.objects.filter(synthesised_segments__in=syns, status=ArtefactStatus.QUARANTINED).distinct()
-    purged = {"segments": [], "renders": []}
-    for r in renders:
-        storage.delete(r.video_key)
+    purged = {"segments": [], "renders": [], "pending": []}
+    for r in list(renders):
+        try:
+            storage.delete(r.video_key)
+        except OSError:
+            purged["pending"].append(f"render:{r.pk}")
+            continue
+        RenderedScene.objects.filter(pk=r.pk).update(status=ArtefactStatus.PURGED)
         purged["renders"].append(r.pk)
-    RenderedScene.objects.filter(pk__in=purged["renders"]).update(status=ArtefactStatus.PURGED)
-    for syn in syns:
-        storage.delete(syn.audio_key)
+    for syn in list(syns):
+        try:
+            storage.delete(syn.audio_key)
+        except OSError:
+            purged["pending"].append(f"segment:{syn.pk}")
+            continue
+        SynthesisedSegment.objects.filter(pk=syn.pk).update(status=ArtefactStatus.PURGED)
         purged["segments"].append(syn.pk)
-    syns.update(status=ArtefactStatus.PURGED)
     return purged

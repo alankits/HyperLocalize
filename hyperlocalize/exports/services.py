@@ -82,8 +82,8 @@ def _consent_problems(approval):
         for c in sc["consent_versions"]:
             cons = Consent.objects.select_related("identity_owner").get(pk=c["consent_id"])
             check, reason = consent.evaluate(cons.identity_owner, Use.VOICE_SYNTHESIS, project, language)
-            if check is None or check.consent_id != cons.pk:
-                out.append(f"Consent for {cons.identity_owner} is no longer valid ({reason or 'changed'}).")
+            if check is None:
+                out.append(f"Consent for identity owner #{cons.identity_owner_id} is no longer valid ({reason}).")
     return sorted(set(out))
 
 
@@ -197,6 +197,7 @@ def build_export(job, ctx):
             owner_ids = sorted({Consent.objects.get(pk=c["consent_id"]).identity_owner_id for c in manifest["consent_versions"]})
             for oid in owner_ids:
                 IdentityOwner.objects.select_for_update().get(pk=oid)  # CP9 on save: locked, owners first
+            Localization.objects.select_for_update().get(pk=loc.pk)  # then Localization, then Export
             approval.refresh_from_db()
             problems = export_problems(approval)
             if problems:
@@ -213,10 +214,10 @@ def build_export(job, ctx):
                 z.writestr("evidence_manifest.json", manifest_bytes)
             package_sha = storage.finalise(package_key)
             manifest_sha = hashlib.sha256(manifest_bytes).hexdigest()
+            Localization.objects.filter(pk=loc.pk).update(status=Localization.Status.EXPORTED)
             Export.objects.filter(pk=export.pk).update(
                 status=Export.Status.ACTIVE, package_key=package_key, package_sha256=package_sha,
                 manifest=json.loads(manifest_bytes), manifest_sha256=manifest_sha)
-            Localization.objects.filter(pk=loc.pk).update(status=Localization.Status.EXPORTED)
             audit.record(actor=approval.approver, action="EXPORT_CREATED", entity=export, project_id=project.pk,
                          consent_version=",".join(f"{c['consent_id']}:v{c['version']}" for c in manifest["consent_versions"]),
                          details={"manifest_sha256": manifest_sha, "package_sha256": package_sha,
@@ -227,9 +228,13 @@ def build_export(job, ctx):
         os.rmdir(work)
 
 
-def mark_consent_revoked(localization):
-    """Revocation cascade: ACTIVE exports of this localization are blocked (ADR 0006 §5, §7)."""
-    for export in Export.objects.select_for_update().filter(approval__localization=localization, status=Export.Status.ACTIVE):
+def mark_consent_revoked(localization, consent_ids):
+    """Revocation cascade: block ACTIVE exports of this localization that CONTAIN one of these consent
+    versions (ADR 0006 §5 "affected exports"; ADR 0006 §7: downloaded copies cannot be recalled)."""
+    for export in Export.objects.select_for_update().filter(approval__localization=localization, status=Export.Status.ACTIVE).order_by("pk"):
+        used = {c.get("consent_id") for c in export.manifest.get("consent_versions", [])}
+        if not used & set(consent_ids):
+            continue
         export.status = Export.Status.CONSENT_REVOKED
         export.save(update_fields=["status"])
         audit.record(actor=None, action="EXPORT_CONSENT_REVOKED", entity=export, project_id=localization.project_id,

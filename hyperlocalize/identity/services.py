@@ -120,10 +120,13 @@ def lock_owner(owner_id):
 
 
 def locked_save_allowed(check, project, job=None):
-    """CP5/CP7/CP9 (ADR 0006 §4, ADR 0020 §1): with the owner row LOCKED by the caller, the
-    latest project version must still be the job's version and pass the full gate."""
+    """CP5/CP7/CP9 (ADR 0006 §4, ADR 0020 §1): with the owner row LOCKED by the caller, the owner's
+    LATEST project version must still pass the full gate for the same use and language, and the job must
+    not be flagged for cancellation. A revocation inserts a REVOKED latest version (so the save is refused)
+    and flags the job (so a revoke-then-regrant during the job is refused too). A narrowing that keeps the
+    use and language (e.g. an earlier expiry) does not invalidate work already done."""
     current, _reason = evaluate(IdentityOwner(pk=check.identity_owner_id), check.use, project, check.language, job)
-    return current is not None and current.consent_id == check.consent_id
+    return current is not None
 
 
 # --------------------------------------------------------------------------- granting
@@ -137,6 +140,11 @@ def _require_owner_user(actor, owner):
     if owner.user_id is None or actor.pk != owner.user_id:
         # ADR 0011: only the identity owner grants; the Administrator cannot grant on anyone's behalf.
         raise PermissionDenied("Only the identity owner can grant or widen their own consent.")
+
+
+def _is_narrower(new_fields, new_expires_at, previous):
+    """True if a new grant would remove anything the previous ACTIVE version allowed, or end sooner."""
+    return any(set(getattr(previous, f)) - set(v) for f, v in new_fields.items()) or new_expires_at < previous.expires_at
 
 
 def _clean_list(values, allowed=None):
@@ -169,6 +177,10 @@ def grant_standing_consent(actor, owner, *, uses, permitted_purposes, permitted_
     )
     previous = latest_standing(owner)
     if previous is not None and previous.status == Consent.Status.ACTIVE:
+        if _is_narrower(new, expires_at, previous):
+            # ADR 0020 §5: every narrowing goes through the single narrowing path (with its cascade).
+            raise ValidationError("This would remove something from your standing consent. Use 'Narrow' or 'Withdraw' "
+                                  "instead, so that affected projects are updated.")
         wider = any(set(new[f]) - set(getattr(previous, f)) for f in new) or expires_at > previous.expires_at
         if wider and evidence_ref.strip() == previous.evidence_ref:
             raise ValidationError("Widening a standing consent needs a new signed form ID as evidence.")
@@ -206,6 +218,11 @@ def grant_project_consent(actor, owner, project, *, uses, languages, processors,
         raise ValidationError("at least one use is required")
     if not _within(pc, st):
         raise ConsentDenied("WIDER_THAN_STANDING", "A project consent cannot be wider than the standing consent.")
+    previous = latest_project_consent(owner, project)
+    if previous is not None and previous.status == Consent.Status.ACTIVE and _is_narrower(
+            {"uses": pc.uses, "languages": pc.languages, "processors": pc.processors}, pc.expires_at, previous):
+        raise ValidationError("This would remove something from your consent in this project. Use 'Revoke' instead, "
+                              "so that running work is stopped and your audio is deleted.")
     pc.version = _next_version(owner, Consent.Kind.PROJECT, project)
     pc.save()
     details = {"kind": "PROJECT", "uses": pc.uses, "languages": pc.languages, "processors": pc.processors,
@@ -232,19 +249,38 @@ def _new_project_version(pc, *, uses, languages, processors, expires_at, actor, 
 
 
 def _cascade(owner, project, actor, reason, *, identity_removed):
-    """ADR 0006 §5 (amended): affects only this owner's artefacts in this project."""
+    """ADR 0006 §5 (as amended by ADR 0020): affects only this owner's identity artefacts in this project.
+    Lock order (ADR 0003, as implemented): IdentityOwner (held by the caller) → Localization → Scene → Job →
+    artefacts → Export → AuditChainHead. Runs only when identity use actually ended; a narrowing that keeps the
+    use and language (e.g. an earlier expiry) leaves existing work valid (see locked_save_allowed)."""
+    from hyperlocalize.localization import services as loc_services
+    from hyperlocalize.localization.models import Localization, Scene
     from hyperlocalize.pipeline import jobs as job_services
     from hyperlocalize.rendering import services as rendering
     from hyperlocalize.review import services as review
 
-    for job in job_services.active_jobs(identity_owner=owner, project=project):
-        job_services.request_cancel(job, "CONSENT_REVOKED", actor)
+    from .models import VoiceProfile
+
     if not identity_removed:
         return []
-    affected = rendering.quarantine_identity_artefacts(owner, project)
-    review.on_identity_revoked(project, affected, reason=reason)
-    job_services.enqueue("purge_identity_data", identity_owner=owner, project=project,
-                         payload={"reason": reason})
+    localization = Localization.objects.select_for_update().filter(project=project).first()
+    affected = rendering.identity_scene_ids(owner, project)
+    loc_services.mark_scenes(affected, Scene.Status.NEEDS_REGENERATION)
+    rerender = set(affected)
+    for job in (job_services.active_jobs(project=project, type="render_scene").order_by("pk")):
+        # Owner-tagged jobs, and multi-speaker jobs on affected scenes (CP4 would also stop those).
+        if job.identity_owner_id == owner.pk or job.scene_id in affected:
+            job_services.request_cancel(job, "CONSENT_REVOKED", actor)
+            rerender.add(job.scene_id)
+    rendering.quarantine_identity_artefacts(owner, project)
+    # Decide the reference clips in scope NOW, at revocation; the purge job only deletes files (review #3).
+    VoiceProfile.objects.filter(identity_owner=owner, consent__project=project, status=VoiceProfile.Status.ACTIVE).update(
+        status=VoiceProfile.Status.DELETED, deleted_at=timezone.now())
+    if localization is not None:
+        review.on_identity_revoked(localization, owner, affected, reason=reason)
+    job_services.enqueue("purge_identity_data", identity_owner=owner, project=project, payload={"reason": reason})
+    if localization is not None:
+        transaction.on_commit(lambda: rendering.enqueue_fallback_renders(sorted(rerender), localization.pk))
     return affected
 
 
@@ -302,6 +338,8 @@ def narrow_standing_consent(actor, owner, *, remove=None, expires_at=None, reque
     st = latest_standing(owner)
     if st is None:
         raise ValidationError("There is no standing consent.")
+    if reason == "EXPIRED" and (st.status != Consent.Status.ACTIVE or st.expires_at > timezone.now()):
+        return st  # renewed or already ended since the sweep looked (re-checked under the lock)
     remove = {k: set(v) for k, v in (remove or {}).items()}
     fields = ["uses", "permitted_purposes", "permitted_copy_kinds", "languages", "processors"]
     unknown = set(remove) - set(fields)

@@ -96,10 +96,6 @@ def _seed_copy(owner):
 
 def demo_reset(actor, source_project, owner):
     """Build a fresh rehearsal project. Returns the new project, or raises DemoRefused (audited)."""
-    from hyperlocalize.localization import services as loc
-    from hyperlocalize.localization.models import Localization, Scene, Segment, SegmentTranslation
-    from hyperlocalize.pipeline import jobs
-    from hyperlocalize.projects.models import AudienceProfile, GlossaryTerm, Project, SpeakerTrack, Video
     from hyperlocalize.projects.storage import get_storage
 
     _require_admin(actor)
@@ -107,6 +103,18 @@ def demo_reset(actor, source_project, owner):
     source_loc = source_project.localizations.get()
     language = source_loc.target_locale.split("-")[0]
     problems = []
+    try:
+        return _demo_reset_locked(actor, source_project, owner, source_loc, language, storage, problems)
+    except services.ConsentDenied as exc:  # review #10: an unexpected gate refusal becomes an audited refusal
+        problems.append(f"consent gate refused ({exc.reason})")
+    _refuse(actor, "DEMO_RESET_REFUSED", owner, problems, source_project.pk)
+
+
+def _demo_reset_locked(actor, source_project, owner, source_loc, language, storage, problems):
+    from hyperlocalize.localization import services as loc
+    from hyperlocalize.localization.models import Localization, Scene, Segment, SegmentTranslation
+    from hyperlocalize.projects.models import AudienceProfile, GlossaryTerm, Project, SpeakerTrack, Video
+
     with transaction.atomic():
         owner = services.lock_owner(owner.pk)
         problems += _standing_problems(owner, language)
@@ -151,7 +159,10 @@ def demo_reset(actor, source_project, owner):
                 for seg in scene.segments.order_by("index"):
                     label = seg.speaker_track.label if seg.speaker_track else "Speaker 1"
                     if label not in tracks:
-                        tracks[label] = SpeakerTrack.objects.create(video=video, label=label, identity_owner=owner,
+                        # Only this owner's own speaker keeps the identity link (review #6).
+                        src_owner = seg.speaker_track.identity_owner_id if seg.speaker_track else None
+                        tracks[label] = SpeakerTrack.objects.create(video=video, label=label,
+                                                                    identity_owner=owner if src_owner == owner.pk else None,
                                                                     assigned_by=actor)
                     new_seg = Segment.objects.create(scene=new_scene, speaker_track=tracks[label], index=seg.index,
                                                      start_ms=seg.start_ms, end_ms=seg.end_ms, source_text=seg.source_text,

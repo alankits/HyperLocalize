@@ -91,7 +91,7 @@ class ViewTests(MediaRootMixin, TestCase):
         self.assertEqual(ok.status_code, 200)
         b"".join(ok.streaming_content)
         identity.revoke_project_consent(self.users["speaker"], owner, self.project)
-        self.assertEqual(self.client.get(reverse("review:preview_video", args=[cloned.pk])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("review:preview_video", args=[cloned.pk])).status_code, 410)
 
     def test_identity_owner_page_and_no_project_access(self):
         make_owner_with_consent(self.users, self.project)

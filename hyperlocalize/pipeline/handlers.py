@@ -92,42 +92,52 @@ def build_export(job, ctx):
 
 @register_handler("purge_identity_data")
 def purge_identity_data(job, ctx):
-    """Runs immediately after revocation (ADR 0006 §5): deletes quarantined identity audio, render
-    files, revoked export packages, voice-profile clips in the revoked scope, and pending offline copies."""
+    """Deletes FILES whose fate was already decided inside the revocation / narrowing transaction
+    (ADR 0006 §5, code review #3): quarantined identity audio and render files, revoked export packages,
+    reference clips already marked DELETED, and offline copies marked DELETION_PENDING. The cascade never
+    cancels this job (review #2). Any file that cannot be deleted stays pending and the job retries."""
     from django.utils import timezone
 
     from hyperlocalize.exports import services as exports
-    from hyperlocalize.identity.models import Consent, OfflineCopy, VoiceProfile
+    from hyperlocalize.identity.models import OfflineCopy, VoiceProfile
     from hyperlocalize.projects.storage import get_storage
     from hyperlocalize.rendering import services as rendering
+
+    from .jobs import TransientJobError
 
     owner = job.identity_owner
     project = job.project
     storage = get_storage()
     purged = rendering.purge_quarantined(owner, project)
+    pending = list(purged["pending"])
     exports_purged = exports.purge_revoked_exports(project) if project else []
     profiles = []
-    for vp in VoiceProfile.objects.filter(identity_owner=owner, status=VoiceProfile.Status.ACTIVE).select_related("consent"):
-        latest = Consent.objects.filter(identity_owner=owner, kind="PROJECT", project=vp.consent.project).order_by("-version").first()
-        standing = Consent.objects.filter(identity_owner=owner, kind="STANDING").order_by("-version").first()
-        in_scope = project is None or vp.consent.project_id == project.pk
-        if in_scope and (latest is None or latest.status != "ACTIVE" or "voice_synthesis" not in latest.uses
-                         or owner.withdrawn_at or (standing and standing.status != "ACTIVE")):
-            storage.delete(vp.storage_key)
-            VoiceProfile.objects.filter(pk=vp.pk).update(status=VoiceProfile.Status.DELETED, deleted_at=timezone.now())
-            profiles.append(vp.pk)
+    for vp in VoiceProfile.objects.filter(identity_owner=owner, status=VoiceProfile.Status.DELETED).order_by("pk"):
+        if vp.storage_key and storage.exists(vp.storage_key):
+            try:
+                storage.delete(vp.storage_key)
+                profiles.append(vp.pk)
+            except OSError:
+                pending.append(f"voice_profile:{vp.pk}")
     offline = []
-    for copy in OfflineCopy.objects.filter(identity_owner=owner, status=OfflineCopy.Status.DELETION_PENDING):
-        storage.delete(copy.storage_key)
-        OfflineCopy.objects.filter(pk=copy.pk).update(status=OfflineCopy.Status.DELETED, deleted_at=timezone.now())
-        offline.append(copy.pk)
+    for copy in OfflineCopy.objects.filter(identity_owner=owner, status=OfflineCopy.Status.DELETION_PENDING).order_by("pk"):
+        try:
+            storage.delete(copy.storage_key)
+        except OSError:
+            pending.append(f"offline_copy:{copy.pk}")
+            continue
         with transaction.atomic():
+            OfflineCopy.objects.filter(pk=copy.pk).update(status=OfflineCopy.Status.DELETED, deleted_at=timezone.now())
             audit.record(actor=None, action="OFFLINE_COPY_DELETED", entity=copy, details={"sha256": copy.sha256, "kind": copy.kind})
+        offline.append(copy.pk)
     with transaction.atomic():
         audit.record(actor=None, action="IDENTITY_DATA_PURGED", entity=("identity.IdentityOwner", owner.pk),
                      project_id=project.pk if project else None,
                      details={"synthesised_segments": purged["segments"], "renders": purged["renders"],
-                              "exports": exports_purged, "voice_profiles": profiles, "offline_copies": offline})
+                              "exports": exports_purged, "voice_profile_files": profiles, "offline_copies": offline,
+                              "deletion_pending": pending})
+    if pending:
+        raise TransientJobError(f"{len(pending)} file(s) still pending deletion")
 
 
 @register_handler("consent_expiry_sweep")

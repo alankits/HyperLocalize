@@ -3,7 +3,8 @@
 States: QUEUED → RUNNING → SUCCEEDED | FAILED | CANCELLED; QUEUED → CANCELLED.
 `cancel_requested` is a flag checked at checkpoints and in the 1-second wait loop.
 Job state changes are audited; heartbeats are not.
-Lock order (ADR 0003): IdentityOwner → Job → artefacts → AuditChainHead.
+Lock order (ADR 0003, refined in the code review of 2026-10-06; every multi-lock transaction follows it):
+IdentityOwner (ascending id) → Localization → Scene → Job → artefacts → Export → AuditChainHead.
 """
 import logging
 from datetime import timedelta

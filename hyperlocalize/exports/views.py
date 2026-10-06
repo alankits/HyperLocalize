@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.http import FileResponse, Http404
+from django.http import FileResponse, HttpResponseGone
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
@@ -37,7 +37,7 @@ def download(request, export_id):
     require_role(request.user, project, Role.LOCALIZATION_MANAGER, Role.AUDITOR)
     ok, reason = services.can_download(export)  # CP10
     if not ok:
-        raise Http404(reason)
+        return HttpResponseGone(reason)  # CP10: 410 Gone (ADR 0006 §3)
     with transaction.atomic():
         audit.record(actor=request.user, action="EXPORT_DOWNLOADED", entity=export, project_id=project.pk,
                      details={"package_sha256": export.package_sha256})
