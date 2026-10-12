@@ -8,6 +8,7 @@
 Uses the public REST endpoint through the standard library (no SDK dependency).
 """
 import json
+import time
 import urllib.error
 import urllib.request
 
@@ -29,8 +30,41 @@ from .base import (
 
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 TIMEOUT_SECONDS = 60
+# A 429 that is not a daily quota is retried once, if Google's RetryInfo asks for a wait no longer
+# than MAX_RETRY_WAIT_SECONDS and the call stays within RETRY_BUDGET_SECONDS overall. Anything else
+# (a daily quota says hours) falls through to the next adapter in the chain (ADR 0005). A job
+# cancellation is noticed at the next checkpoint, so a wait delays it by at most this long.
+MAX_RETRY_WAIT_SECONDS = 20
+RETRY_BUDGET_SECONDS = 75
 ADAPTATION_TYPES = {"LITERAL", "ADAPTED", "LOCALISED", "KEPT_ORIGINAL"}
 FLAG_TYPES = {"NEGATION", "MEANING_REVERSAL", "OMISSION", "ADDITION", "REGISTER"}
+_sleep = time.sleep  # replaced in tests
+
+
+def classify_429(body):
+    """Return (exception class, seconds to wait or None) for a Gemini HTTP 429 body.
+
+    Google's 429 message says "quota" for per-minute and per-day limits alike, so the message text
+    cannot tell them apart. The QuotaFailure detail names the limit that was hit (a daily one has
+    "PerDay" in its quotaId, seen live on 2026-10-12) and RetryInfo gives the wait, e.g. "46032s".
+    An unreadable body is treated as a rate limit, without a retry.
+    """
+    try:
+        details = json.loads(body)["error"].get("details") or []
+        quota_ids = [v.get("quotaId", "") for d in details if str(d.get("@type", "")).endswith("QuotaFailure")
+                     for v in d.get("violations") or []]
+        delays = [d.get("retryDelay", "") for d in details if str(d.get("@type", "")).endswith("RetryInfo")]
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return RateLimited, None
+    wait = None
+    if delays:
+        try:
+            wait = float(str(delays[0]).rstrip("s"))
+        except ValueError:
+            pass
+    if any("PerDay" in q for q in quota_ids):
+        return QuotaExhausted, wait
+    return RateLimited, wait
 
 
 def _post(prompt, *, opener=None):
@@ -47,18 +81,26 @@ def _post(prompt, *, opener=None):
         headers={"Content-Type": "application/json", "x-goog-api-key": settings.HL_GEMINI_API_KEY},
         method="POST",
     )
-    try:
-        with (opener or urllib.request.urlopen)(req, timeout=TIMEOUT_SECONDS) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        if exc.code == 429:
-            text = exc.read().decode("utf-8", "replace").lower()
-            raise (QuotaExhausted if "quota" in text else RateLimited)(f"HTTP 429 from Gemini") from None
-        if exc.code >= 500:
-            raise Unavailable(f"HTTP {exc.code} from Gemini") from None
-        raise Unavailable(f"HTTP {exc.code} from Gemini (check the key and model name)") from None
-    except (urllib.error.URLError, TimeoutError) as exc:
-        raise Unavailable(f"Gemini unreachable: {exc}") from None
+    started = time.monotonic()
+    for attempt in (1, 2):
+        try:
+            with (opener or urllib.request.urlopen)(req, timeout=TIMEOUT_SECONDS) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code == 429:
+                error, wait = classify_429(exc.read().decode("utf-8", "replace"))
+                if (error is RateLimited and attempt == 1 and wait is not None and wait <= MAX_RETRY_WAIT_SECONDS
+                        and time.monotonic() - started + wait <= RETRY_BUDGET_SECONDS):
+                    _sleep(wait)
+                    continue
+                kind = "daily quota used up" if error is QuotaExhausted else "rate limited"
+                raise error(f"HTTP 429 from Gemini ({kind})") from None
+            if exc.code >= 500:
+                raise Unavailable(f"HTTP {exc.code} from Gemini") from None
+            raise Unavailable(f"HTTP {exc.code} from Gemini (check the key and model name)") from None
+        except (urllib.error.URLError, TimeoutError) as exc:
+            raise Unavailable(f"Gemini unreachable: {exc}") from None
     try:
         return payload["candidates"][0]["content"]["parts"][0]["text"]
     except (KeyError, IndexError, TypeError):

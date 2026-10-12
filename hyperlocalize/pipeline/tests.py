@@ -1,6 +1,7 @@
 import io
 import json
 import urllib.error
+from unittest import mock
 
 from django.test import TestCase, override_settings
 
@@ -28,6 +29,35 @@ class FakeResponse(io.BytesIO):
 def opener_returning(text):
     payload = {"candidates": [{"content": {"parts": [{"text": text}]}}]}
     return lambda req, timeout: FakeResponse(json.dumps(payload).encode())
+
+
+def body_429(quota_id, retry_delay):
+    """Shape of a real Gemini 429 body (captured 2026-10-12, trimmed; docs/trials/2026-10-12-gemini-live-trial.md).
+
+    The PerDay quotaId was observed live. The PerMinute quotaId used below is by analogy, not observed.
+    """
+    return json.dumps({"error": {
+        "code": 429, "status": "RESOURCE_EXHAUSTED",
+        "message": "You exceeded your current quota, please check your plan and billing details.",
+        "details": [
+            {"@type": "type.googleapis.com/google.rpc.Help", "links": []},
+            {"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [
+                {"quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+                 "quotaId": quota_id, "quotaValue": "20"}]},
+            {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": retry_delay},
+        ]}}).encode()
+
+
+def opener_429s(bodies, then=None):
+    """An opener that answers HTTP 429 with each body in turn, then `then` (model text). Records call numbers."""
+    calls = []
+
+    def opener(req, timeout):
+        calls.append(len(calls) + 1)
+        if len(calls) <= len(bodies):
+            raise urllib.error.HTTPError(req.full_url, 429, "Too many", {}, io.BytesIO(bodies[len(calls) - 1]))
+        return opener_returning(then)(req, timeout)
+    return opener, calls
 
 
 class MockGatingTests(TestCase):
@@ -91,12 +121,54 @@ class GeminiAdapterTests(TestCase):
         with self.assertRaises(base.ProviderOutputInvalid):
             gemini.GeminiLocalizationProvider().localize(request(), opener=opener_returning('{"segments": []}'))
 
-    def test_quota_error_falls_through(self):
-        def opener(req, timeout):
-            raise urllib.error.HTTPError(req.full_url, 429, "Too many", {}, io.BytesIO(b'{"error":"quota exceeded"}'))
-
-        with self.assertRaises(base.QuotaExhausted):
+    def test_unreadable_429_is_a_rate_limit_without_retry(self):
+        opener, calls = opener_429s([b'{"error":"quota exceeded"}'])
+        with mock.patch.object(gemini, "_sleep") as sleep, self.assertRaises(base.RateLimited):
             gemini.GeminiLocalizationProvider().localize(request(), opener=opener)
+        sleep.assert_not_called()
+        self.assertEqual(calls, [1])
+
+    def test_daily_quota_429_is_quota_exhausted_without_retry(self):
+        # Google's message says "quota" for every 429; only the quotaId says the DAILY limit was hit.
+        opener, calls = opener_429s([body_429("GenerateRequestsPerDayPerProjectPerModel-FreeTier", "46032s")])
+        with mock.patch.object(gemini, "_sleep") as sleep, self.assertRaises(base.QuotaExhausted) as ctx:
+            gemini.GeminiLocalizationProvider().localize(request(), opener=opener)
+        sleep.assert_not_called()
+        self.assertEqual(calls, [1])
+        self.assertIn("daily quota", str(ctx.exception))
+
+    def test_short_rate_limit_waits_and_retries_once(self):
+        ok = json.dumps({"segments": [{"id": 7, "subtitle_text": "2 பொட்டலங்கள் கொடுங்கள்."}]})
+        opener, calls = opener_429s([body_429("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "7s")], then=ok)
+        with mock.patch.object(gemini, "_sleep") as sleep:
+            result = gemini.GeminiLocalizationProvider().localize(request(), opener=opener)
+        sleep.assert_called_once_with(7.0)
+        self.assertEqual(calls, [1, 2])
+        self.assertEqual(result.segments[0].segment_id, 7)
+
+    def test_rate_limit_twice_falls_through_after_one_retry(self):
+        body = body_429("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "3s")
+        opener, calls = opener_429s([body, body])
+        with mock.patch.object(gemini, "_sleep") as sleep, self.assertRaises(base.RateLimited):
+            gemini.GeminiLocalizationProvider().localize(request(), opener=opener)
+        self.assertEqual(sleep.call_count, 1)
+        self.assertEqual(calls, [1, 2])
+
+    def test_retry_skipped_when_it_would_exceed_the_time_budget(self):
+        # The first attempt already took 70 s (a slow answer); waiting 7 s more would pass the 75 s budget.
+        opener, calls = opener_429s([body_429("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "7s")])
+        with mock.patch.object(gemini, "_sleep") as sleep, \
+             mock.patch.object(gemini.time, "monotonic", side_effect=[0.0, 70.0]), \
+             self.assertRaises(base.RateLimited):
+            gemini.GeminiLocalizationProvider().localize(request(), opener=opener)
+        sleep.assert_not_called()
+        self.assertEqual(calls, [1])
+
+    def test_long_rate_limit_wait_falls_through_without_sleeping(self):
+        opener, _ = opener_429s([body_429("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "45s")])
+        with mock.patch.object(gemini, "_sleep") as sleep, self.assertRaises(base.RateLimited):
+            gemini.GeminiLocalizationProvider().localize(request(), opener=opener)
+        sleep.assert_not_called()
 
     def test_api_key_sent_in_header_not_url(self):
         captured = {}

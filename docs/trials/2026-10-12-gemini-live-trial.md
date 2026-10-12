@@ -36,3 +36,23 @@ These are the assistant's reading, **[INFERRED]**. They are not a rating; R1 or 
 3. **Localization skip reasons not audited** (`localization/services.py`, `localize_scene`): the audit filter matches the substring "Error". The fall-through exception names (`Unavailable`, `RateLimited`, `QuotaExhausted`, `ProviderOutputInvalid`) contain neither "Error" nor "data-use rule", so the 404 left only a bare `PROVIDER_FALLBACK`.
 4. **Meaning-check fallback is silent** (`_run_meaning_check`): there is no audit record when the chain falls back. The MOCK keyword flag is stored next to real AI flags; it is tagged `is_mock` in its detail.
 5. **Quota windows:** `pipeline/quota.py` supports only 24 h and 7 day windows. The limit hit here was per-minute.
+
+## Daily free-tier limit [MEASURED from Google's 429 body, 2026-10-12]
+A burst of 15 one-word requests was sent after the runs. **All 15 got HTTP 429**, so the quota was already used up by the trial.
+- **The limit:** `quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier`, `quotaValue: "20"`, `retryDelay: "46032s"` (about 12 h 47 min).
+- **The pool is per model and per project, and both adapters share it.**
+- **Alias:** the 429 named the model `gemini-3.6-flash`, not `gemini-3.5-flash`. **[INFERRED]** `gemini-3.5-flash` is an alias, so Google can change which model answers without any change in this repo.
+- **Demo risk:** one 11-segment demo run uses about 13 requests (2 localization calls and 11 meaning checks). **About one full run per day per model.**
+- **Which earlier 429 was which:** the per-minute vs daily cause of the earlier 429 at about 35 s in the replay is not established. The next call succeeded, which points to a per-minute limit **[INFERRED]**.
+
+## Fixes applied (approved by the user, 2026-10-12)
+1. **Default model:** `gemini-3.5-flash` in `settings.py`, `.env.example` and the local `.env`. `.env.example` was git-ignored by the `.env.*` rule and is now committed; it contains no secrets.
+2. **429 handling:** `classify_429` reads `QuotaFailure.quotaId` ("PerDay" means `QuotaExhausted`) and `RetryInfo.retryDelay`.
+   - A rate limit asking for a wait of 20 s or less is retried once.
+   - A longer wait, a second 429, or an unreadable body means `RateLimited` without a retry.
+   - The per-minute quotaId name used in the tests is by analogy; it has not been observed live.
+3. **Audit:** `_audit_chain_outcome` records `PROVIDER_SKIPPED` (the data-use rule or a provider failure, with the reason) and `PROVIDER_FALLBACK`.
+   - It covers localization (per scene) and the meaning check (per segment, with `segment_id`).
+   - "Not configured" skips are still not audited.
+
+**Tests:** 150 pass, 1 optional skipped. 12 tests are new; the first 3 audit tests fail on the old code. After the independent review: demo-mode chain-failure audit, `after` on fallbacks, and a 75 s retry budget (4 more tests). The fixes are **not yet re-verified live**, because the daily quota was used up.

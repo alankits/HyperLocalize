@@ -81,7 +81,20 @@ The form may now be signed only **after** the test script is frozen and every Ap
 2. Install Docker: `sudo apt install docker.io docker-compose-v2`. Then the assistant runs `docker compose up` and records the result.
 3. Solo plan (`docs/SOLO_PLAN.md`): choose the Speaker B option (A: volunteer; B: dataset impostor set, which needs approval). Recruit a Tamil-literate rater (R1).
 4. External transcription after the spike: (a) local ASR only, or (b) add a D5 tick.
-5. ~~Put the Gemini key in `.env`~~ **Done 2026-10-12.** The key is in `.env` (mode 600, git-ignored). **Correction:** the earlier model-list check listed `gemini-2.5-flash`, but generateContent returns 404 for new keys. **The live smoke test ran** (`docs/trials/2026-10-12-gemini-live-trial.md`) and works with `gemini-3.5-flash` set for the run. **Waiting on the user:** (a) the default model; (b) approval for the audit-logging fixes (defects 3 and 4, an audit change); (c) the AI Studio rate limits for the quota policy. Rotate the key before any real data is used (it was pasted into a chat).
+5. **Gemini (2026-10-12):**
+   - **Done:** key in `.env`; live smoke test (`docs/trials/2026-10-12-gemini-live-trial.md`).
+   - **Approved and applied:**
+     - the default model is now `gemini-3.5-flash`;
+     - 429 classification and retry;
+     - provider skip/fallback audit (ADR 0005 implementation note).
+   - **Independent review: approve with changes.** In-scope fixes applied: demo-mode `NoProviderAvailable` skips are audited, the fallback records `after`, the retry has a 75 s budget, and comments are corrected.
+   - **Waiting on the user** (decisions D1–D4 in the session summary):
+     - **D1:** move the meaning check out of the consent lock and the web request (review #1, Major).
+     - **D2:** batch the meaning check per scene (13 → about 4 requests per run).
+     - **D3:** count every HTTP attempt in the quota ledger.
+     - **D4:** quota policy values. The 20/day pool is shared by both adapters; the ledger counts adapters separately.
+   - **Re-verify live after the daily reset** (about 12 h 47 min after 2026-10-12 ~15:30).
+   - Rotate the key before any real data is used.
 
 **Next engineering tasks (no approval needed):**
 - importing pre-rendered cloned audio into the demo seed (stock or MOCK only until real consent exists; interim rule);

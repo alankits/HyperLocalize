@@ -14,6 +14,7 @@ from hyperlocalize.accounts.models import Role
 from hyperlocalize.accounts.permissions import require_role
 from hyperlocalize.audit import services as audit
 from hyperlocalize.pipeline.providers.base import (
+    CHAIN_FALLTHROUGH,
     LocalizationRequest,
     NoProviderAvailable,
     SegmentContext,
@@ -142,16 +143,15 @@ def localize_scene(localization, scene, *, instruction="", actor=None, job_ctx=N
     request = build_request(localization, scene, instruction)
     if not request.segments:
         return []
-    outcome = run_chain("localization", lambda a: a.localize(request), accept=_data_use_rule(project))
-    _record_usage(outcome.adapter, "localization", project)
+    try:
+        outcome = run_chain("localization", lambda a: a.localize(request), accept=_data_use_rule(project))
+    except NoProviderAvailable as exc:
+        with transaction.atomic():  # commit the reasons before the job fails
+            _audit_skips(exc.skipped, "localization", project, entity=scene, scene_id=scene.pk)
+        raise
     with transaction.atomic():
-        for name, reason in outcome.skipped:
-            if "data-use rule" in reason or "Error" in reason:
-                audit.record(actor=None, action="PROVIDER_SKIPPED", entity=scene, project_id=project.pk,
-                             scene_id=scene.pk, details={"stage": "localization", "adapter": name, "reason": reason[:200]})
-        if outcome.is_fallback:
-            audit.record(actor=None, action="PROVIDER_FALLBACK", entity=scene, project_id=project.pk, scene_id=scene.pk,
-                         details={"stage": "localization", "adapter": outcome.adapter.name})
+        _record_usage(outcome.adapter, "localization", project)
+        _audit_chain_outcome(outcome, "localization", project, entity=scene, scene_id=scene.pk)
     by_id = {s.segment_id: s for s in outcome.result.segments}
     saved = []
     for ctx in request.segments:
@@ -204,6 +204,30 @@ def save_translation(localization, segment, *, actor, origin, subtitle_text, spe
     return t
 
 
+# Skip reasons worth an audit record: the data-use rule, and provider failures, which run_chain
+# formats as "<exception class>: <message>". "not configured" skips are not audited (ADR 0005).
+_FAILURE_PREFIXES = tuple(f"{cls.__name__}:" for cls in CHAIN_FALLTHROUGH)
+
+
+def _audit_skips(skipped, stage, project, *, entity, scene_id, segment_id=None):
+    """Audit why real adapters were passed over. Call inside a transaction."""
+    extra = {"segment_id": segment_id} if segment_id else {}
+    for name, reason in skipped:
+        if "data-use rule" in reason or reason.startswith(_FAILURE_PREFIXES):
+            audit.record(actor=None, action="PROVIDER_SKIPPED", entity=entity, project_id=project.pk, scene_id=scene_id,
+                         details={"stage": stage, "adapter": name, "reason": reason[:200], **extra})
+
+
+def _audit_chain_outcome(outcome, stage, project, *, entity, scene_id, segment_id=None):
+    """Audit skips and whether a fallback ran (with the names it ran after). Call inside a transaction."""
+    _audit_skips(outcome.skipped, stage, project, entity=entity, scene_id=scene_id, segment_id=segment_id)
+    if outcome.is_fallback:
+        extra = {"segment_id": segment_id} if segment_id else {}
+        audit.record(actor=None, action="PROVIDER_FALLBACK", entity=entity, project_id=project.pk, scene_id=scene_id,
+                     details={"stage": stage, "adapter": outcome.adapter.name,
+                              "after": [name for name, _ in outcome.skipped], **extra})
+
+
 def _record_usage(adapter, stage, project):
     """Free-quota ledger (ADR 0005): one request per call; mocks are not counted."""
     if not adapter.is_mock:
@@ -234,20 +258,26 @@ def _run_meaning_check(t, project):
                                                                project.source_language, t.localization.target_locale),
                             accept=_data_use_rule(project))
     except NoProviderAvailable as exc:
-        CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
-                                   status=CheckResult.Status.CHECK_UNAVAILABLE, detail={"messages": [str(exc)[:300]]})
+        with transaction.atomic():
+            CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
+                                       status=CheckResult.Status.CHECK_UNAVAILABLE, detail={"messages": [str(exc)[:300]]})
+            _audit_skips(exc.skipped, "meaning_check", project, entity=t, scene_id=t.segment.scene_id,
+                         segment_id=t.segment_id)
         return
-    _record_usage(outcome.adapter, "meaning_check", project)
     flags = outcome.result.flags
-    if not flags:
-        CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
-                                   status=CheckResult.Status.PASS,
-                                   detail={"messages": [], "adapter": outcome.adapter.name, "is_mock": outcome.adapter.is_mock})
-    for flag in flags:
-        CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type=flag.flag_type.lower(),
-                                   status=CheckResult.Status.FLAGGED,
-                                   detail={"messages": [flag.explanation], "adapter": outcome.adapter.name,
-                                           "is_mock": outcome.adapter.is_mock})
+    with transaction.atomic():
+        _record_usage(outcome.adapter, "meaning_check", project)
+        _audit_chain_outcome(outcome, "meaning_check", project, entity=t, scene_id=t.segment.scene_id,
+                             segment_id=t.segment_id)
+        if not flags:
+            CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
+                                       status=CheckResult.Status.PASS,
+                                       detail={"messages": [], "adapter": outcome.adapter.name, "is_mock": outcome.adapter.is_mock})
+        for flag in flags:
+            CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type=flag.flag_type.lower(),
+                                       status=CheckResult.Status.FLAGGED,
+                                       detail={"messages": [flag.explanation], "adapter": outcome.adapter.name,
+                                               "is_mock": outcome.adapter.is_mock})
 
 
 # --------------------------------------------------------------------------- reviewer actions

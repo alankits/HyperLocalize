@@ -14,7 +14,7 @@ Labels: [IMPLEMENTED] = written **and** tested (tests listed); [PARTIAL]; [DESIG
 |---|----------|--------|-------|
 | 1 | Create and Generate a Localization Project | [IMPLEMENTED] | Create, configure audience and glossary, add members, start the pipeline. Tests: `tests/test_workflow.py`, `tests/test_views.py` |
 | 2 | Upload and Analyze Source Video | [IMPLEMENTED] with MOCK or human transcript | ffprobe validation before acceptance, 5 min / 500 MB MVP limits, audio extraction, shot-cut detection, scenes and segments. **No real ASR model is integrated yet** (spike decides, ADR 0017): the transcript comes from a human-made SRT/VTT, or from `MockTranscriptionProvider` |
-| 3 | Generate Context-Aware Localization Preview | [IMPLEMENTED] with MOCK; real candidate adapter [PARTIAL] | Context: neighbouring segments, speaker, audience profile, glossary, timing budget, reviewer instruction. **Visual context is not implemented.** The Gemini candidate adapter is written and tested against a fake HTTP layer only; **First live smoke test on 2026-10-12** (`docs/trials/2026-10-12-gemini-live-trial.md`; throwaway DB, demo text only). With `gemini-3.5-flash` set for the run, it localized 11/11 segments, and 3/11 meaning checks fell back to MOCK after a per-minute 429. The repo default `gemini-2.5-flash` returns 404 for new keys. **This is not a quality evaluation**, and 5 defects were found (listed in the trial note). Rule checks (ADR 0008) and AI flags are implemented |
+| 3 | Generate Context-Aware Localization Preview | [IMPLEMENTED] with MOCK; real candidate adapter [PARTIAL] | Context: neighbouring segments, speaker, audience profile, glossary, timing budget, reviewer instruction. **Visual context is not implemented.** The Gemini candidate adapter is written and tested against a fake HTTP layer only; **First live smoke test on 2026-10-12** (`docs/trials/2026-10-12-gemini-live-trial.md`; throwaway DB, demo text only). With `gemini-3.5-flash` (now the default; `gemini-2.5-flash` returns 404 for new keys), it localized 11/11 segments, and 3/11 meaning checks fell back to MOCK after HTTP 429 (per-minute cause [INFERRED]). **This is not a quality evaluation.** The free tier allows **20 requests per day per model [MEASURED]**, and one 11-segment run uses about 13. Fixed and tested on 2026-10-12: the 429 classification and retry, and the provider skip/fallback audit, including demo mode. Not yet re-verified live (quota used up). Rule checks (ADR 0008) and AI flags are implemented |
 | 4 | Generate Localized Preview | [IMPLEMENTED] with MOCK voices | Backend-resolved rendering mode (CLONED / STOCK / SUBTITLES_ONLY), speech in a killable inference subprocess, bounded tempo, mixing, subtitles, scene preview MP4. **No real TTS or voice model yet** (ADR 0018): voices are MOCK tones |
 | 5 | Review and Regenerate a Scene | [IMPLEMENTED] | Edits create HUMAN versions; override with a reason / acknowledge; accept; scene-only regeneration (script with an instruction, or preview) |
 | 6 | Approve and Export Localization Package | [IMPLEMENTED] | Approval gate (all scenes accepted, no blocking checks, current previews, consent CP8, separation of duties). Export refused for MOCK output or invalid consent (CP9). Package: video, SRT, VTT, script, quality report, evidence manifest with the audit chain head |
@@ -36,7 +36,7 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 
 ## Tests
 
-**MEASURED (2026-10-12):** 139 tests pass, 1 optional skipped (earlier counts: 102, 114, 126) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
+**MEASURED (2026-10-12):** 150 tests pass, 1 optional skipped (earlier counts: 102, 114, 126, 139) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
 
 **End-to-end over HTTP (MEASURED 2026-10-06):** `scripts/e2e_check.py` against a live dev server and worker: **15/15 steps passed**:
 - consent, then a cloned-voice preview (MOCK);
@@ -52,6 +52,13 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 
 ## Known limitations (MVP build)
 
+- **Open findings from the 2026-10-12 provider review (not fixed; waiting for user decisions):**
+  - **Major: a meaning-check network call can run inside the consent lock.** `demo_reset` holds the IdentityOwner lock (`identity/demo.py:118`) while `save_translation` runs the Gemini meaning check per segment. A speaker's revocation can therefore wait for those calls. `edit_translation` also makes this call inside a web request.
+  - **The quota ledger undercounts.** It counts only successful calls; retries and failed attempts that may use quota are not counted.
+  - **Quota budget:** about 13 of the 20 daily requests per run. In demo mode, running out FAILS the localize job and leaves CHECK_UNAVAILABLE rows to acknowledge.
+  - **Model alias:** only the alias (`gemini-3.5-flash`) is stored, not the model that answered.
+  - **Transcription audit:** skips and fallbacks in the transcription stage are not audited (until ASR is integrated, ADR 0017).
+  - **Quota windows:** `quota.py` has no per-minute window.
 - **No real AI model has been run.** Every quality, speed or accuracy figure is NOT MEASURED.
 - Docker is not installed on the laptop: `docker-compose.yml` and `Dockerfile` are **written but never run**. Development uses `scripts/dev_postgres.sh` (embedded PostgreSQL 17 binaries) and the `static-ffmpeg` package.
 - The demo video is synthetic (test patterns and a tone). The demo script's health facts are [UNVERIFIED] (TEST_SCRIPT §4).
@@ -84,7 +91,7 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 |---|---|
 | P3 Hugging Face gated models | Requested; **pending**, not assumed |
 | P4 Kaggle | Phone verified |
-| P5 Gemini and Groq | Gemini key created (no billing; not yet in `.env`). Groq ZDR enabled for inference APIs; whether it covers speech-to-text is [UNVERIFIED]. No audio to Groq yet. |
+| P5 Gemini and Groq | Gemini key created (no billing) and in `.env` since 2026-10-12. It was pasted into a chat session, so rotate it before any real data is used. Groq ZDR enabled for inference APIs; whether it covers speech-to-text is [UNVERIFIED]. No audio to Groq yet. |
 | P8 Demo laptop | i5-13450HX, 10 cores / 16 threads, 14 GiB RAM, kernel 7.0.0-34-generic. Ubuntu 26.04.1 LTS (read 2026-10-06). P8 done. |
 | P9 Docker | Memory limit chosen: 8 GB (user, 2026-10-05). **Docker not installed yet. Blocks M6 and rule 6a.** |
 | Media folder and spike log | Decided (user, 2026-10-05): `~/hl-spike-media/` and `~/hl-spike-media/spike-log.md` (append-only, timestamped, no raw content). Folder not created yet. |

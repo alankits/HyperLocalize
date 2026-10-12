@@ -153,7 +153,7 @@ HL_FFPROBE = _env("HL_FFPROBE", "")
 
 # Optional real-provider credentials. Absent keys simply disable that adapter.
 HL_GEMINI_API_KEY = _env("HL_GEMINI_API_KEY", "")
-HL_GEMINI_MODEL = _env("HL_GEMINI_MODEL", "gemini-2.5-flash")
+HL_GEMINI_MODEL = _env("HL_GEMINI_MODEL", "gemini-3.5-flash")
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False  # htmx reads the token from the meta tag, not the cookie.

@@ -13,7 +13,12 @@ from django.conf import settings
 # --------------------------------------------------------------------------- errors
 
 class ProviderError(Exception):
-    """Base class. Non-transient unless a subclass says otherwise."""
+    """Base class. Non-transient unless a subclass says otherwise.
+
+    The message is written to the append-only audit log (PROVIDER_SKIPPED), so it must never
+    contain provider input or output (prompts, transcripts, model text) or a key: fixed wording
+    and HTTP status codes only.
+    """
 
     transient = False
 
@@ -35,7 +40,14 @@ class ProviderOutputInvalid(ProviderError):
 
 
 class NoProviderAvailable(Exception):
-    """Every adapter in the chain failed or none is registered for this mode."""
+    """Every adapter in the chain failed or none is registered for this mode.
+
+    `skipped` lists (adapter name, reason) so callers can audit why each one was passed over.
+    """
+
+    def __init__(self, message, skipped=()):
+        super().__init__(message)
+        self.skipped = list(skipped)
 
 
 CHAIN_FALLTHROUGH = (QuotaExhausted, RateLimited, Unavailable, ProviderOutputInvalid)
@@ -267,4 +279,4 @@ def run_chain(stage, call, *, accept=None):
             continue
         return ChainOutcome(result, adapter, not first, skipped)
     detail = "; ".join(f"{n}: {r}" for n, r in skipped) or "no adapters configured"
-    raise NoProviderAvailable(f"No {stage} provider could run ({detail}).")
+    raise NoProviderAvailable(f"No {stage} provider could run ({detail}).", skipped)

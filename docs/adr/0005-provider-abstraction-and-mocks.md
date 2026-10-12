@@ -67,3 +67,16 @@ The processors used are recorded in the Consent and in the evidence manifest.
 - **−** Local CPU models compete with the web app for laptop RAM and CPU. Peak RAM is measured in the spike.
 - **−** Free-tier limits aren't always published (Gemini's are only visible in AI Studio), so the ledger's warnings use observed limits.
 - **Viva in 2 minutes:** "Every AI stage has a free primary, a free plan B and a test-only mock. Whichever one ran is shown to the reviewer, mocks can never be exported, voice data never goes to a free-tier LLM, and we spend nothing."
+
+### Implementation note (2026-10-12; approved by the user; no decision changed)
+These notes come from the live Gemini trial (`docs/trials/2026-10-12-gemini-live-trial.md`).
+- **Audit semantics for provider skips:** when a real adapter is passed over, the audit log records `PROVIDER_SKIPPED` with the stage, the adapter and the reason.
+  - This covers the data-use rule and provider failures, which are reasons starting `QuotaExhausted:`, `RateLimited:`, `Unavailable:` or `ProviderOutputInvalid:`.
+  - It is recorded even when the whole chain fails (`NoProviderAvailable`, the normal case in demo mode).
+  - Localization records it per scene; the meaning check records it per segment, with `segment_id`.
+  - "Not configured" skips are not audited.
+- **Audit semantics for fallbacks:** `PROVIDER_FALLBACK` records the adapter that ran and the names it ran `after`.
+- **Message rule:** provider error messages go into the append-only audit log, so they must never contain provider input or output, or a key.
+- **Gemini 429s:** Google's QuotaFailure `quotaId` separates a daily quota ("PerDay", giving `QuotaExhausted`) from a shorter limit (giving `RateLimited`). A `RateLimited` is retried once if RetryInfo asks for a wait of 20 s or less and the call stays within 75 s.
+- **[MEASURED]** The free-tier limit seen for `gemini-3.5-flash` was 20 requests per day per project per model. Both Gemini adapters share that pool.
+
