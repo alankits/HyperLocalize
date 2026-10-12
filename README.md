@@ -42,7 +42,7 @@ The demo walk-through is in [`docs/USER_MANUAL.md`](docs/USER_MANUAL.md).
 HYPERLOCALIZE_MODE=test .venv/bin/python manage.py test hyperlocalize
 ```
 
-Last run: 126 passed, 1 optional skipped.
+Last run (2026-10-12): 139 passed, 1 optional skipped.
 
 ## Repository map
 

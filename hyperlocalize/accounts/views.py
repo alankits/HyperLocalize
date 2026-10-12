@@ -41,6 +41,7 @@ def policies(request):
     """UC8: the Administrator edits policies (ADR 0004, ADR 0011, ADR 0015) and provider chains (ADR 0005)."""
     from django.db import transaction
 
+    from hyperlocalize.pipeline import quota
     from hyperlocalize.pipeline.models import ProviderConfig
     from hyperlocalize.pipeline.providers.base import DEFAULT_CHAINS, chain_for, registered
 
@@ -48,6 +49,8 @@ def policies(request):
     if request.method == "POST":
         with transaction.atomic():
             for key, default in Policy.DEFAULTS.items():
+                if isinstance(default, dict):
+                    continue  # structured policies are saved below
                 if isinstance(default, bool):
                     value = request.POST.get(key) == "on"
                 else:
@@ -56,6 +59,16 @@ def policies(request):
                     except ValueError:
                         value = default
                 Policy.objects.update_or_create(key=key, defaults={"value": value})
+            limits = {}
+            for a in registered():
+                if not quota.is_metered(a):
+                    continue
+                entry = quota.clean_limit({"limit": request.POST.get(f"quota_limit_{a.name}"),
+                                           "period": request.POST.get(f"quota_period_{a.name}"),
+                                           "unit_type": request.POST.get(f"quota_unit_{a.name}")})
+                if entry:  # a blank or invalid limit removes the entry
+                    limits[a.name] = entry
+            Policy.objects.update_or_create(key="provider_quota_limits", defaults={"value": limits})
             for stage in DEFAULT_CHAINS:
                 names = [n.strip() for n in request.POST.get(f"chain_{stage}", "").split(",") if n.strip()]
                 if names:
@@ -65,8 +78,15 @@ def policies(request):
         messages.success(request, "Policies saved.")
         return redirect("accounts:policies")
     adapters = registered()
+    limits = quota.configured_limits()
+    status = {row.adapter: row for row in quota.quota_status()}
     return render(request, "accounts/policies.html", {
-        "policies": [(k, Policy.get(k), isinstance(d, bool)) for k, d in Policy.DEFAULTS.items()],
+        "policies": [(k, k.replace("_", " ").capitalize(), Policy.get(k), isinstance(d, bool))
+                     for k, d in Policy.DEFAULTS.items() if not isinstance(d, dict)],
         "chains": [(stage, ", ".join(chain_for(stage))) for stage in DEFAULT_CHAINS],
         "adapters": adapters,
+        "quota_rows": [(a, limits.get(a.name), status.get(a.name)) for a in adapters if quota.is_metered(a)],
+        "periods": list(quota.PERIODS),
+        "unit_types": quota.UNIT_TYPES,
+        "warn_at": quota.WARN_AT_PERCENT,
     })

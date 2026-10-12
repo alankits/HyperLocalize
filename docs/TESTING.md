@@ -1,6 +1,6 @@
 # Testing
 
-**MEASURED (2026-10-06):** `HYPERLOCALIZE_MODE=test manage.py test hyperlocalize` gives **126 tests passed, 1 skipped** (an optional real-model test, which passes with `HL_TEST_WHISPER=1`). The run uses real PostgreSQL 17, real ffmpeg, MOCK AI providers and synthetic media. The spike tooling has its own suite: `cd spike && python3 -m unittest`, giving 75 passed and 1 skipped.
+**MEASURED (2026-10-12):** `HYPERLOCALIZE_MODE=test manage.py test hyperlocalize` gives **139 tests passed, 1 skipped** (126 on 2026-10-06, plus 13 quota and policy-page tests) (an optional real-model test, which passes with `HL_TEST_WHISPER=1`). The run uses real PostgreSQL 17, real ffmpeg, MOCK AI providers and synthetic media. The spike tooling has its own suite: `cd spike && python3 -m unittest`, giving 75 passed and 1 skipped.
 
 | Area | File | What is proven |
 |---|---|---|
@@ -12,6 +12,7 @@
 | Demo reset | `tests/test_demo_reset.py` | Administrator only; rebuild only appends; refusals for purposes, drift and withdrawal; a rehearsal revocation leaves the source and seed alone; offline-copy permission; drift warning |
 | Web layer | `tests/test_views.py` | Pages render per role; 403 for outsiders; wrong-role POSTs refused; previews only for members; **CP10 returns 410 after revocation**; the identity owner has no project access; admin-only policies; login rate limit; periodic sweeps; retention |
 | Providers | `pipeline/tests.py` | Mocks are absent in demo mode; chain fallback and Administrator order; data-use rule; Gemini parsing, quota handling and key-in-header against a **fake** HTTP layer; transcript parsing; job cancel and retry |
+| Quota warnings | `tests/test_quota.py` | No limit → no warning and never "safe"; the 80% and 100% boundaries; rolling day and week windows; only recorded units count; invalid, unregistered, unmetered and mock entries refused; Administrator only; the change is audited; `check_providers` reports it |
 | Checks | `localization/tests.py` | Numbers (digits, words, Tamil digits, Indian grouping, the fail-safe for number words, an unknown language pair); units; conversions; glossary; structure; scene planning |
 
 **End-to-end over HTTP (MEASURED 2026-10-06):** `scripts/e2e_check.py`, run against a live server and worker on a separate database: **15/15 steps passed**.
@@ -19,5 +20,5 @@
 **Not tested:**
 - any real AI model on real data;
 - the Docker images;
-- a browser (only the Django test client and curl);
+- browser interaction beyond page loads. **2026-10-12:** a headless Chromium walk-through loaded eight pages, one per role, all HTTP 200, and saved screenshots in `docs/screenshots/`. Forms were not submitted in the browser;
 - performance and load.

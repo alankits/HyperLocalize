@@ -45,6 +45,9 @@ class Policy(models.Model):
         "synthesis_allowed": True,  # False → SUBTITLES_ONLY (ADR 0015)
         "preview_retention_days": 30,  # ADR 0004, Q15
         "export_retention_days": 90,  # ADR 0004, Q15
+        # ADR 0005 quota warnings: {adapter: {"limit": int, "period": "day"|"week", "unit_type": ...}},
+        # entered by the Administrator from the provider's console. Empty → no warnings.
+        "provider_quota_limits": {},
     }
 
     def __str__(self):

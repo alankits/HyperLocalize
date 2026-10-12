@@ -59,4 +59,5 @@ video { width: 100%; max-height: 360px; background: #000; border-radius: 6px; }
 .scene-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 details summary { cursor: pointer; color: var(--brand); font-size: 13px; }
 code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+td.mono { overflow-wrap: anywhere; }  /* long hashes in audit details wrap inside the panel */
 .empty { color: var(--muted); font-style: italic; }

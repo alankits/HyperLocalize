@@ -130,6 +130,6 @@ Importing pre-rendered cloned audio into the seed is **not implemented**.
 - Live Gemini calls (tested only against a fake HTTP layer).
 - Visual context.
 - Remote runtimes (Kaggle), external ASR (CP0), and CP3.
-- Free-quota warnings.
+- Usage metering for transcription and speech (only real localization and meaning-check adapters write the usage ledger; quota warnings cover those).
 - C2PA.
 - Lip-sync and face processing (out of scope).

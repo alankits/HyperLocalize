@@ -7,11 +7,11 @@
 <div class="grid">
   <div class="panel">
     <h2>Policies</h2>
-    {% for key, value, is_bool in policies %}
+    {% for key, label, value, is_bool in policies %}
       {% if is_bool %}
-        <label><input type="checkbox" name="{{ key }}" {% if value %}checked{% endif %}> {{ key|cut:"_"|capfirst }} <code>{{ key }}</code></label>
+        <label><input type="checkbox" name="{{ key }}" {% if value %}checked{% endif %}> {{ label }} <code>{{ key }}</code></label>
       {% else %}
-        <label>{{ key }}</label><input type="number" name="{{ key }}" value="{{ value }}" min="1">
+        <label>{{ label }} <code>{{ key }}</code></label><input type="number" name="{{ key }}" value="{{ value }}" min="1">
       {% endif %}
     {% endfor %}
     <p class="muted">synthesis_allowed off → every scene is SUBTITLES_ONLY. cloning_allowed off → STOCK_VOICE for everyone.</p>
@@ -25,6 +25,21 @@
       {% for a in adapters %}<tr><td><code>{{ a.name }}</code> {% if a.is_mock %}<span class="badge mock">MOCK</span>{% endif %}<div class="muted">{{ a.description }}</div></td><td>{{ a.stage }}</td><td>{% if a.available %}<span class="badge ok">yes</span>{% else %}<span class="badge warn">not configured</span>{% endif %}</td></tr>{% endfor %}
     </table>
   </div>
+</div>
+<div class="panel">
+  <h2>Free-quota warnings</h2>
+  <p class="muted">Enter each provider's free-tier limit from its own console; limits are never built in, because providers change them. A warning appears at {{ warn_at }}% of the limit over a rolling window. Nothing is blocked: when a provider really runs out, the chain moves to the next adapter. Leave the limit blank for no warning. Adapters that share one provider account are counted separately, so give each a share of the limit. Only real localization and meaning-check adapters record usage today; transcription, speech and MOCK adapters are not metered.</p>
+  <table><tr><th>Adapter</th><th>Limit</th><th>Unit</th><th>Window</th><th>Used</th></tr>
+    {% for a, limit, row in quota_rows %}<tr>
+      <td><code>{{ a.name }}</code></td>
+      <td><input type="number" name="quota_limit_{{ a.name }}" value="{{ limit.limit|default:'' }}" min="1" aria-label="Limit for {{ a.name }}"></td>
+      <td><select name="quota_unit_{{ a.name }}" aria-label="Unit for {{ a.name }}">{% for u in unit_types %}<option value="{{ u }}" {% if limit.unit_type == u %}selected{% endif %}>{{ u }}</option>{% endfor %}</select></td>
+      <td><select name="quota_period_{{ a.name }}" aria-label="Window for {{ a.name }}">{% for p in periods %}<option value="{{ p }}" {% if limit.period == p %}selected{% endif %}>last {{ p }}</option>{% endfor %}</select></td>
+      <td>{% if row %}{{ row.used }} / {{ row.limit }} ({{ row.percent }}%)
+            {% if row.level == "EXHAUSTED" %}<span class="badge bad">exhausted</span>{% elif row.level == "WARN" %}<span class="badge warn">near limit</span>{% else %}<span class="badge ok">ok</span>{% endif %}
+          {% else %}<span class="muted">no limit configured</span>{% endif %}</td>
+    </tr>{% endfor %}
+  </table>
 </div>
 <button type="submit">Save</button>
 </form>

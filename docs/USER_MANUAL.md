@@ -70,6 +70,7 @@ The chain is *tamper-evident, not tamper-proof*.
 ## 7. Administrator (`admin`)
 
 - **Policies & providers:** synthesis and cloning switches, retention days, separation of duties, and the provider chain order per stage. The page shows which adapters are ready and which are MOCK.
+- **Free-quota warnings** (same page): enter each real provider's free-tier limit from its own console (requests per day or week). The page and `check_providers` warn at 80% and at 100% of that limit over a rolling window. Nothing is blocked; the limits are never built in, and an adapter without a limit shows "no limit configured".
 - `/admin/` manages users and memberships only. Administrators **cannot grant consent**.
 
 ## Demo-day commands

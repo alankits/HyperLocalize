@@ -91,17 +91,17 @@ sequenceDiagram
   W->>W: extract audio, transcribe (chain), shot cuts
   W->>DB: speakers, segments, scenes
   W->>Q: localize
-  W->>W: build context per scene; localization chain
+  W->>W: build context per scene, localization chain
   W->>DB: SegmentTranslation v1 + hard checks + AI flags
   W->>Q: render_scene (per scene)
-  W->>W: resolve mode per speaker from consent; synthesise; mix
-  W->>DB: RenderedScene; scene IN_REVIEW
+  W->>W: resolve mode per speaker from consent, synthesise, mix
+  W->>DB: RenderedScene, scene IN_REVIEW
   RV->>Web: edit / override with reason / acknowledge / regenerate one scene
   RV->>Web: accept scene (blocked while checks are open)
   LM->>Web: approve (gate: accepted, no blocking checks, current previews, CP8, separation of duties)
   Web->>DB: Approval snapshot + audit APPROVED
   LM->>Web: export (refused if any MOCK artefact or consent invalid)
-  W->>DB: CP9 under owner lock; package + manifest with chain head; audit EXPORT_CREATED
+  W->>DB: CP9 under owner lock, package + manifest with chain head, audit EXPORT_CREATED
 ```
 
 ## 4. Sequence: revocation while a cloned-voice job runs (tested: `test_running_job_is_stopped_within_seconds`)
@@ -115,13 +115,13 @@ sequenceDiagram
   participant C as Inference subprocess
   W->>C: synthesise segment (MOCK cloned voice)
   IO->>ID: revoke project consent
-  ID->>DB: lock IdentityOwner; insert REVOKED version
-  ID->>DB: cancel QUEUED jobs; flag RUNNING job cancel_requested
-  ID->>DB: quarantine this project's cloned artefacts; invalidate approvals; block exports
-  ID->>DB: scenes NEEDS_REGENERATION; queue purge + stock-voice fallback renders; audit CONSENT_REVOKED
+  ID->>DB: lock IdentityOwner, insert REVOKED version
+  ID->>DB: cancel QUEUED jobs, flag RUNNING job cancel_requested
+  ID->>DB: quarantine this project's cloned artefacts, invalidate approvals, block exports
+  ID->>DB: scenes NEEDS_REGENERATION, queue purge + stock-voice fallback renders, audit CONSENT_REVOKED
   W->>DB: 1-second poll sees cancel / consent changed
   W->>C: kill
-  W->>DB: job CANCELLED (CONSENT_REVOKED); quarantine segments saved by this job
+  W->>DB: job CANCELLED (CONSENT_REVOKED), quarantine segments saved by this job
   Note over W,DB: purge job deletes quarantined audio, render files, revoked packages, reference clips
 ```
 

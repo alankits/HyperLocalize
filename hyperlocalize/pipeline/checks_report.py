@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from hyperlocalize import media_tools
 
+from . import quota
 from .models import ProviderUsage
 from .providers.base import DEFAULT_CHAINS, chain_for, get_adapter, registered
 
@@ -37,9 +38,13 @@ def report():
         except media_tools.MediaError as exc:
             warnings.append(str(exc))
     since = timezone.now() - timedelta(hours=24)
+    limits = quota.configured_limits()
     for row in ProviderUsage.objects.filter(created_at__gte=since).values("adapter", "unit_type").annotate(n=Sum("units")):
-        lines.append(f"usage (24 h): {row['adapter']} {row['n']} {row['unit_type']} "
-                     "(free-tier limits are not configured; check the provider's console)")
+        note = "" if row["adapter"] in limits else " (no free-tier limit configured; check the provider's console)"
+        lines.append(f"usage (24 h): {row['adapter']} {row['n']} {row['unit_type']}{note}")
+    for row in quota.quota_status():
+        lines.append(f"quota: {row.adapter} {row.used} / {row.limit} {row.unit_type} per {row.period} ({row.percent}%, {row.level})")
+    warnings += quota.quota_warnings()
     warnings += drift_warnings()
     return lines, warnings
 

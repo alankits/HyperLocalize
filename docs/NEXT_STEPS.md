@@ -1,6 +1,6 @@
 # Next Steps
 
-**Updated:** 2026-10-06 · **Phase:** 0 (Discovery and Design) · **Branch:** `phase0/spike-scripts`. **Do not merge to `master` yet** (user instruction, 2026-10-05). **Do not run the spike on real data and do not record yet** (user instruction, 2026-10-05).
+**Updated:** 2026-10-12 · **Phase:** 1 (MVP build, authorized 2026-10-06) · **Branch:** `phase0/spike-scripts`. **Do not merge to `master` yet** (user instruction, 2026-10-05). **Do not run the spike on real data and do not record yet** (user instruction, 2026-10-05).
 
 ## Done
 - Phase 0 report (rev 4), ADRs 0001–0019, spike plan, third-party terms, ADR self-review and independent review.
@@ -55,28 +55,37 @@ The form may now be signed only **after** the test script is frozen and every Ap
   - SF7: Phase 0 header and §0 stack;
   - SF8: team size is now one developer.
 
-## Exact next action (2026-10-06, end of the MVP build session)
+## Session 2026-10-12
 **Done and verified:**
-- MVP workflow UC1–UC9 on MOCK providers, a human transcript and human edits.
-- Consent gate and revocation, including a mid-job kill.
-- ADR 0020 demo commands.
-- Candidate adapters: faster-whisper and Gemini.
-- Independent code review: 1 blocker and 6 majors, all fixed (`docs/CODE_REVIEW.md`).
-- 126 tests pass, 1 optional skipped.
-- End-to-end HTTP check: 15/15.
-- Documentation set: README, ARCHITECTURE, USER_MANUAL, DEVELOPER, TESTING, EVALUATION, VIVA, UML.
+- Re-ran the suites before any change: 126 pass and 1 is skipped; spike: 75 pass and 1 is skipped.
+- **Free-quota warnings (ADR 0005, UC8).**
+  - Code: `pipeline/quota.py`, the Policies page, and `check_providers`.
+  - The Administrator enters the limits; none are built in, and an unconfigured adapter is never shown as "safe".
+  - Warnings at 80% and 100% over rolling 24 h or 7 day windows. Warn only: nothing is blocked.
+  - Limits are offered only where usage is really recorded: real localization and meaning-check adapters, in requests.
+  - No schema change: a new `Policy` key, `provider_quota_limits`.
+- **UML render check:** all 10 Mermaid diagrams render (mermaid-cli 11.4.2). One sequence diagram was broken by semicolons; fixed.
+- **Browser walk-through:** eight role pages in headless Chromium, all HTTP 200; screenshots in `docs/screenshots/`.
+  - Two UI bugs found and fixed: policy labels read "Separationofduties", and audit hashes ran past the panel edge.
+- Stale STATUS entries corrected: UC8 users via Django admin and the retention sweeps were already built.
+- **Tests: 139 pass, 1 optional skipped** (126 + 13 new).
 
-**User actions and decisions (blocking the real-data spike and real providers):**
-1. GitHub: give the URL of an empty private repo; the assistant adds the remote and pushes. Nothing is backed up yet.
+**Not done / known gaps:**
+- Transcription and speech usage is not metered.
+- The Kaggle GPU-hours quota (ADR 0019) has no adapter yet.
+- Two Gemini adapters that share one account are counted separately.
+
+## Exact next action
+**User actions and decisions (blocking the real-data spike and real providers):** unchanged from 2026-10-06.
+1. GitHub: give the URL of an empty private repo; the assistant adds the remote and pushes. **Nothing is backed up off this laptop yet.**
 2. Install Docker: `sudo apt install docker.io docker-compose-v2`. Then the assistant runs `docker compose up` and records the result.
 3. Solo plan (`docs/SOLO_PLAN.md`): choose the Speaker B option (A: volunteer; B: dataset impostor set, which needs approval). Recruit a Tamil-literate rater (R1).
 4. External transcription after the spike: (a) local ASR only, or (b) add a D5 tick.
 5. Optional: put the Gemini free-tier key in `.env` (`HL_GEMINI_API_KEY`) to try the candidate adapter live, on SCRIPTED_TEAM projects only.
 
 **Next engineering tasks (no approval needed):**
-- importing pre-rendered cloned audio into the demo seed;
-- free-quota warnings;
-- a mermaid render check of `docs/uml/`;
-- a browser walk-through with screenshots for the PPT.
+- importing pre-rendered cloned audio into the demo seed (stock or MOCK only until real consent exists; interim rule);
+- a browser walk-through that submits forms (review → approve → export refusal), extending `scripts/e2e_check.py`;
+- the optional SHOULD FIX wording items SF2–SF8 listed above.
 
 No merges, no real-data spike, no recordings until approved.

@@ -1,7 +1,7 @@
 # HyperLocalize — Implementation Status
 
 **Current phase:** Phase 1: MVP build (authorized by the user 2026-10-06). **Application code exists** in `hyperlocalize/` (Django modular monolith). The throwaway spike tooling in `spike/` is separate.
-**Branch:** `phase0/spike-scripts` (local only; **no GitHub remote is configured**). `master` holds the Phase 0 design. The user said not to merge yet.
+**Branch:** `phase0/spike-scripts` (local only; **no GitHub remote is configured**). `master` holds the Phase 0 design (the repo has no `main` branch). The user said not to merge yet.
 **Resume a session from:** this file → `docs/NEXT_STEPS.md` → `docs/adr/README.md`.
 **Canonical product definition:** `docs/PRODUCT.md`. The health/ORS, English → Tamil material is the **spike and demo scenario**, not the product.
 **How to run:** `README.md`. In short: `scripts/run_dev.sh`, then `python manage.py seed_demo`.
@@ -19,7 +19,7 @@ Labels: [IMPLEMENTED] = written **and** tested (tests listed); [PARTIAL]; [DESIG
 | 5 | Review and Regenerate a Scene | [IMPLEMENTED] | Edits create HUMAN versions; override with a reason / acknowledge; accept; scene-only regeneration (script with an instruction, or preview) |
 | 6 | Approve and Export Localization Package | [IMPLEMENTED] | Approval gate (all scenes accepted, no blocking checks, current previews, consent CP8, separation of duties). Export refused for MOCK output or invalid consent (CP9). Package: video, SRT, VTT, script, quality report, evidence manifest with the audit chain head |
 | 7 | Revoke Consent and Stop Identity | [IMPLEMENTED] with MOCK voices | Standing and project consent, gate, locked saves, scope-only cascade, **mid-job kill tested**, purge, withdrawal, expiry sweep. ADR 0020 demo commands: see below |
-| 8 | Administer Users, Providers and Policies | [PARTIAL] | Policies and provider chains page; users via Django admin is **not wired** (accounts are created by `seed_demo` or `createsuperuser`). Quota warnings: usage ledger model exists; **warnings not implemented** |
+| 8 | Administer Users, Providers and Policies | [IMPLEMENTED] | Policies and provider chains page. Users and memberships via Django admin (the seeded `admin` is staff and superuser). **Free-quota warnings (2026-10-12):** the Administrator enters each limit, with warnings at 80% and 100% on the page and in `check_providers`; tests: `tests/test_quota.py`. Only real localization and meaning-check adapters are metered; transcription and speech are not |
 | 9 | Inspect Quality, Audit and Evidence | [IMPLEMENTED] | Audit trail filters, chain verification on demand, overrides list; `verify_audit_chain` command |
 
 ## Stubs / mocks (ADR 0005; never exportable)
@@ -36,7 +36,7 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 
 ## Tests
 
-**MEASURED (2026-10-06):** 126 tests pass, 1 optional skipped (latest run after the code-review fixes; earlier counts: 102, 114) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
+**MEASURED (2026-10-12):** 139 tests pass, 1 optional skipped (earlier counts: 102, 114, 126) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
 
 **End-to-end over HTTP (MEASURED 2026-10-06):** `scripts/e2e_check.py` against a live dev server and worker: **15/15 steps passed**:
 - consent, then a cloned-voice preview (MOCK);
@@ -46,13 +46,17 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 - a subtitles-only real export downloaded with its evidence manifest;
 - the auditor verifying the chain.
 
+**UML render check (2026-10-12):** all 10 Mermaid diagrams render with mermaid-cli 11.4.2: 8 in `docs/uml/README.md`, the class diagram, and the Phase 0 diagram. Semicolons in 9 sequence-diagram messages had broken one diagram; fixed.
+
+**Screenshots (2026-10-12):** `docs/screenshots/`, eight pages (one per role) taken in headless Chromium from a throwaway seeded database. They show MOCK output.
+
 ## Known limitations (MVP build)
 
 - **No real AI model has been run.** Every quality, speed or accuracy figure is NOT MEASURED.
 - Docker is not installed on the laptop: `docker-compose.yml` and `Dockerfile` are **written but never run**. Development uses `scripts/dev_postgres.sh` (embedded PostgreSQL 17 binaries) and the `static-ffmpeg` package.
 - The demo video is synthetic (test patterns and a tone). The demo script's health facts are [UNVERIFIED] (TEST_SCRIPT §4).
 - Tamil number-word stems, unit forms and glossary forms are drafts or empty until a Tamil-literate rater fills them in, so many checks are UNVERIFIABLE by design (fail-safe).
-- Retention sweeps (previews 30 days, exports 90 days) are [DESIGNED] (ADR 0004), not implemented.
+- Retention sweeps (previews 30 days, exports 90 days; ADR 0004) are implemented and run hourly from `run_worker` (tested in `tests/test_views.py`). The source video is kept until the project is deleted.
 - CP0 / CP3 (external ASR, Kaggle upload) have no code path yet, because no remote provider is integrated. The `external_transcription` consent use is therefore **not enforced by any gate** today.
 - Independent code review of the consent and audit code: 1 blocker and 6 majors, **all fixed** (`docs/CODE_REVIEW.md`).
 
