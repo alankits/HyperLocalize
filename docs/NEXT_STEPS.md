@@ -81,7 +81,7 @@ The form may now be signed only **after** the test script is frozen and every Ap
 2. Install Docker: `sudo apt install docker.io docker-compose-v2`. Then the assistant runs `docker compose up` and records the result.
 3. Solo plan (`docs/SOLO_PLAN.md`): choose the Speaker B option (A: volunteer; B: dataset impostor set, which needs approval). Recruit a Tamil-literate rater (R1).
 4. External transcription after the spike: (a) local ASR only, or (b) add a D5 tick.
-5. Optional: put the Gemini free-tier key in `.env` (`HL_GEMINI_API_KEY`) to try the candidate adapter live, on SCRIPTED_TEAM projects only.
+5. ~~Put the Gemini key in `.env`~~ **Done 2026-10-12:** a Google AI Studio key is in `.env` (mode 600, git-ignored). It is verified by a model-list call only (HTTP 200, `gemini-2.5-flash` listed; no content sent). The adapter has **not** been called live yet. That waits for the user's go-ahead, on SCRIPTED_TEAM projects only. The key was pasted into a chat session, so rotate it before any real data is used.
 
 **Next engineering tasks (no approval needed):**
 - importing pre-rendered cloned audio into the demo seed (stock or MOCK only until real consent exists; interim rule);
