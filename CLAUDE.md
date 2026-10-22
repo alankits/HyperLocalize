@@ -187,6 +187,12 @@ Wait for the user's approval before:
 
 For everything else, proceed without asking.
 
+### c2) Human review is the human's (user rule, 2026-10-22; never relax without the user)
+- **The assistant never accepts scenes, resolves or overrides checks, approves, or exports through any user account**, whether by UI, HTTP, session, shell, script, or a direct database or service call. Governance actions belong to the human reviewer and approver.
+- **Test runs stop at Human Review.** The assistant may create a test project, upload, and run analysis, localization and previews. Then it reports the state and the user reviews and approves in the browser.
+- If evidence is ever produced in breach of this rule, withdraw it, audit the withdrawal, and say so.
+- Background: on 2026-10-22 the assistant reviewed and approved the clip 01 test export through the demo `reviewer`/`manager` accounts (commit `e353011` era). That export was withdrawn as "NOT human-reviewed (agent test run)".
+
 ### d) Token efficiency
 - Keep replies short: a summary, the decisions needed, and the next step. Put long content in files, not chat.
 - Don't re-read files already read in this session unless they changed.
