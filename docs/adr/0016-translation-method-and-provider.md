@@ -1,5 +1,7 @@
 # ADR 0016: Context-aware translation method and providers (English → Tamil)
 
+> **Amended by ADR 0021 (2026-10-22):** prompt `loc-v2` requires `speech_text` to be fully speakable target script (numbers as words, names transliterated). ADR 0021 takes precedence where they differ.
+
 **Status:** Pending spike results (provisional decision recorded 2026-10-05; revised the same day for zero budget). Not approved.
 **Source:** `docs/PHASE0_DISCOVERY.md` §4; ADRs 0005, 0008; `docs/THIRD_PARTY_TERMS.md`; `docs/SPIKE_PLAN.md` M2–M3
 

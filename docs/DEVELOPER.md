@@ -16,6 +16,7 @@
 - **Workers:** `manage.py run_worker --lane default` and `--lane synthesis` (or `--lane all`). `--drain` runs until the queue is empty.
 - **Tests:** `HYPERLOCALIZE_MODE=test manage.py test hyperlocalize`.
   - The optional real-model test needs `HL_TEST_WHISPER=1` and a downloaded model.
+  - The optional MMS-TTS real-model test needs `HL_TEST_MMS=1` and `manage.py download_models --mms-tts`.
   - `TransactionTestCase` subclasses must use `AuditSafeTransactionTestCase`: the audit trigger correctly blocks Django's TRUNCATE flush.
 - **UML:** `python scripts/generate_uml.py` regenerates `docs/uml/class_diagram.md` from the models. Run it after every model change.
 
@@ -36,7 +37,7 @@
 4. **Raise errors that move the chain on:**
    - `QuotaExhausted`, `RateLimited` and `Unavailable` make the chain try the next adapter;
    - `ProviderOutputInvalid` does too, for malformed output.
-5. **Data-use rules:** set `requires_scripted_team = True` for free-tier hosted LLMs.
+5. **Data-use rules (ADR 0005/0021):** every localization and meaning-check adapter must declare `requires_hosted_llm_permission`: `True` for free-tier hosted LLMs, `False` for local models. An adapter that omits it is treated as hosted (fails closed), and a test checks that every registered adapter declares it.
 6. **Local heavy models** run in the inference subprocess (`pipeline/inference.py`) so that the worker can kill them.
 7. Add it to the chain in `DEFAULT_CHAINS`, or have an Administrator set it on the Policies page.
 8. Add tests. Use a fake transport for remote APIs, as `GeminiAdapterTests` does.

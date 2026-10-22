@@ -17,8 +17,18 @@
   </div>
   <label>Cultural notes for the localizer</label><textarea name="cultural_notes">{{ form.cultural_notes }}</textarea>
   <h3>Data classification</h3>
-  <label><input type="radio" name="data_classification" value="PERSONAL" checked> May contain personal data: hosted free-tier AI is skipped</label>
-  <label><input type="radio" name="data_classification" value="SCRIPTED_TEAM"> Scripted, team-authored content: text may go to a free-tier hosted LLM (which may train on it)</label>
+  {% with dc=form.data_classification|default:"PERSONAL" %}
+  <label><input type="radio" name="data_classification" value="PERSONAL" {% if dc == "PERSONAL" %}checked{% endif %}> May contain personal data: hosted free-tier AI is skipped</label>
+  <label><input type="radio" name="data_classification" value="SCRIPTED_TEAM" {% if dc == "SCRIPTED_TEAM" %}checked{% endif %}> Scripted, team-authored content: text may go to a free-tier hosted LLM (which may train on it)</label>
+  <label><input type="radio" name="data_classification" value="PUBLISHED_PUBLIC" {% if dc == "PUBLISHED_PUBLIC" %}checked{% endif %}> Published public content whose licence permits adaptation (e.g. public domain, CC BY; not "NoDerivatives"): text may go to a free-tier hosted LLM (which may train on it)</label>
+  {% endwith %}
+  <fieldset class="panel" style="margin-top:8px">
+    <legend>Source provenance (required for published public content; recorded in the audit trail and the export evidence)</legend>
+    <label>Source URL (where the original is published)</label><input type="url" name="source_url" value="{{ form.source_url }}" placeholder="https://commons.wikimedia.org/wiki/File:...">
+    <label>Licence or reuse permission</label><input type="text" name="source_licence" value="{{ form.source_licence }}" placeholder="e.g. Public domain (US federal work), CC BY 3.0">
+    <label>Attribution / credit line (required for CC BY licences)</label><input type="text" name="source_attribution" value="{{ form.source_attribution }}" placeholder="e.g. San Francisco Government Television">
+    <p class="muted">You confirm the licence yourself; the system records it but does not verify it. Voice cloning still needs the speaker's own consent.</p>
+  </fieldset>
   <p><button type="submit">Create project</button></p>
 </form>
 {% endblock %}

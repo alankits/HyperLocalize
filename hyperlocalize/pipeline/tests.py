@@ -92,7 +92,7 @@ class ChainTests(TestCase):
     def test_data_use_rule_skips_hosted_llm(self):
         with override_settings(HL_GEMINI_API_KEY="test-key"):
             outcome = base.run_chain("localization", lambda a: a.localize(request()),
-                                     accept=lambda a: "data-use rule" if getattr(a, "requires_scripted_team", False) else None)
+                                     accept=lambda a: "data-use rule" if getattr(a, "requires_hosted_llm_permission", False) else None)
         self.assertEqual(outcome.adapter.name, "mock_localization")
         self.assertIn("data-use rule", outcome.skipped[0][1])
 

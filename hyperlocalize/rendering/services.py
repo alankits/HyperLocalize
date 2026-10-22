@@ -22,7 +22,7 @@ from hyperlocalize.identity.models import Use, VoiceProfile
 from hyperlocalize.localization.models import Scene
 from hyperlocalize.localization.services import latest_translations
 from hyperlocalize.pipeline import jobs
-from hyperlocalize.pipeline.inference import InferenceProcess
+from hyperlocalize.pipeline.inference import InferenceError, InferenceProcess
 from hyperlocalize.pipeline.providers.base import chain_for, get_adapter
 from hyperlocalize.projects.storage import get_storage
 
@@ -132,7 +132,10 @@ def render_scene(job, ctx):
                 poll()  # CP4 before the segment starts
                 request["reference_clip"] = str(storage.local_path(profile.storage_key))
                 request["reference_text"] = profile.transcript
-            result = inference.call(request, poll=poll)
+            try:
+                result = inference.call(request, poll=poll)
+            except InferenceError as exc:
+                raise InferenceError(f"segment {seg.index + 1}: {exc}") from None
             syn = _save_synthesised(seg, t, localization, result, mode, adapter, check, project, out_path, job)
             if syn is None:  # CP5 refused: consent changed between synthesis and save
                 raise jobs.JobCancelled("CONSENT_REVOKED")

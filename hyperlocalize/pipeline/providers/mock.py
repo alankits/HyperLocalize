@@ -65,6 +65,7 @@ class MockTranslationProvider(TranslationProvider):
     """MOCK: copies the source, applies glossary target terms, keeps digits. Not a translation."""
 
     name = "mock_localization"
+    requires_hosted_llm_permission = False  # local, no data leaves the laptop
     is_mock = True
     description = "MOCK localization (copies the source text; no model is called)"
 
@@ -98,6 +99,7 @@ class MockMeaningCheckProvider(MeaningCheckProvider):
     """MOCK: flags every source segment that contains a negation word, for the reviewer to check."""
 
     name = "mock_meaning_check"
+    requires_hosted_llm_permission = False  # local, no data leaves the laptop
     is_mock = True
     description = "MOCK meaning check (keyword rule, not an AI model)"
 

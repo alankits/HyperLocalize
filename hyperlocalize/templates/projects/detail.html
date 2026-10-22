@@ -14,9 +14,10 @@
     <h2 style="margin-top:0">Source video</h2>
     {% if video %}
       <p>{{ video.original_name }} · {{ video.duration_ms|floatformat:0 }} ms · <span class="badge {% if video.status == 'ANALYZED' %}ok{% elif video.status == 'FAILED' %}bad{% else %}info{% endif %}">{{ video.get_status_display }}</span></p>
-      {% if video.transcript_adapter %}<p class="muted">Transcript: <code>{{ video.transcript_adapter }}</code> {% if video.transcript_is_mock %}<span class="badge mock">MOCK</span>{% else %}<span class="badge ok">not AI-generated</span>{% endif %}</p>{% endif %}
+      {% if video.transcript_adapter %}<p class="muted">Transcript: <code>{{ video.transcript_adapter }}</code> {% if video.transcript_is_mock %}<span class="badge mock">MOCK</span>{% elif video.transcript_adapter == "manual_transcript" %}<span class="badge ok">human-made</span>{% else %}<span class="badge info">AI draft</span>{% endif %}</p>{% endif %}
       {% if video.error %}<p style="color:var(--bad)">{{ video.error }}</p>{% endif %}
       <p class="muted">SHA-256 <code>{{ video.sha256|truncatechars:20 }}</code></p>
+      {% if project.data_classification == "PUBLISHED_PUBLIC" %}<p class="muted">Published source: <a href="{{ project.source_url }}" rel="noopener noreferrer" target="_blank">{{ project.source_url|truncatechars:60 }}</a> · {{ project.source_licence }}{% if project.source_attribution %} · credit: {{ project.source_attribution }}{% endif %} <span class="badge">recorded, not verified</span></p>{% endif %}
     {% elif can_upload %}
       <form method="post" action="{% url 'projects:upload' project.pk %}" enctype="multipart/form-data">{% csrf_token %}
         <label>Video (MP4/MOV/MKV/WebM; MVP limit 5 min / 500 MB)</label><input type="file" name="video" accept="video/*" required>

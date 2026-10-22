@@ -128,11 +128,21 @@ def glossary_entries(project):
     ]
 
 
+def hosted_llm_allowed(project):
+    from hyperlocalize.projects.models import Project
+
+    if project.data_classification == Project.DataClassification.PUBLISHED_PUBLIC:
+        return bool(project.source_url and project.source_licence)  # provenance is a precondition (ADR 0021)
+    return project.data_classification in Project.HOSTED_LLM_ALLOWED
+
+
 def _data_use_rule(project):
-    """ADR 0005: free-tier hosted LLMs receive text only for team-authored scripted content."""
+    """ADR 0005 as amended by ADR 0021: free-tier hosted LLMs receive text only for team-authored scripted
+    content or for published public content whose source and licence are recorded. Fails closed: an adapter
+    that does not declare `requires_hosted_llm_permission` is treated as hosted."""
     def accept(adapter):
-        if getattr(adapter, "requires_scripted_team", False) and project.data_classification != "SCRIPTED_TEAM":
-            return "skipped: project is not marked as scripted, team-authored content (data-use rule)"
+        if getattr(adapter, "requires_hosted_llm_permission", True) and not hosted_llm_allowed(project):  # fail closed
+            return "skipped: project is not scripted team content or recorded published public content (data-use rule)"
         return None
     return accept
 
@@ -236,6 +246,21 @@ def _record_usage(adapter, stage, project):
         ProviderUsage.objects.create(adapter=adapter.name, stage=stage, units=1, unit_type="requests", project=project)
 
 
+def _speakable_check(t):
+    """ADR 0021: catch a speech script the Tamil stock voice would refuse BEFORE rendering, as a blocking
+    hard check. Runs only when MMS-TTS is the first available stock voice for a Tamil target."""
+    from hyperlocalize.pipeline.providers import mms_tts
+    from hyperlocalize.pipeline.providers.base import chain_for, get_adapter
+
+    if rules.language_of(t.localization.target_locale) != "ta":
+        return None
+    first = next((n for n in chain_for("speech_stock") if get_adapter(n) and get_adapter(n).available()), None)
+    if first != mms_tts.MmsTtsTamilStockVoiceProvider.name:
+        return None
+    problem = mms_tts.speakability_problem(t.speech_text)
+    return (CheckResult.Status.FAIL, [problem]) if problem else (CheckResult.Status.PASS, [])
+
+
 def _run_hard_checks(t, project):
     seg = t.segment
     results = rules.run_hard_checks(
@@ -246,6 +271,9 @@ def _run_hard_checks(t, project):
         sp = rules.check_numbers(seg.source_text, t.speech_text, project.source_language,
                                  rules.language_of(t.localization.target_locale))
         results["numbers_speech"] = sp
+    speakable = _speakable_check(t)
+    if speakable is not None:
+        results["speech_speakable"] = speakable
     for check_type, (status, details) in results.items():
         CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.HARD, check_type=check_type,
                                    status=status, detail={"messages": details})

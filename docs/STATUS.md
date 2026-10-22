@@ -13,9 +13,9 @@ Labels: [IMPLEMENTED] = written **and** tested (tests listed); [PARTIAL]; [DESIG
 | # | Use case | Status | Notes |
 |---|----------|--------|-------|
 | 1 | Create and Generate a Localization Project | [IMPLEMENTED] | Create, configure audience and glossary, add members, start the pipeline. Tests: `tests/test_workflow.py`, `tests/test_views.py` |
-| 2 | Upload and Analyze Source Video | [IMPLEMENTED] with MOCK or human transcript | ffprobe validation before acceptance, 5 min / 500 MB MVP limits, audio extraction, shot-cut detection, scenes and segments. **No real ASR model is integrated yet** (spike decides, ADR 0017): the transcript comes from a human-made SRT/VTT, or from `MockTranscriptionProvider` |
-| 3 | Generate Context-Aware Localization Preview | [IMPLEMENTED] with MOCK; real candidate adapter [PARTIAL] | Context: neighbouring segments, speaker, audience profile, glossary, timing budget, reviewer instruction. **Visual context is not implemented.** The Gemini candidate adapter is written and tested against a fake HTTP layer only; **First live smoke test on 2026-10-12** (`docs/trials/2026-10-12-gemini-live-trial.md`; throwaway DB, demo text only). With `gemini-3.5-flash` (now the default; `gemini-2.5-flash` returns 404 for new keys), it localized 11/11 segments, and 3/11 meaning checks fell back to MOCK after HTTP 429 (per-minute cause [INFERRED]). **This is not a quality evaluation.** The free tier allows **20 requests per day per model [MEASURED]**, and one 11-segment run uses about 13. Fixed and tested on 2026-10-12: the 429 classification and retry, and the provider skip/fallback audit, including demo mode. Not yet re-verified live (quota used up). Rule checks (ADR 0008) and AI flags are implemented |
-| 4 | Generate Localized Preview | [IMPLEMENTED] with MOCK voices | Backend-resolved rendering mode (CLONED / STOCK / SUBTITLES_ONLY), speech in a killable inference subprocess, bounded tempo, mixing, subtitles, scene preview MP4. **No real TTS or voice model yet** (ADR 0018): voices are MOCK tones |
+| 2 | Upload and Analyze Source Video | [IMPLEMENTED] | ffprobe validation before acceptance, 5 min / 500 MB MVP limits, audio extraction, shot-cut detection, scenes and segments. Transcript from a human-made SRT/VTT, else **faster-whisper `small` on CPU** (candidate, ADR 0017; ran on real clips 01 and 11 on 2026-10-22), else `MockTranscriptionProvider`. No speaker diarization: every segment is "Speaker 1" |
+| 3 | Generate Context-Aware Localization Preview | [IMPLEMENTED] with MOCK; real candidate adapter [PARTIAL] | **2026-10-22 (ADR 0021):** Gemini now also runs for `PUBLISHED_PUBLIC` projects with recorded source URL and licence; prompt `loc-v2` (speakable `speech_text`). Clip 01 run: 14/14 lines translated by Gemini after two fallbacks (HTTP 429, then 503) on scene 2. Context: neighbouring segments, speaker, audience profile, glossary, timing budget, reviewer instruction. **Visual context is not implemented.** The Gemini candidate adapter is written and tested against a fake HTTP layer only; **First live smoke test on 2026-10-12** (`docs/trials/2026-10-12-gemini-live-trial.md`; throwaway DB, demo text only). With `gemini-3.5-flash` (now the default; `gemini-2.5-flash` returns 404 for new keys), it localized 11/11 segments, and 3/11 meaning checks fell back to MOCK after HTTP 429 (per-minute cause [INFERRED]). **This is not a quality evaluation.** The free tier allows **20 requests per day per model [MEASURED]**, and one 11-segment run uses about 13. Fixed and tested on 2026-10-12: the 429 classification and retry, and the provider skip/fallback audit, including demo mode. Not yet re-verified live (quota used up). Rule checks (ADR 0008) and AI flags are implemented |
+| 4 | Generate Localized Preview | [IMPLEMENTED] stock voice; cloned voice MOCK | Backend-resolved rendering mode (CLONED / STOCK / SUBTITLES_ONLY), speech in a killable inference subprocess, bounded tempo, mixing, subtitles, scene preview MP4. **Stock voice: MMS-TTS Tamil on CPU (ADR 0021, 2026-10-22)**; refuses unspeakable text (digits, Latin letters) instead of dropping it. **Cloned voice: still MOCK** (ADR 0018 pending). **Timing fit is poor** (clip 01: 2/14 lines fit; overruns overlap; see ADR 0021) |
 | 5 | Review and Regenerate a Scene | [IMPLEMENTED] | Edits create HUMAN versions; override with a reason / acknowledge; accept; scene-only regeneration (script with an instruction, or preview) |
 | 6 | Approve and Export Localization Package | [IMPLEMENTED] | Approval gate (all scenes accepted, no blocking checks, current previews, consent CP8, separation of duties). Export refused for MOCK output or invalid consent (CP9). Package: video, SRT, VTT, script, quality report, evidence manifest with the audit chain head |
 | 7 | Revoke Consent and Stop Identity | [IMPLEMENTED] with MOCK voices | Standing and project consent, gate, locked saves, scope-only cascade, **mid-job kill tested**, purge, withdrawal, expiry sweep. ADR 0020 demo commands: see below |
@@ -29,14 +29,16 @@ Labels: [IMPLEMENTED] = written **and** tested (tests listed); [PARTIAL]; [DESIG
 | `MockTranscriptionProvider` | `pipeline/providers/mock.py` | Placeholder "[MOCK] Transcript segment N." every 4 s |
 | `MockTranslationProvider` | same | Copies the source, applies glossary target terms, prefix "[MOCK locale]" |
 | `MockMeaningCheckProvider` | same | Flags source segments that contain a negation word (a keyword rule, not AI) |
-| `MockStockVoiceProvider` | same | 440 Hz beeping tone, not speech |
+| `MockStockVoiceProvider` | same | 440 Hz beeping tone, not speech. Now only the fallback after `mms_tts_tamil` (ADR 0021) |
 | `MockClonedVoiceProvider` | same | 660 Hz beeping tone; imitates no one |
 
 Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`, the UI shows MOCK badges, and export is refused while any mock artefact is in the approved snapshot (tested).
 
 ## Tests
 
-**MEASURED (2026-10-12):** 150 tests pass, 1 optional skipped (earlier counts: 102, 114, 126, 139) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
+**MEASURED (2026-10-22, after ADR 0021 and its review fixes):** 180 tests pass, 2 optional real-model tests skipped (`HYPERLOCALIZE_MODE=test python manage.py test --noinput hyperlocalize`). The MMS-TTS real-model test passes with `HL_TEST_MMS=1`.
+
+**Earlier: MEASURED (2026-10-12):** 150 tests pass, 1 optional skipped (earlier counts: 102, 114, 126, 139) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
 
 **End-to-end over HTTP (MEASURED 2026-10-06):** `scripts/e2e_check.py` against a live dev server and worker: **15/15 steps passed**:
 - consent, then a cloned-voice preview (MOCK);
@@ -76,6 +78,19 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 - **Not yet run through the app** (analysis → translation → render → export). Translation quality on them: [NOT MEASURED].
 - The speakers have not consented to HyperLocalize: use `SUBTITLES_ONLY` / `STOCK_VOICE` only, never `CLONED_VOICE` (ADR 0006).
 - They do not replace the scripted, consented spike clip (`SPIKE_PLAN.md` §2).
+
+## ADR 0021 run (2026-10-22): first real end-to-end export
+
+- Project 4, clip 01 (`test_datasets/01_handwashing_sf_health_dept_en`, CC BY 3.0) went upload → Whisper → Gemini → MMS-TTS →
+  review → approve → **export ACTIVE**. Real Tamil speech and Tamil subtitles; evidence carries the source URL and licence.
+- **The review step was done by Claude in an automated test run, not by a human linguist** (stated in every override reason).
+- Measured on n = 1 clip (details in ADR 0021): back-transcription CER 0.17 (proxy); **2/14 lines fit their time slot**; Tamil
+  speech 79 s vs 58 s of slots; Gemini free tier hit 429 and 503 within one 58 s clip.
+- Tests: see the 2026-10-22 entry under Tests; new file `tests/test_published_public.py`. Trial record: `docs/trials/2026-10-22-clip01-adr0021-trial.md`.
+- Independent review (critical-reviewer): approve with changes, no blockers; fixes applied (fail-closed data-use rule, review-time `speech_speakable` check, licence rules, ADR honesty corrections). Open: number words unverified, chain/stage validation on the Policies page.
+- Known issues: timing overrun (no fix yet); one meaning-check call per line exhausts the free tier quickly (about 20 requests
+  per day per model); no retry on 503; export tracks tagged `und`; 3 approved lines carry a MOCK meaning check (now visible in
+  `quality_report.json`).
 
 ## Design documents
 

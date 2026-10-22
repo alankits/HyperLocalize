@@ -1,9 +1,11 @@
 """UC1 Create and configure a localization project; UC2 upload and validate the source video."""
 import os
+import re
 import tempfile
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.validators import URLValidator
 from django.db import transaction
 
 from hyperlocalize import media_tools
@@ -18,17 +20,44 @@ from .models import AudienceProfile, GlossaryTerm, Project, SpeakerTrack, Video
 from .storage import get_storage
 
 
+def _source_provenance(data_classification, source_url, source_licence, source_attribution):
+    """ADR 0021: published public content must record where it came from and why reuse is permitted."""
+    if data_classification not in Project.DataClassification.values:
+        raise ValidationError("Unknown data classification.")
+    source_url, source_licence, source_attribution = source_url.strip(), source_licence.strip(), source_attribution.strip()
+    if data_classification != Project.DataClassification.PUBLISHED_PUBLIC:
+        return "", "", ""  # provenance fields only mean something for published content
+    if not source_url or not source_licence:
+        raise ValidationError("Published public content needs the source URL and the licence or reuse permission.")
+    if len(source_url) > 500 or len(source_licence) > 300 or len(source_attribution) > 300:
+        raise ValidationError("The source URL (500), licence (300) or attribution (300) is too long.")
+    licence = source_licence.upper().replace("-", " ")
+    if re.search(r"\bND\b|NODERIV|NO DERIV", licence):
+        raise ValidationError("A NoDerivatives licence does not permit translation; this content cannot be localized.")
+    if re.search(r"\bCC BY\b", licence) and not source_attribution:
+        raise ValidationError("CC BY licences require attribution: enter the credit line.")
+    try:
+        URLValidator(schemes=["http", "https"])(source_url)
+    except ValidationError:
+        raise ValidationError("The source URL must be a full http(s) address.") from None
+    return source_url, source_licence, source_attribution
+
+
 @transaction.atomic
 def create_project(actor, *, name, source_language, target_locale, domain="", data_classification=Project.DataClassification.PERSONAL,
-                   formality="neutral", reading_level="general", cultural_notes=""):
+                   formality="neutral", reading_level="general", cultural_notes="",
+                   source_url="", source_licence="", source_attribution=""):
     """The creator becomes the project's Localization Manager (ADR 0011)."""
     if not actor.is_authenticated:
         raise PermissionDenied("Sign in first.")
     if not name.strip():
         raise ValidationError("A project name is required.")
+    source_url, source_licence, source_attribution = _source_provenance(
+        data_classification, source_url, source_licence, source_attribution)
     project = Project.objects.create(
         name=name.strip(), source_language=source_language.strip().lower(), domain=domain.strip(),
-        data_classification=data_classification, created_by=actor,
+        data_classification=data_classification, source_url=source_url, source_licence=source_licence,
+        source_attribution=source_attribution, created_by=actor,
     )
     AudienceProfile.objects.create(project=project, locale=target_locale.strip(), formality=formality,
                                    reading_level=reading_level, cultural_notes=cultural_notes)
@@ -36,7 +65,8 @@ def create_project(actor, *, name, source_language, target_locale, domain="", da
     ProjectMembership.objects.create(user=actor, project=project, role=Role.LOCALIZATION_MANAGER)
     audit.record(actor=actor, action="PROJECT_CREATED", entity=project, project_id=project.pk,
                  details={"source_language": project.source_language, "target_locale": target_locale.strip(),
-                          "data_classification": data_classification})
+                          "data_classification": data_classification, "source_url": source_url,
+                          "source_licence": source_licence, "source_attribution": source_attribution})
     return project
 
 

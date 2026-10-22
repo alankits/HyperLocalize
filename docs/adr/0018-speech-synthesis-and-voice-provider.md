@@ -1,5 +1,7 @@
 # ADR 0018: Tamil speech synthesis: stock voice and cloned voice
 
+> **Amended by ADR 0021 (2026-10-22):** MMS-TTS Tamil is now the implemented stock voice (`mms_tts_tamil`, stock tier only). The cloned-voice tier is unchanged and still pending. ADR 0021 takes precedence where they differ.
+
 **Status:** Pending spike results (provisional decision recorded 2026-10-05; revised the same day for zero budget). Not approved.
 **Source:** ADRs 0005, 0006, 0015, 0019; `docs/THIRD_PARTY_TERMS.md`; `docs/SPIKE_PLAN.md` M4–M6, M9
 

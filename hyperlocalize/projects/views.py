@@ -59,6 +59,8 @@ def project_create(request):
                 data_classification=request.POST.get("data_classification", "PERSONAL"),
                 formality=request.POST.get("formality", "neutral"), reading_level=request.POST.get("reading_level", "general"),
                 cultural_notes=request.POST.get("cultural_notes", ""),
+                source_url=request.POST.get("source_url", ""), source_licence=request.POST.get("source_licence", ""),
+                source_attribution=request.POST.get("source_attribution", ""),
             )
         except (ValidationError, PermissionDenied) as exc:
             messages.error(request, _error_text(exc))
@@ -119,8 +121,13 @@ def project_jobs(request, pk):
     """htmx partial: recent jobs, polled every 2 s while any is active (ADR 0010)."""
     project = _project_for(request, pk)
     recent = Job.objects.filter(Q(project=project)).order_by("-pk")[:12]
-    active = any(j.status in ("QUEUED", "RUNNING") for j in recent)
-    return render(request, "projects/_jobs.html", {"project": project, "jobs": recent, "active": active})
+    active = Job.objects.filter(project=project, status__in=("QUEUED", "RUNNING")).exists()
+    response = render(request, "projects/_jobs.html", {"project": project, "jobs": recent, "active": active})
+    if request.GET.get("polling") == "1" and not active:
+        # The jobs we were watching have all finished: reload the whole page so the scenes, status and
+        # approval panels show the results (htmx full refresh). The reloaded page does not poll again.
+        response["HX-Refresh"] = "true"
+    return response
 
 
 @login_required

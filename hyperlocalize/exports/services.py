@@ -154,6 +154,8 @@ def build_export(job, ctx):
         files["quality_report.json"] = json.dumps([{
             "segment_id": c.segment_translation.segment_id, "kind": c.kind, "check_type": c.check_type,
             "status": c.status, "messages": c.detail.get("messages", []), "resolution": c.resolution,
+            # Which adapter produced an AI flag, and whether it was a MOCK (a mock PASS is not a meaning check).
+            "adapter": c.detail.get("adapter", ""), "is_mock": c.detail.get("is_mock"),  # None = not recorded
             "override_reason": c.reason if c.resolution else "",
         } for c in checks.select_related("segment_translation")], ensure_ascii=False, indent=1)
         for name, content in files.items():
@@ -178,6 +180,11 @@ def build_export(job, ctx):
             "project": {"id": project.pk, "name": project.name, "source_language": project.source_language,
                         "target_locale": loc.target_locale},
             "source_video_sha256": video.sha256,
+            # ADR 0021: data classification and, for published public content, the recorded provenance.
+            # Recorded by the project creator; the system does not verify the licence.
+            "content_source": {"data_classification": project.data_classification, "source_url": project.source_url,
+                               "licence_or_reuse_permission": project.source_licence,
+                               "attribution": project.source_attribution, "verified_by_system": False},
             "transcript": {"adapter": video.transcript_adapter, "model": video.transcript_model,
                            "is_mock": video.transcript_is_mock},
             "files": {n: _sha(os.path.join(work, n)) for n in names},

@@ -36,3 +36,9 @@ Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `d
 | ADR | Title | Status |
 |---|---|---|
 | [0020](0020-demo-reset-and-identity-withdrawal.md) | Demo reset by rebuild, offline-copy register, identity withdrawal (amends 0003, 0006, 0007, 0011, 0012, 0014) | **Accepted** (2026-10-06), revision 6 |
+
+## Group D: accepted during the MVP build
+
+| ADR | Title | Status |
+|---|---|---|
+| [0021](0021-published-public-content-and-mms-tts-stock-voice.md) | Published public content (Gemini allowed, provenance required) and MMS-TTS Tamil stock voice (amends 0005, 0014, 0016, 0018) | **Accepted** (2026-10-22), implemented |

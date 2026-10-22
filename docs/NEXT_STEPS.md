@@ -83,6 +83,14 @@ The form may now be signed only **after** the test script is frozen and every Ap
 - **Next with this material:** upload 11 (ORS / cholera) and 04 (single talking head) through the UI in `SUBTITLES_ONLY`
   mode, run the full workflow to export, and record what breaks. 08 (AV1) is the rendering risk.
 
+## Session 2026-10-22 (continued): ADR 0021
+- **Approved by the user:** A1 MMS-TTS Tamil (stock voice only), B3 Gemini for published public content (source URL and licence
+  required, carried into export evidence), and the scene auto-refresh fix. ADR 0021 written and accepted.
+- Implemented and tested; first real end-to-end export (clip 01, project 4). Results and known issues: ADR 0021 and STATUS.md.
+- **Next decisions for the user:** (1) fix timing overrun (calibrated length budget in the prompt plus a blocking overrun check);
+  (2) cut Gemini calls (batch meaning checks per scene; retry 503); (3) tag export tracks as Tamil; (4) policy on exporting when a
+  meaning check was MOCK. User will request Hugging Face access for IndicTrans2 later.
+
 ## Exact next action
 **User actions and decisions (blocking the real-data spike and real providers):** unchanged from 2026-10-06.
 1. GitHub: give the URL of an empty private repo; the assistant adds the remote and pushes. **Nothing is backed up off this laptop yet.**

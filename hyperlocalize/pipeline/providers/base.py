@@ -91,7 +91,7 @@ class LocalizationRequest:
     audience: dict  # locale, formality, reading_level, cultural_notes, unit_conversions
     glossary: list[dict]  # source_term, target_term, accepted_forms, do_not_translate
     instruction: str = ""  # reviewer's regeneration instruction, if any
-    prompt_version: str = "loc-v1"
+    prompt_version: str = "loc-v2"  # v2 (ADR 0021): speech_text is fully speakable target script
 
     @property
     def context_inputs(self):
@@ -220,14 +220,14 @@ DEFAULT_CHAINS = {
     "transcription": ["manual_transcript", "faster_whisper_transcription", "mock_transcription"],
     "localization": ["gemini_localization", "mock_localization"],
     "meaning_check": ["gemini_meaning_check", "mock_meaning_check"],
-    "speech_stock": ["mock_stock_voice"],
-    "speech_cloned": ["mock_cloned_voice"],
+    "speech_stock": ["mms_tts_tamil", "mock_stock_voice"],  # ADR 0021: stock voice only
+    "speech_cloned": ["mock_cloned_voice"],  # identity-preserving tier still pending (ADR 0018)
 }
 
 
 def _load_adapters():
     # Import adapter modules so their @register decorators run.
-    from . import gemini, manual, mock, whisper  # noqa: F401
+    from . import gemini, manual, mms_tts, mock, whisper  # noqa: F401
 
 
 def chain_for(stage):

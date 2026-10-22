@@ -13,6 +13,12 @@ class Project(models.Model):
         # MVP implementation value (ADR 0005): decides whether a free-tier hosted LLM may receive text.
         SCRIPTED_TEAM = "SCRIPTED_TEAM", "Scripted, team-authored content"
         PERSONAL = "PERSONAL", "May contain personal data"
+        # ADR 0021: already-published content whose licence permits reuse (e.g. public domain, CC BY).
+        # Requires source_url and source_licence; both are carried into the export evidence.
+        PUBLISHED_PUBLIC = "PUBLISHED_PUBLIC", "Published public content (licence permits reuse)"
+
+    # Classifications whose text a free-tier hosted LLM may receive (ADR 0005 as amended by ADR 0021).
+    HOSTED_LLM_ALLOWED = (DataClassification.SCRIPTED_TEAM, DataClassification.PUBLISHED_PUBLIC)
 
     name = models.CharField(max_length=200)
     source_language = models.CharField(max_length=16, default="en")  # ISO code; MVP: en
@@ -22,6 +28,10 @@ class Project(models.Model):
         max_length=16, choices=DataClassification.choices, default=DataClassification.PERSONAL
     )
     allow_external_audio = models.BooleanField(default=False)  # CP0, ADR 0006
+    # Provenance of PUBLISHED_PUBLIC content (ADR 0021). Recorded by the creator; not verified by the system.
+    source_url = models.URLField(max_length=500, blank=True)
+    source_licence = models.CharField(max_length=300, blank=True)  # licence or reuse permission, e.g. "CC BY 3.0"
+    source_attribution = models.CharField(max_length=300, blank=True)  # credit line required by some licences
     # Set to DEMO_REHEARSAL only by demo_reset (ADR 0020 §2); never by a form or the UI.
     purpose = models.CharField(max_length=16, default="STANDARD", editable=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")

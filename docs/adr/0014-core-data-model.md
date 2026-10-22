@@ -1,5 +1,7 @@
 # ADR 0014: Core data model (UML-ready)
 
+> **Amended by ADR 0021 (2026-10-22):** `Project` gains `source_url`, `source_licence`, `source_attribution` and the `PUBLISHED_PUBLIC` classification. ADR 0021 takes precedence where they differ.
+
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-05; revised the same day after independent review.
 
 > **Amended by ADR 0020 (accepted 2026-10-06):** Project.purpose; Consent.kind / parent_consent / permitted_purposes / permitted_copy_kinds; IdentityOwner withdrawal fields; Export status PURGED; the new OfflineCopy model; invariants 1, 2 and 6; new invariant 8. Where this ADR and ADR 0020 differ, **ADR 0020 takes precedence**. See ADR 0020 for the exact rules.

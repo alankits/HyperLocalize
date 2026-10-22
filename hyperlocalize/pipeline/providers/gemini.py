@@ -2,8 +2,9 @@
 
 - Free tier only, on a Google project with no Cloud Billing (ADR 0005 zero-spend rule).
 - Text only; audio is never sent.
-- Skipped unless the project's data_classification is SCRIPTED_TEAM, because free-tier
-  content may be used for training and read by human reviewers (THIRD_PARTY_TERMS).
+- Skipped unless the project's data_classification is SCRIPTED_TEAM or PUBLISHED_PUBLIC with a recorded
+  source and licence (ADR 0021), because free-tier content may be used for training and read by human
+  reviewers (THIRD_PARTY_TERMS).
 - Disabled when HL_GEMINI_API_KEY is empty.
 Uses the public REST endpoint through the standard library (no SDK dependency).
 """
@@ -109,7 +110,7 @@ def _post(prompt, *, opener=None):
 
 class _GeminiBase:
     is_mock = False
-    requires_scripted_team = True  # data-use rule (ADR 0005)
+    requires_hosted_llm_permission = True  # data-use rule (ADR 0005, amended by ADR 0021)
 
     def available(self):
         return bool(settings.HL_GEMINI_API_KEY)
@@ -133,6 +134,9 @@ def localization_prompt(request):
         "Write every number as digits (0-9) in subtitle_text. Keep units and their values unchanged unless "
         "the audience profile declares a conversion.",
         "Use the glossary target terms where the source term appears; keep do_not_translate terms unchanged.",
+        "speech_text is what a text-to-speech voice reads aloud. Write it entirely in the target language's own "
+        "script: numbers, units and dates as words; names and acronyms transliterated; no digits, Latin letters "
+        "or symbols. It must say exactly what subtitle_text says.",
         "Fit the spoken length to max_spoken_seconds where possible; say so in uncertainty_flags if not.",
         "adaptation_type is one of LITERAL, ADAPTED, LOCALISED, KEPT_ORIGINAL. rationale is one short sentence "
         "for a human reviewer explaining any adaptation.",

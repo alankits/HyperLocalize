@@ -1,4 +1,4 @@
-<div id="jobs" {% if active %}hx-get="{% url 'projects:jobs' project.pk %}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+<div id="jobs" {% if active %}hx-get="{% url 'projects:jobs' project.pk %}?polling=1" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
   {% if jobs %}
   <table>
     <tr><th>Job</th><th>State</th><th>Progress</th></tr>
@@ -16,6 +16,6 @@
     </tr>
     {% endfor %}
   </table>
-  {% if active %}<p class="muted">Updating while jobs run. Start a worker with <code>python manage.py run_worker</code> if nothing moves.</p>{% else %}<p class="muted">No jobs running. <a href="{% url 'projects:detail' project.pk %}">Refresh the page</a> to see results.</p>{% endif %}
+  {% if active %}<p class="muted">Updating while jobs run. Start a worker with <code>python manage.py run_worker</code> if nothing moves.</p>{% else %}<p class="muted">No jobs running.</p>{% endif %}
   {% else %}<p class="empty">No jobs yet.</p>{% endif %}
 </div>

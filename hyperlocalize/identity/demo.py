@@ -133,6 +133,8 @@ def _demo_reset_locked(actor, source_project, owner, source_loc, language, stora
             stamp = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
             project = Project.objects.create(name=f"Demo (reset {stamp})", source_language=source_project.source_language,
                                              domain=source_project.domain, data_classification=source_project.data_classification,
+                                             source_url=source_project.source_url, source_licence=source_project.source_licence,
+                                             source_attribution=source_project.source_attribution,
                                              created_by=actor, purpose=Purpose.DEMO_REHEARSAL)
             a = source_project.audience
             AudienceProfile.objects.create(project=project, locale=a.locale, formality=a.formality, reading_level=a.reading_level,

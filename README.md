@@ -34,6 +34,8 @@ The demo walk-through is in [`docs/USER_MANUAL.md`](docs/USER_MANUAL.md).
 
 **Optional real candidates:**
 - `pip install -r requirements-ml.txt` adds faster-whisper. It is used only after the model has been downloaded.
+- **Tamil stock voice (MMS-TTS, ADR 0021):** `pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1`, then `pip install -r requirements-ml.txt`, then `python manage.py download_models --mms-tts` (about 280 MB, CC-BY-NC-4.0: non-commercial). Restart the worker afterwards.
+- **Published public content (ADR 0021):** choose it when creating a project for a published video whose licence permits reuse, and record the source URL and licence. Gemini can then translate it; the provenance goes into the export evidence.
 - `HL_GEMINI_API_KEY` in `.env` enables Gemini on free-tier, scripted-content projects only.
 
 ## Tests
