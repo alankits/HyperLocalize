@@ -11,6 +11,7 @@ urlpatterns = [
     path("projects/<int:pk>/", views.project_detail, name="detail"),
     path("projects/<int:pk>/jobs/", views.project_jobs, name="jobs"),
     path("projects/<int:pk>/upload/", views.upload, name="upload"),
+    path("projects/<int:pk>/translation/retry/", views.retry_translation, name="retry_translation"),
     path("projects/<int:pk>/members/", views.add_member, name="add_member"),
     path("projects/<int:pk>/audience/", views.update_audience, name="audience"),
     path("projects/<int:pk>/glossary/", views.add_glossary, name="glossary"),

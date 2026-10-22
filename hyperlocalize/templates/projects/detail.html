@@ -32,6 +32,20 @@
   </div>
 </div>
 
+{% if translation_pending or meaning_checks_unavailable %}
+<div class="panel" style="border-left:4px solid var(--warn)">
+  {% if translation_pending %}
+  <h2 style="margin-top:0">Translation pending: provider quota or outage</h2>
+  <p>The translator could not run ({{ pending_job.error|truncatechars:200 }}). <strong>Nothing was machine-translated by a MOCK.</strong>
+    {{ untranslated_scenes }} scene(s) are waiting.
+    {% if pending_job.status == "QUEUED" %}It retries automatically{% if pending_job.run_after %} after {{ pending_job.run_after|time:"H:i:s" }}{% endif %}.{% else %}Automatic retries are used up; free-tier daily quotas reset once a day.{% endif %}</p>
+  {% endif %}
+  {% if meaning_checks_unavailable %}<p>{{ meaning_checks_unavailable }} line(s) have no completed meaning check (the provider was unavailable, or the check did not run). They block approval until the check runs or a reviewer acknowledges it.</p>{% endif %}
+  {% if pending_job.scene_id %}<p>The pending job is a reviewer's regeneration of scene {{ pending_job.scene.index|add:1 }}; Retry re-sends it with the same instruction.</p>{% endif %}
+  {% if can_upload %}<form method="post" action="{% url 'projects:retry_translation' project.pk %}">{% csrf_token %}<button type="submit">Retry translation and meaning checks now</button></form>{% endif %}
+</div>
+{% endif %}
+
 <h2>Scenes</h2>
 <div class="panel">
   {% if scenes %}

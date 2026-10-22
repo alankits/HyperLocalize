@@ -1,5 +1,7 @@
 # HyperLocalize: Technical Spike Plan (English → Tamil, zero budget)
 
+> **Amended by ADR 0022 (2026-10-22):** the M5 tempo cap used by the MVP is 1.2× (was the ±15% assumption). The spike's M5 metric definition is unchanged.
+
 | | |
 |---|---|
 | **Date** | 2026-10-05 (revision 4: independent-review fixes) |

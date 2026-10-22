@@ -93,21 +93,57 @@ def latest_translations(localization, segments):
     return out
 
 
-def build_request(localization, scene, instruction=""):
+def speech_room_ms(segment, scene, scene_segments):
+    """Time the speech for `segment` may use: until the next segment of the same scene starts, or the scene
+    ends (speech is mixed per scene and cut at its end). Used for the length budget and the overrun check."""
+    later = [s.start_ms for s in scene_segments if s.start_ms > segment.start_ms]
+    end = min(later) if later else scene.end_ms
+    return max(end - segment.start_ms, 1)
+
+
+def speech_budget(localization):
+    """Characters per second the stock voice speaks at its normal rate, or None (no voice will speak, or its
+    rate is unknown). ADR 0022: the budget uses the normal rate; the 1.2× cap is headroom for slower lines."""
+    from hyperlocalize.accounts.models import Policy
+    from hyperlocalize.pipeline.providers.base import chain_for, get_adapter
+
+    if not Policy.get("synthesis_allowed"):
+        return None
+    language = rules.language_of(localization.target_locale)
+    for name in chain_for("speech_stock"):
+        adapter = get_adapter(name)
+        if adapter and adapter.available():
+            rate = getattr(adapter, "chars_per_second", None)
+            if rate and language in getattr(adapter, "languages", ()):
+                return rate
+            return None
+    return None
+
+
+def build_request(localization, scenes, instruction=""):
+    """One request for the segments of `scenes` (a scene or a list), with context from the whole video."""
+    scenes = [scenes] if isinstance(scenes, Scene) else list(scenes)
     project = localization.project
-    all_segments = list(Segment.objects.filter(scene__video=scene.video).order_by("index"))
+    all_segments = list(Segment.objects.filter(scene__video=scenes[0].video).order_by("index")) if scenes else []
     position = {s.pk: n for n, s in enumerate(all_segments)}
+    budget = speech_budget(localization)
     contexts = []
-    for seg in scene.segments.order_by("index"):
-        n = position[seg.pk]
-        contexts.append(SegmentContext(
-            segment_id=seg.pk,
-            source_text=seg.source_text,
-            duration_ms=seg.duration_ms,
-            speaker=seg.speaker_track.label if seg.speaker_track else "Speaker",
-            previous_texts=[s.source_text for s in all_segments[max(0, n - WINDOW):n]],
-            next_texts=[s.source_text for s in all_segments[n + 1:n + 1 + WINDOW]],
-        ))
+    for scene in scenes:
+        scene_segments = list(scene.segments.order_by("index"))
+        for seg in scene_segments:
+            n = position[seg.pk]
+            room = speech_room_ms(seg, scene, scene_segments)
+            max_chars = max(1, int(room / 1000 * budget)) if budget else None
+            contexts.append(SegmentContext(
+                segment_id=seg.pk,
+                source_text=seg.source_text,
+                duration_ms=seg.duration_ms,
+                speaker=seg.speaker_track.label if seg.speaker_track else "Speaker",
+                previous_texts=[s.source_text for s in all_segments[max(0, n - WINDOW):n]],
+                next_texts=[s.source_text for s in all_segments[n + 1:n + 1 + WINDOW]],
+                room_ms=room,
+                max_speech_chars=max_chars,
+            ))
     audience = project.audience
     return LocalizationRequest(
         source_language=project.source_language,
@@ -147,21 +183,77 @@ def _data_use_rule(project):
     return accept
 
 
+class TranslationPending(Exception):
+    """A real translation provider failed (quota, rate limit, outage, bad output). Nothing was translated by
+    a mock; the job is retried and the project page shows "translation pending" (ADR 0022)."""
+
+
+# ADR 0022: one request per clip when it fits (the free tier allows about 20 requests a day per model).
+BATCH_MAX_SEGMENTS = 80  # [IMPLEMENTATION CHOICE] a 5-minute clip has about 40–80 segments
+BATCH_MAX_SOURCE_CHARS = 12000  # [IMPLEMENTATION CHOICE] keeps the reply well inside the model's output limit
+
+
+def plan_batches(scenes):
+    """Group consecutive scenes into as few requests as the limits allow; a scene is never split."""
+    batches, current, segs, chars = [], [], 0, 0
+    for scene in scenes:
+        texts = list(scene.segments.values_list("source_text", flat=True))
+        n, c = len(texts), sum(len(t) for t in texts)
+        if current and (segs + n > BATCH_MAX_SEGMENTS or chars + c > BATCH_MAX_SOURCE_CHARS):
+            batches.append(current)
+            current, segs, chars = [], 0, 0
+        current.append(scene)
+        segs, chars = segs + n, chars + c
+    if current:
+        batches.append(current)
+    return batches
+
+
+def localize_scenes(localization, scenes, *, instruction="", actor=None, job_ctx=None):
+    """Localize `scenes` in as few provider calls as possible, then run ONE batched meaning check.
+    Returns {scene_id: [translations]} for the scenes that were translated. Raises TranslationPending
+    (after saving the batches that succeeded) when a real provider failed."""
+    done = {}
+    for batch in plan_batches(scenes):
+        if job_ctx:
+            job_ctx.checkpoint(f"localizing scenes {batch[0].index + 1}–{batch[-1].index + 1}")
+        try:
+            saved = _localize_batch(localization, batch, instruction=instruction, job_ctx=job_ctx)
+        except TranslationPending as exc:
+            # A daily quota is shared by the meaning check: record CHECK_UNAVAILABLE without a doomed call.
+            known = str(exc) if "QuotaExhausted" in str(exc) else ""
+            run_meaning_checks([t for ts in done.values() for t in ts], localization, known_failure=known)
+            raise
+        for t in saved:
+            done.setdefault(t.segment.scene_id, []).append(t)
+    run_meaning_checks([t for ts in done.values() for t in ts], localization)
+    return done
+
+
 def localize_scene(localization, scene, *, instruction="", actor=None, job_ctx=None):
-    """Run the localization chain for one scene and save new AI versions with their checks."""
+    """One scene (e.g. a reviewer's regeneration request)."""
+    return localize_scenes(localization, [scene], instruction=instruction, actor=actor, job_ctx=job_ctx).get(scene.pk, [])
+
+
+def _localize_batch(localization, scenes, *, instruction="", job_ctx=None):
     project = localization.project
-    request = build_request(localization, scene, instruction)
+    request = build_request(localization, scenes, instruction)
     if not request.segments:
         return []
+    scene_id = scenes[0].pk if len(scenes) == 1 else None
+    entity = scenes[0] if len(scenes) == 1 else localization
     try:
         outcome = run_chain("localization", lambda a: a.localize(request), accept=_data_use_rule(project))
     except NoProviderAvailable as exc:
-        with transaction.atomic():  # commit the reasons before the job fails
-            _audit_skips(exc.skipped, "localization", project, entity=scene, scene_id=scene.pk)
+        with transaction.atomic():  # commit the reasons before the job fails or retries
+            _audit_skips(exc.skipped, "localization", project, entity=entity, scene_id=scene_id)
+        if exc.provider_failed:
+            reasons = "; ".join(f"{n}: {r}" for n, r in exc.skipped if r.startswith(_FAILURE_PREFIXES))
+            raise TranslationPending(reasons[:500] or str(exc)[:500]) from None
         raise
     with transaction.atomic():
         _record_usage(outcome.adapter, "localization", project)
-        _audit_chain_outcome(outcome, "localization", project, entity=scene, scene_id=scene.pk)
+        _audit_chain_outcome(outcome, "localization", project, entity=entity, scene_id=scene_id)
     by_id = {s.segment_id: s for s in outcome.result.segments}
     saved = []
     for ctx in request.segments:
@@ -178,18 +270,21 @@ def localize_scene(localization, scene, *, instruction="", actor=None, job_ctx=N
             model=outcome.result.model, prompt_version=request.prompt_version, is_fallback=outcome.is_fallback,
             is_mock=outcome.adapter.is_mock,
             context_inputs=request.context_inputs if outcome.result.uses_context else [],
+            meaning_check=False,  # run once for the whole batch afterwards (ADR 0022)
         ))
     with transaction.atomic():
-        s = Scene.objects.select_for_update().get(pk=scene.pk)
-        s.status = Scene.Status.TRANSLATED
-        s.save(update_fields=["status"])
+        for scene in scenes:
+            s = Scene.objects.select_for_update().get(pk=scene.pk)
+            s.status = Scene.Status.TRANSLATED
+            s.save(update_fields=["status"])
     return saved
 
 
 def save_translation(localization, segment, *, actor, origin, subtitle_text, speech_text, adaptation_type,
                      rationale="", uncertainty_flags=(), adapter, model="", prompt_version="", is_fallback=False,
-                     is_mock=False, context_inputs=()):
-    """Append a new version and run its checks (hard rules + AI flags). Never edits an old version."""
+                     is_mock=False, context_inputs=(), meaning_check=True):
+    """Append a new version and run its checks (hard rules + AI flags). Never edits an old version.
+    With meaning_check=False the caller runs one batched meaning check later (ADR 0022)."""
     project = localization.project
     with transaction.atomic():
         Localization.objects.select_for_update().get(pk=localization.pk)  # lock order: Localization first
@@ -210,7 +305,8 @@ def save_translation(localization, segment, *, actor, origin, subtitle_text, spe
         from hyperlocalize.review import services as review
 
         review.invalidate_if_approved(localization, reason=f"new translation version for segment {segment.pk}")
-    _run_meaning_check(t, project)
+    if meaning_check:
+        run_meaning_checks([t], localization)
     return t
 
 
@@ -279,33 +375,84 @@ def _run_hard_checks(t, project):
                                    status=status, detail={"messages": details})
 
 
-def _run_meaning_check(t, project):
-    """AI flags are advisory: they need acknowledgement, and they are never called verification."""
-    try:
-        outcome = run_chain("meaning_check", lambda a: a.check(t.segment.source_text, t.subtitle_text,
-                                                               project.source_language, t.localization.target_locale),
-                            accept=_data_use_rule(project))
-    except NoProviderAvailable as exc:
-        with transaction.atomic():
-            CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
-                                       status=CheckResult.Status.CHECK_UNAVAILABLE, detail={"messages": [str(exc)[:300]]})
-            _audit_skips(exc.skipped, "meaning_check", project, entity=t, scene_id=t.segment.scene_id,
-                         segment_id=t.segment_id)
+def run_meaning_checks(translations, localization, *, replacing=None, known_failure=""):
+    """AI flags are advisory: they need acknowledgement, and they are never called verification.
+    ONE provider call for all `translations` (ADR 0022). If a real provider fails, every segment without a
+    result gets CHECK_UNAVAILABLE (blocking until re-run or acknowledged), never a mock PASS.
+    `replacing`: earlier CHECK_UNAVAILABLE rows, deleted only in the transaction that writes the new results.
+    `known_failure`: the provider is known to be out of quota; record CHECK_UNAVAILABLE without calling it."""
+    if not translations:
         return
-    flags = outcome.result.flags
+    project = localization.project
+    items = [(t.pk, t.segment.source_text, t.subtitle_text) for t in translations]
+    scene_ids = {t.segment.scene_id for t in translations}
+    scene_id = next(iter(scene_ids)) if len(scene_ids) == 1 else None
+    outcome, failure = None, None
+    if known_failure:
+        failure = NoProviderAvailable(f"No meaning_check provider called: {known_failure}", [], provider_failed=True)
+    else:
+        try:
+            outcome = run_chain("meaning_check",
+                                lambda a: a.check_batch(items, project.source_language, localization.target_locale),
+                                accept=_data_use_rule(project))
+        except NoProviderAvailable as exc:
+            failure = exc
     with transaction.atomic():
+        if failure is not None:
+            already = set(replacing.values_list("segment_translation_id", flat=True)) if replacing is not None else set()
+            for t in translations:
+                if t.pk in already:
+                    continue  # its CHECK_UNAVAILABLE row stays: nothing is deleted before a new result exists
+                CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
+                                           status=CheckResult.Status.CHECK_UNAVAILABLE,
+                                           detail={"messages": [str(failure)[:300]], "provider_failed": failure.provider_failed})
+            _audit_skips(failure.skipped, "meaning_check", project, entity=localization, scene_id=scene_id)
+            return
+        if replacing is not None:
+            replaced = list(replacing.values_list("pk", flat=True))
+            replacing.delete()
+            audit.record(actor=None, action="MEANING_CHECK_RETRIED", entity=localization, project_id=project.pk,
+                         details={"translations": [t.pk for t in translations], "replaced_unavailable_results": replaced})
         _record_usage(outcome.adapter, "meaning_check", project)
-        _audit_chain_outcome(outcome, "meaning_check", project, entity=t, scene_id=t.segment.scene_id,
-                             segment_id=t.segment_id)
-        if not flags:
-            CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
-                                       status=CheckResult.Status.PASS,
-                                       detail={"messages": [], "adapter": outcome.adapter.name, "is_mock": outcome.adapter.is_mock})
-        for flag in flags:
-            CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type=flag.flag_type.lower(),
-                                       status=CheckResult.Status.FLAGGED,
-                                       detail={"messages": [flag.explanation], "adapter": outcome.adapter.name,
-                                               "is_mock": outcome.adapter.is_mock})
+        _audit_chain_outcome(outcome, "meaning_check", project, entity=localization, scene_id=scene_id)
+        for t in translations:
+            _save_meaning_result(t, outcome.result[t.pk], outcome.adapter)
+
+
+def _save_meaning_result(t, result, adapter):
+    meta = {"adapter": adapter.name, "is_mock": adapter.is_mock}
+    if not result.flags:
+        CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type="meaning",
+                                   status=CheckResult.Status.PASS, detail={"messages": [], **meta})
+    for flag in result.flags:
+        CheckResult.objects.create(segment_translation=t, kind=CheckResult.Kind.AI_FLAG, check_type=flag.flag_type.lower(),
+                                   status=CheckResult.Status.FLAGGED, detail={"messages": [flag.explanation], **meta})
+
+
+def missing_meaning_checks(localization, scenes=None):
+    """Latest translations with NO meaning-check result at all (e.g. a crash between saving a batch and checking
+    it). They block approval (ADR 0022 review #1): a line is never approved without its meaning check."""
+    segments = Segment.objects.filter(scene__video__project=localization.project)
+    if scenes is not None:
+        segments = segments.filter(scene__in=scenes)
+    current = latest_translations(localization, segments)
+    checked = set(CheckResult.objects.filter(segment_translation__in=current.values(), kind=CheckResult.Kind.AI_FLAG)
+                  .values_list("segment_translation_id", flat=True))
+    return [t for t in current.values() if t.pk not in checked]
+
+
+def retry_unavailable_meaning_checks(localization):
+    """Re-run meaning checks for current versions whose check is CHECK_UNAVAILABLE (unresolved) or missing.
+    The old unavailable rows are replaced only if the new call succeeds (same transaction)."""
+    segments = Segment.objects.filter(scene__video__project=localization.project)
+    current = latest_translations(localization, segments)
+    stale = CheckResult.objects.filter(segment_translation__in=current.values(), check_type="meaning",
+                                       status=CheckResult.Status.CHECK_UNAVAILABLE, resolution="")
+    targets = {c.segment_translation_id for c in stale} | {t.pk for t in missing_meaning_checks(localization)}
+    translations = sorted((t for t in current.values() if t.pk in targets), key=lambda t: t.pk)
+    if translations:
+        run_meaning_checks(translations, localization, replacing=stale)
+    return len(translations)
 
 
 # --------------------------------------------------------------------------- reviewer actions

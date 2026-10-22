@@ -20,15 +20,14 @@ from hyperlocalize.audit import services as audit
 from hyperlocalize.identity import services as consent
 from hyperlocalize.identity.models import Use, VoiceProfile
 from hyperlocalize.localization.models import Scene
-from hyperlocalize.localization.services import latest_translations
+from hyperlocalize.localization.services import latest_translations, speech_room_ms
 from hyperlocalize.pipeline import jobs
 from hyperlocalize.pipeline.inference import InferenceError, InferenceProcess
 from hyperlocalize.pipeline.providers.base import chain_for, get_adapter
 from hyperlocalize.projects.storage import get_storage
 
-from .models import ArtefactStatus, RenderedScene, RenderingMode, SynthesisedSegment
+from .models import MAX_TEMPO, ArtefactStatus, RenderedScene, RenderingMode, SynthesisedSegment
 
-MAX_TEMPO = Decimal("1.15")  # bounded tempo adjustment, ±15 % (SPIKE_PLAN M5; an assumed working threshold)
 
 
 # --------------------------------------------------------------------------- queueing
@@ -136,13 +135,17 @@ def render_scene(job, ctx):
                 result = inference.call(request, poll=poll)
             except InferenceError as exc:
                 raise InferenceError(f"segment {seg.index + 1}: {exc}") from None
-            syn = _save_synthesised(seg, t, localization, result, mode, adapter, check, project, out_path, job)
+            room_ms = speech_room_ms(seg, scene, segments)
+            syn = _save_synthesised(seg, t, localization, result, mode, adapter, check, project, out_path, job,
+                                    room_ms=room_ms)
             if syn is None:  # CP5 refused: consent changed between synthesis and save
                 raise jobs.JobCancelled("CONSENT_REVOKED")
             synthesised.append(syn)
             if check is not None:
                 consent_versions.append({"consent_id": check.consent_id, "version": check.version})
             placements.append((storage.local_path(syn.audio_key), seg.start_ms - scene.start_ms, syn.tempo))
+        ctx.checkpoint("timing and intelligibility checks")
+        _speech_checks(synthesised, scene, segments, inference, workdir, ctx)
         ctx.checkpoint("mixing")
         for item in consent_versions:  # CP6 before render / mix
             owner_check = _recheck(item, project, language, job)
@@ -178,6 +181,79 @@ def render_scene(job, ctx):
         os.rmdir(workdir)
 
 
+OVERRUN_TOLERANCE_MS = 100  # [IMPLEMENTATION CHOICE] below what a listener notices as an overlap
+PROXY_LABEL = ("Intelligibility PROXY: faster-whisper back-transcription character error rate. "
+               "Not a listening test; includes Whisper's own errors.")
+
+
+def _speech_checks(synthesised, scene, segments, inference, workdir, ctx=None):
+    """ADR 0022, for real (non-mock) speech only:
+    - speech_overrun: a BLOCKING hard check when the speech, even at MAX_TEMPO, needs more time than the line has.
+      Keyed on (voice adapter, model, tempo cap): a result made under other settings is replaced if unresolved.
+    - intelligibility proxy: transcribe each line back with faster-whisper and store the character error rate.
+      Informational only: any failure is recorded as "not computed" and never fails the render."""
+    from hyperlocalize.localization.models import CheckResult
+    from hyperlocalize.pipeline.providers.base import get_adapter
+
+    real = [syn for syn in synthesised if not syn.is_mock]
+    for syn in real:
+        key = f"{syn.adapter}|{syn.model}|{MAX_TEMPO}"
+        existing = CheckResult.objects.filter(segment_translation=syn.translation, check_type="speech_overrun")
+        if existing.filter(detail__key=key).exists():
+            continue
+        existing.filter(resolution="").delete()  # unresolved results from other voice settings: superseded
+        room = speech_room_ms(syn.segment, scene, segments)
+        played = int(Decimal(syn.duration_ms) / syn.tempo)
+        over = played - room
+        status = CheckResult.Status.FAIL if over > OVERRUN_TOLERANCE_MS else CheckResult.Status.PASS
+        messages = [f"the speech needs {played / 1000:.1f} s at up to {MAX_TEMPO}× but the line has {room / 1000:.1f} s "
+                    f"(+{over / 1000:.1f} s): shorten the speech script"] if status == CheckResult.Status.FAIL else []
+        CheckResult.objects.create(segment_translation=syn.translation, kind=CheckResult.Kind.HARD,
+                                   check_type="speech_overrun", status=status,
+                                   detail={"messages": messages, "key": key, "speech_ms": syn.duration_ms,
+                                           "tempo": str(syn.tempo), "played_ms": played, "room_ms": room})
+    whisper = get_adapter("faster_whisper_transcription")
+    if not real or whisper is None or not whisper.available():
+        return
+    storage = get_storage()
+    for syn in real:
+        if syn.intelligibility:
+            continue
+        try:
+            wav16 = os.path.join(workdir, f"proxy{syn.pk}.wav")
+            media_tools.extract_audio(storage.local_path(syn.audio_key), wav16)
+            language = syn.localization.target_locale.split("-")[0]
+            result = inference.call({"op": "transcribe", "wav_path": wav16, "language": language, "vad_filter": False},
+                                    poll=ctx.checkpoint if ctx else None)
+            heard = " ".join(seg["text"] for seg in result["segments"])
+            value = {"label": PROXY_LABEL, "cer": round(character_error_rate(syn.translation.speech_text, heard), 3),
+                     "heard": heard[:1000], "model": result.get("model", "")}
+        except jobs.JobCancelled:
+            raise  # a cancel or consent revocation still stops the job
+        except Exception as exc:  # the proxy is informational: it never fails the render (review #3)
+            value = {"label": PROXY_LABEL, "cer": None, "error": f"not computed: {type(exc).__name__}"}
+        SynthesisedSegment.objects.filter(pk=syn.pk).update(intelligibility=value)
+        syn.intelligibility = value
+
+
+def character_error_rate(reference, hypothesis):
+    """Levenshtein distance between the characters, over the reference length. Letters, combining marks (Tamil
+    vowel signs and the puḷḷi) and digits are compared; spaces and punctuation are not (review #2: Python's \\w
+    drops combining marks, which hid vowel errors)."""
+    import unicodedata
+
+    def letters(text):
+        return [c for c in unicodedata.normalize("NFC", text or "") if unicodedata.category(c)[0] in "LMN"]
+
+    r, h = letters(reference), letters(hypothesis)
+    row = list(range(len(h) + 1))
+    for i in range(1, len(r) + 1):
+        diagonal, row[0] = row[0], i
+        for j in range(1, len(h) + 1):
+            diagonal, row[j] = row[j], min(row[j] + 1, row[j - 1] + 1, diagonal + (r[i - 1] != h[j - 1]))
+    return row[len(h)] / max(1, len(r))
+
+
 def _recheck(item, project, language, job=None):
     """The owner's LATEST consent in this project still passes the full gate (CP6–CP10).
     Artefacts made before a revocation are quarantined by the cascade, so they are refused by status."""
@@ -188,9 +264,9 @@ def _recheck(item, project, language, job=None):
     return current is not None
 
 
-def _save_synthesised(seg, t, localization, result, mode, adapter, check, project, wav_path, job=None):
+def _save_synthesised(seg, t, localization, result, mode, adapter, check, project, wav_path, job=None, *, room_ms=None):
     storage = get_storage()
-    slot = max(seg.duration_ms, 1)
+    slot = max(room_ms or seg.duration_ms, 1)  # ADR 0022: the time until the next line, not just the segment
     tempo = Decimal("1.000")
     if result["duration_ms"] > slot:
         tempo = min(MAX_TEMPO, (Decimal(result["duration_ms"]) / Decimal(slot)).quantize(Decimal("0.001")))

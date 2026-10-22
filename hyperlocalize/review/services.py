@@ -98,6 +98,9 @@ def approval_problems(actor, localization):
     blocking = loc_services.blocking_checks(localization)
     if blocking:
         problems.append(f"{len(blocking)} blocking check(s) are unresolved.")
+    unchecked = loc_services.missing_meaning_checks(localization)
+    if unchecked:
+        problems.append(f"{len(unchecked)} line(s) have no meaning check yet: use 'Retry translation and meaning checks'.")
     stale = [s for s in scenes if not _render_state(s, localization)[1]]
     if stale:
         problems.append(f"{len(stale)} scene preview(s) are missing or out of date.")

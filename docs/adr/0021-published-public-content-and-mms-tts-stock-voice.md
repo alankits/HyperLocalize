@@ -1,5 +1,7 @@
 # ADR 0021: "Published public content" classification (Gemini allowed, provenance required) and MMS-TTS Tamil as the stock voice
 
+> **Amended by ADR 0022 (2026-10-22):** known issues 1–3 and 5 (timing, free-tier calls, track tags, number words) are addressed there; the clip 01 export was withdrawn (NOT human-reviewed, agent test run).
+
 **Status:** **Accepted** (approved by the user on 2026-10-22: "approve A1 (MMS-TTS Tamil) and B3 (Gemini for published public content), plus the scene auto-refresh fix", with conditions 1–3 below). **Implemented and tested** (see Consequences). Independent review (critical-reviewer, 2026-10-22): approve with changes, no blockers. The fixes are applied in §8, and the open items are listed under Known issues.
 
 **Amends:**
@@ -82,7 +84,7 @@ These are MEASURED RESULTS on **n = 1 clip**. They are directional, not quality 
 | Provenance in evidence | ✅ `content_source` with URL, CC BY 3.0, attribution, `verified_by_system: false` |
 | Gemini reliability | ❌ Scene 2 fell back to MOCK twice: first on HTTP 429 (per-minute rate limit, triggered by one meaning-check call per line), then on HTTP 503. It succeeded on the third try. 3 of the approved lines carry a MOCK meaning check. |
 | Translation (Claude's reading; **[UNVERIFIED]** until a Tamil-literate rater checks it) | No meaning errors found in the 14 lines. Numbers (1, 2, 3, 20, 60%) and the negation were kept. Minor issues: "rinse" became "wash" (கழுவி); one list mixes noun cases; "hand sanitizer" was transliterated; a San Francisco web address was kept for a Tamil Nadu audience, and the model didn't flag it. |
-| Voice: back-transcription CER (Whisper `small`, Tamil) | 0.17 over 503 characters. This is a pessimistic proxy (Whisper `small`'s own Tamil errors are included), **not a listening test**. Number words and "இல்லை" (not) were recognised. The spelled-out web address was worst (0.40). |
+| Voice: back-transcription CER (Whisper `small`, Tamil) | 0.17 over 503 characters (**corrected 2026-10-22 to 0.16 over 850 characters**: the first metric dropped Tamil vowel signs; see ADR 0022 §10 #2). This is a pessimistic proxy (Whisper `small`'s own Tamil errors are included), **not a listening test**. Number words and "இல்லை" (not) were recognised. The spelled-out web address was worst (0.40). |
 | Timing fit | ❌ **2 of 14 lines fit their slot.** Tamil speech totals 79.1 s against 58.0 s of slots (1.36×). 12 lines hit the 1.15× tempo cap and still overran, by +0.1 to +2.9 s. Overlapping lines are mixed on top of each other, and the last line runs about 0.9 s past the end of the video. The structure check flagged only 1 line, because its character budget is looser than MMS-TTS's real speaking rate. |
 | Speed | Analysis, localization and render of the 58 s clip took about 66 s, including Gemini calls. MMS-TTS on its own measured about 1.5 s per 6 s of audio. |
 

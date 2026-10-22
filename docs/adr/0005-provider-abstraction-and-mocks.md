@@ -1,5 +1,7 @@
 # ADR 0005: AI provider abstraction: free provider chains, mock providers, zero-spend policy
 
+> **Amended by ADR 0022 (2026-10-22):** after a real provider *fails*, a MOCK never takes its place (pending + retry; meaning check CHECK_UNAVAILABLE). Gemini is disabled in test mode. ADR 0022 takes precedence where they differ.
+
 > **Amended by ADR 0021 (2026-10-22):** the data-use rule also allows a free-tier hosted LLM for `PUBLISHED_PUBLIC` projects whose source URL and licence are recorded. ADR 0021 takes precedence where they differ.
 
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: ADR review, zero-budget Q4, independent review.

@@ -43,11 +43,14 @@ class NoProviderAvailable(Exception):
     """Every adapter in the chain failed or none is registered for this mode.
 
     `skipped` lists (adapter name, reason) so callers can audit why each one was passed over.
+    `provider_failed` is True when a real adapter was tried and failed (quota, rate limit, outage, bad output):
+    the caller shows a pending state and retries, instead of using a mock (ADR 0022).
     """
 
-    def __init__(self, message, skipped=()):
+    def __init__(self, message, skipped=(), provider_failed=False):
         super().__init__(message)
         self.skipped = list(skipped)
+        self.provider_failed = provider_failed
 
 
 CHAIN_FALLTHROUGH = (QuotaExhausted, RateLimited, Unavailable, ProviderOutputInvalid)
@@ -81,6 +84,10 @@ class SegmentContext:
     speaker: str
     previous_texts: list[str] = field(default_factory=list)
     next_texts: list[str] = field(default_factory=list)
+    # ADR 0022: time the speech may use (until the next line), and the most characters the stock voice can
+    # speak in it at its NORMAL rate (the 1.2× speed-up is kept as headroom). None = not known.
+    room_ms: int | None = None
+    max_speech_chars: int | None = None
 
 
 @dataclass
@@ -91,7 +98,7 @@ class LocalizationRequest:
     audience: dict  # locale, formality, reading_level, cultural_notes, unit_conversions
     glossary: list[dict]  # source_term, target_term, accepted_forms, do_not_translate
     instruction: str = ""  # reviewer's regeneration instruction, if any
-    prompt_version: str = "loc-v2"  # v2 (ADR 0021): speech_text is fully speakable target script
+    prompt_version: str = "loc-v3"  # v2 (ADR 0021): speakable speech_text; v3 (ADR 0022): speech length budget
 
     @property
     def context_inputs(self):
@@ -172,6 +179,11 @@ class MeaningCheckProvider(Provider):
     def check(self, source_text, target_text, source_language, target_locale) -> MeaningCheckResult:
         raise NotImplementedError
 
+    def check_batch(self, items, source_language, target_locale):
+        """items: [(key, source_text, target_text)] → {key: MeaningCheckResult}. ADR 0022: adapters with a
+        request quota override this to check a whole clip in ONE call; the default checks one by one."""
+        return {key: self.check(src, tgt, source_language, target_locale) for key, src, tgt in items}
+
 
 class SpeechSynthesisProvider(Provider):
     """Stock or identity-preserving speech. Identity use requires a ConsentCheck (ADR 0006).
@@ -181,6 +193,9 @@ class SpeechSynthesisProvider(Provider):
 
     stage = "speech"
     supports_cloning = False
+    # ADR 0022: measured speaking rate in target-script characters per second (None = unknown). Used to give
+    # the translator a length budget, so the speech fits its slot.
+    chars_per_second = None
 
     def synthesize(self, text, language, out_path, *, voice=None, reference_clip=None, reference_text=None):
         raise NotImplementedError
@@ -255,6 +270,7 @@ def run_chain(stage, call, *, accept=None):
     skipped = []
     names = chain_for(stage)
     first = True
+    real_failed = False  # ADR 0022: after a real provider FAILED, a MOCK never silently takes its place
     for name in names:
         adapter = get_adapter(name)
         if adapter is None:
@@ -263,6 +279,10 @@ def run_chain(stage, call, *, accept=None):
             continue
         if not adapter.available():
             skipped.append((name, "not configured or unavailable"))
+            first = False
+            continue
+        if adapter.is_mock and real_failed:
+            skipped.append((name, "mock not used: a real provider failed (ADR 0022, no silent MOCK)"))
             first = False
             continue
         if accept:
@@ -276,7 +296,8 @@ def run_chain(stage, call, *, accept=None):
         except CHAIN_FALLTHROUGH as exc:
             skipped.append((name, f"{type(exc).__name__}: {exc}"))
             first = False
+            real_failed = real_failed or not adapter.is_mock
             continue
         return ChainOutcome(result, adapter, not first, skipped)
     detail = "; ".join(f"{n}: {r}" for n, r in skipped) or "no adapters configured"
-    raise NoProviderAvailable(f"No {stage} provider could run ({detail}).", skipped)
+    raise NoProviderAvailable(f"No {stage} provider could run ({detail}).", skipped, provider_failed=real_failed)

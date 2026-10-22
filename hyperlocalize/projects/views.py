@@ -2,6 +2,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -113,7 +114,50 @@ def project_detail(request, pk):
         "role_choices": Role.choices,
         "jobs_active": Job.objects.filter(project=project, status__in=["QUEUED", "RUNNING"]).exists(),
         "human_versions": SegmentTranslation.objects.filter(localization=loc, origin="HUMAN").count(),
+        **translation_pending(project, loc),
     })
+
+
+def translation_pending(project, loc):
+    """ADR 0022: show when a real translator failed (quota, rate limit, outage). Nothing was mock-translated."""
+    from hyperlocalize.localization.models import CheckResult
+
+    last = Job.objects.filter(project=project, type="localize").order_by("-pk").first()
+    pending = bool(last and "TranslationPending" in (last.error or "") and last.status in ("QUEUED", "FAILED"))
+    unavailable = CheckResult.objects.filter(segment_translation__localization=loc, check_type="meaning",
+                                             status="CHECK_UNAVAILABLE", resolution="").count()
+    from hyperlocalize.localization.services import missing_meaning_checks
+
+    unavailable += len(missing_meaning_checks(loc))
+    return {"translation_pending": pending, "pending_job": last if pending else None,
+            "meaning_checks_unavailable": unavailable,
+            "untranslated_scenes": Scene.objects.filter(video__project=project, status=Scene.Status.PENDING).count()}
+
+
+@login_required
+@require_POST
+def retry_translation(request, pk):
+    """Queue a localize job for untranslated scenes, and re-run unavailable meaning checks (ADR 0022)."""
+    project = _project_for(request, pk)
+    roles = roles_for(request.user, project)
+    if not roles & {Role.LOCALIZATION_MANAGER, Role.MEDIA_OPERATOR}:
+        raise PermissionDenied("Only a Localization Manager or Media Operator can retry translation.")
+    loc = Localization.objects.get(project=project)
+    if Job.objects.filter(project=project, type="localize", status__in=("QUEUED", "RUNNING")).exists():
+        messages.info(request, "Translation is already queued or running.")
+    else:
+        from hyperlocalize.pipeline import jobs
+
+        last = Job.objects.filter(project=project, type="localize").order_by("-pk").first()
+        with transaction.atomic():
+            if last and last.scene_id and "TranslationPending" in (last.error or ""):
+                # A reviewer's failed scene regeneration: re-send it with its instruction (review #6).
+                jobs.enqueue("localize", actor=request.user, project=project, localization=loc, scene=last.scene,
+                             payload={**last.payload, "retry": True})
+            else:
+                jobs.enqueue("localize", actor=request.user, project=project, localization=loc, payload={"retry": True})
+        messages.success(request, "Translation retry queued. This page updates when it finishes.")
+    return redirect("projects:detail", pk=pk)
 
 
 @login_required

@@ -115,7 +115,10 @@ def synthesize_in_child(text, out_path):
     if path is None:
         raise Unavailable("MMS-TTS Tamil model is not downloaded")
     if MODEL_ID not in _MODEL:
+        from . import whisper
+
         _MODEL.clear()  # one model at a time (laptop RAM, ADR 0005)
+        whisper._MODEL.clear()
         _MODEL[MODEL_ID] = (AutoTokenizer.from_pretrained(path), VitsModel.from_pretrained(path).eval())
     tokenizer, model = _MODEL[MODEL_ID]
     spoken = prepare_text(text, set(tokenizer.get_vocab()))
@@ -139,6 +142,11 @@ class MmsTtsTamilStockVoiceProvider(SpeechSynthesisProvider):
     stage = "speech_stock"
     is_mock = False
     supports_cloning = False  # stock voice only (ADR 0021 condition 2)
+    # ADR 0022: MEASURED 2026-10-22 on 20 synthesised lines of clip 01: median 11.95 Tamil characters per second
+    # (range 9.4–14.6). 11 is used, slightly below the median, so most lines fit; slower lines are caught
+    # by the blocking speech_overrun check after rendering.
+    chars_per_second = 11
+    languages = ("ta",)
     description = "MMS-TTS Tamil stock voice on local CPU (CC-BY-NC-4.0; non-commercial)"
 
     def available(self):

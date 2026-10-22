@@ -9,7 +9,6 @@ Usage (dev stack, faster-whisper installed and its model downloaded):
   python scripts/backtranscribe_cer.py <export_id>
 """
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -32,8 +31,9 @@ from hyperlocalize.rendering.models import SynthesisedSegment  # noqa: E402
 
 
 def normalise(text):
-    """Compare letters only: drop punctuation and spaces, use one Unicode form."""
-    return re.sub(r"\s+", "", re.sub(r"[^\w\s]", " ", unicodedata.normalize("NFC", text)))
+    """Compare letters, combining marks (Tamil vowel signs, puḷḷi) and digits; drop spaces and punctuation.
+    (A first version used [^\\w\\s], which also dropped vowel signs and understated the CER; fixed 2026-10-22.)"""
+    return "".join(c for c in unicodedata.normalize("NFC", text) if unicodedata.category(c)[0] in "LMN")
 
 
 def cer(reference, hypothesis):

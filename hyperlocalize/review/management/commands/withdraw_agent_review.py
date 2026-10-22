@@ -40,7 +40,8 @@ class Command(BaseCommand):
             purged = []
             for export in Export.objects.select_for_update().filter(approval__localization__project=project).order_by("pk"):
                 if export.package_key and export.status != Export.Status.PURGED:
-                    storage.delete(export.package_key)
+                    # Delete the file only once the rows say PURGED for good (review #11).
+                    transaction.on_commit(lambda key=export.package_key: storage.delete(key))
                 if export.status != Export.Status.PURGED:
                     export.status = Export.Status.PURGED
                     export.error = f"Withdrawn: {reason}"[:2000]
@@ -50,15 +51,16 @@ class Command(BaseCommand):
             for loc in Localization.objects.filter(project=project):
                 invalidated += review.invalidate_if_approved(loc, reason=f"Withdrawn: {reason}")
             scenes = Scene.objects.filter(video__project=project, status=Scene.Status.ACCEPTED).update(status=Scene.Status.IN_REVIEW)
-            checks = (CheckResult.objects.filter(segment_translation__segment__scene__video__project=project)
-                      .exclude(resolution="")
-                      .update(resolution="", resolved_by=None, resolved_at=None, reason=""))
+            resolved = CheckResult.objects.filter(segment_translation__segment__scene__video__project=project).exclude(resolution="")
+            reopened = [{"check_id": c.pk, "resolution": c.resolution, "resolved_by": c.resolved_by.get_username() if c.resolved_by else None}
+                        for c in resolved.select_related("resolved_by").order_by("pk")]
+            checks = resolved.update(resolution="", resolved_by=None, resolved_at=None, reason="")
             if not project.name.startswith(PREFIX):
                 project.name = (PREFIX + project.name)[:200]
                 project.save(update_fields=["name"])
             audit.record(actor=None, action="AGENT_REVIEW_WITHDRAWN", entity=project, project_id=project.pk,
                          details={"reason": reason[:300], "exports_purged": purged, "approvals_invalidated": invalidated,
-                                  "scenes_reopened": scenes, "checks_reopened": checks})
+                                  "scenes_reopened": scenes, "checks_reopened": checks, "reopened": reopened[:200]})
         self.stdout.write(self.style.SUCCESS(
             f"Project {project.pk}: exports purged {purged}, approvals invalidated {invalidated}, "
             f"scenes reopened {scenes}, checks reopened {checks}."))

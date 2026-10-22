@@ -17,6 +17,7 @@
 - **Tests:** `HYPERLOCALIZE_MODE=test manage.py test hyperlocalize`.
   - The optional real-model test needs `HL_TEST_WHISPER=1` and a downloaded model.
   - The optional MMS-TTS real-model test needs `HL_TEST_MMS=1` and `manage.py download_models --mms-tts`.
+  - **Tests never call real Gemini** (ADR 0022): `manage.py test` forces test mode; Gemini is unavailable and `_post` refuses real HTTP unless `HL_TEST_GEMINI=1`. Use a fake transport (`opener=`) or patch `_post`.
   - `TransactionTestCase` subclasses must use `AuditSafeTransactionTestCase`: the audit trigger correctly blocks Django's TRUNCATE flush.
 - **UML:** `python scripts/generate_uml.py` regenerates `docs/uml/class_diagram.md` from the models. Run it after every model change.
 

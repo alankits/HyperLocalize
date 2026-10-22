@@ -36,7 +36,9 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 
 ## Tests
 
-**MEASURED (2026-10-22, after ADR 0021 and its review fixes):** 180 tests pass, 2 optional real-model tests skipped (`HYPERLOCALIZE_MODE=test python manage.py test --noinput hyperlocalize`). The MMS-TTS real-model test passes with `HL_TEST_MMS=1`.
+**MEASURED (2026-10-22, ADR 0022 and its review fixes):** 210 tests pass, 2 optional real-model tests skipped (`python manage.py test --noinput hyperlocalize`; test mode is now forced by the runner, and **no test reaches real Gemini**. Before this, test runs since 2026-10-12 had been sending real requests with the `.env` key). 161 s, previously about 500 s.
+
+**Earlier, MEASURED (2026-10-22, after ADR 0021 and its review fixes):** 180 tests pass, 2 optional real-model tests skipped (`HYPERLOCALIZE_MODE=test python manage.py test --noinput hyperlocalize`). The MMS-TTS real-model test passes with `HL_TEST_MMS=1`.
 
 **Earlier: MEASURED (2026-10-12):** 150 tests pass, 1 optional skipped (earlier counts: 102, 114, 126, 139) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
 

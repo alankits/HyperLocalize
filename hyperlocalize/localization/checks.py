@@ -20,6 +20,8 @@ from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
+from . import tamil_numbers
+
 PASS, FAIL, UNVERIFIABLE = "PASS", "FAIL", "UNVERIFIABLE"
 LEXICON_DIR = Path(__file__).parent / "lexicons"
 LATIN_SHARE_LIMIT = 0.5
@@ -125,6 +127,7 @@ class TargetPack:
     non_positional_numerals: str = ""
     word_re: str = r"[^\W\d_]+"
     stems_file: str = ""
+    word_parser: object = None  # text → (Counter of values, [ambiguous values], {consumed word indexes}); ADR 0022
 
     @property
     def stems(self):
@@ -139,7 +142,8 @@ def _load_stems(name):
 
 TARGET_PACKS = {
     # MVP target language (Q3). The stems list is a DRAFT until a Tamil rater reviews it.
-    "ta": TargetPack("ta", False, dict(zip("௦௧௨௩௪௫௬௭௮௯", "0123456789")), "௰௱௲", r"[஀-௿]+", "ta_number_word_stems.txt"),
+    "ta": TargetPack("ta", False, dict(zip("௦௧௨௩௪௫௬௭௮௯", "0123456789")), "௰௱௲", r"[஀-௿]+", "ta_number_word_stems.txt",
+                     tamil_numbers.parse),
 }
 
 
@@ -148,15 +152,25 @@ def language_of(locale):
 
 
 def target_numbers(text, pack):
+    """Return (values found, reasons the check cannot be sure, ambiguous word values).
+    Digits always count. Number words count when the pack's parser reads them (ADR 0022); any other word
+    starting with a number stem makes the check UNVERIFIABLE (fail-safe, ADR 0008)."""
     if pack.digit_map:
         text = text.translate(str.maketrans(pack.digit_map))
     values, rest = _digit_values(text)
+    values = Counter(values)
     reasons = [f"non-positional numeral '{ch}'" for ch in pack.non_positional_numerals if ch in rest]
-    for word in re.findall(pack.word_re, rest):
+    ambiguous, consumed = [], set()
+    if pack.word_parser:
+        word_values, ambiguous, consumed = pack.word_parser(rest)
+        values += word_values
+    for i, word in enumerate(re.findall(pack.word_re, rest)):
+        if i in consumed:
+            continue
         stem = next((s for s in pack.stems if word.startswith(s)), None)
         if stem:
             reasons.append(f"possible number word '{word}' (stem '{stem}')")
-    return Counter(values), reasons
+    return values, reasons, ambiguous
 
 
 def _show(counter):
@@ -169,7 +183,12 @@ def check_numbers(source, target, source_lang, target_lang):
     if source_reader is None or pack is None:
         return UNVERIFIABLE, [f"no number rules for {source_lang} → {target_lang} yet"]
     expected = source_reader(source)
-    found, unverifiable = target_numbers(target, pack)
+    found, unverifiable, ambiguous = target_numbers(target, pack)
+    for value in ambiguous:  # e.g. ஒரு "a/one": counts only where the source has that number
+        if (expected - found)[value] > 0:
+            found[value] += 1
+        else:
+            unverifiable.append(f"word that may mean {value} (or something else): a reviewer must check it")
     missing, extra = expected - found, found - expected
     details = []
     if extra:

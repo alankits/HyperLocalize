@@ -39,7 +39,8 @@ class WithdrawAgentReviewTests(WorkflowBase):
         self.assertTrue(os.path.exists(package))
         self.assertTrue(CheckResult.objects.exclude(resolution="").exists())
 
-        call_command("withdraw_agent_review", self.project.pk, reason="NOT human-reviewed (agent test run)")
+        with self.captureOnCommitCallbacks(execute=True):  # the file is deleted only after the commit
+            call_command("withdraw_agent_review", self.project.pk, reason="NOT human-reviewed (agent test run)")
 
         export.refresh_from_db()
         self.assertEqual(export.status, Export.Status.PURGED)
@@ -56,6 +57,7 @@ class WithdrawAgentReviewTests(WorkflowBase):
         rec = AuditRecord.objects.get(action="AGENT_REVIEW_WITHDRAWN")
         self.assertEqual(rec.details["exports_purged"], [export.pk])
         self.assertEqual(rec.details["reason"], "NOT human-reviewed (agent test run)")
+        self.assertTrue(rec.details["reopened"] and all(r["resolved_by"] == "reviewer" for r in rec.details["reopened"]))
         self.assertTrue(audit.verify_chain()[0])
 
     def test_reason_is_required(self):

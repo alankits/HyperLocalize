@@ -42,3 +42,4 @@ Review of 0001–0008: `docs/ADR_REVIEW.md`. Provider facts and measurements: `d
 | ADR | Title | Status |
 |---|---|---|
 | [0021](0021-published-public-content-and-mms-tts-stock-voice.md) | Published public content (Gemini allowed, provenance required) and MMS-TTS Tamil stock voice (amends 0005, 0014, 0016, 0018) | **Accepted** (2026-10-22), implemented |
+| [0022](0022-quota-safe-batching-timing-fit-and-number-words.md) | Quota-safe batching with no silent MOCK, timing fit (1.2× cap, overrun check), Tamil track tags, number words, intelligibility proxy (amends 0005, 0008, 0016, 0021) | **Accepted** (2026-10-22), implemented |

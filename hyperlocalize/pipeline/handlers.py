@@ -55,14 +55,31 @@ def localize(job, ctx):
     from hyperlocalize.localization.models import Scene
     from hyperlocalize.rendering import services as rendering
 
+    from . import jobs
+
     localization = job.localization
-    scenes = [job.scene] if job.scene_id else list(Scene.objects.filter(video__project=localization.project).order_by("index"))
+    if job.scene_id:
+        scenes = [job.scene]  # a reviewer's regeneration request
+    else:  # after analysis, or a retry: only scenes that have no translation yet (ADR 0022)
+        scenes = list(Scene.objects.filter(video__project=localization.project, status=Scene.Status.PENDING).order_by("index"))
     instruction = job.payload.get("instruction", "")
-    for scene in scenes:
-        ctx.checkpoint(f"localizing scene {scene.index + 1}")
-        loc.localize_scene(localization, scene, instruction=instruction, job_ctx=ctx)
+
+    def queue_previews():
+        translated = Scene.objects.filter(pk__in=[s.pk for s in scenes], status=Scene.Status.TRANSLATED)
         with transaction.atomic():
-            rendering.enqueue_render(scene, localization, reason="new localized draft")
+            for scene in translated:
+                rendering.enqueue_render(scene, localization, reason="new localized draft")
+
+    try:
+        done = loc.localize_scenes(localization, scenes, instruction=instruction, job_ctx=ctx)
+    except loc.TranslationPending as exc:
+        queue_previews()  # scenes translated before the failure still get their previews
+        # Nothing was translated by a mock. The job retries with backoff; the page shows "translation pending".
+        raise jobs.TransientJobError(f"TranslationPending: {exc}") from None
+    queue_previews()  # only on success or pending: never from a cancelled or crashed job (ADR 0022 review #4)
+    if job.payload.get("retry"):
+        loc.retry_unavailable_meaning_checks(localization)
+    return done
 
 
 @register_handler("render_scene")

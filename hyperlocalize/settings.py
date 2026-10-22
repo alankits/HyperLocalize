@@ -4,6 +4,7 @@ All secrets and machine-specific values come from environment variables
 (see `.env.example`). Nothing secret is committed.
 """
 import os
+import sys
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -32,6 +33,10 @@ _load_dotenv(BASE_DIR / ".env")
 
 # dev | test | demo. Mock providers are registered only in dev and test (ADR 0005).
 HYPERLOCALIZE_MODE = _env("HYPERLOCALIZE_MODE", "dev")
+if sys.argv[1:2] == ["test"]:
+    # `manage.py test` is ALWAYS test mode, even without the variable: tests must never reach a real provider
+    # or spend its free quota with the key from .env (ADR 0022).
+    HYPERLOCALIZE_MODE = "test"
 if HYPERLOCALIZE_MODE not in ("dev", "test", "demo"):
     raise ImproperlyConfigured("HYPERLOCALIZE_MODE must be dev, test or demo")
 

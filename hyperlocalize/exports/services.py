@@ -121,6 +121,20 @@ def _subtitles(translations):
     return "\n".join(srt), "\n".join(vtt)
 
 
+def intelligibility_summary(synths):
+    """ADR 0022: the automatic intelligibility PROXY for the approved speech, clearly labelled."""
+    rows = [{"segment_id": s.segment_id, "cer": s.intelligibility.get("cer"),
+             "note": s.intelligibility.get("error", "")} for s in synths.order_by("segment__start_ms")]
+    measured = [r["cer"] for r in rows if r["cer"] is not None]
+    return {
+        "label": "PROXY, not a listening test: faster-whisper back-transcription character error rate of each "
+                 "synthesised line against its speech script. Includes Whisper's own errors. Lower is better.",
+        "lines": len(rows), "lines_measured": len(measured),
+        "mean_cer": round(sum(measured) / len(measured), 3) if measured else None,
+        "segments": rows,
+    }
+
+
 def _sha(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -169,7 +183,8 @@ def build_export(job, ctx):
             speech = os.path.join(work, "speech.wav")
             media_tools.build_speech_track(placements, video.duration_ms, speech)
         media_tools.mux_final(storage.local_path(video.storage_key), speech, os.path.join(work, "subtitles.srt"),
-                              os.path.join(work, "localized_video.mp4"))
+                              os.path.join(work, "localized_video.mp4"), target_language=loc.target_locale,
+                              source_language=project.source_language)
         if speech:
             os.unlink(speech)
 
@@ -197,6 +212,7 @@ def build_export(job, ctx):
             "reviews": [{"scene_id": r.scene_id, "decision": r.decision, "reviewer": r.reviewer.get_username()}
                         for r in loc.reviews.select_related("reviewer").order_by("pk")],
             "synthetic_speech_notice": SYNTHETIC_SPEECH_NOTICE,
+            "intelligibility_proxy": intelligibility_summary(synths),
         }
         package_key, package_path = storage.new_path(".zip")
 

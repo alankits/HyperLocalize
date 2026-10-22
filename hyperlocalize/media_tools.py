@@ -158,9 +158,19 @@ def build_speech_track(placements, total_ms, out_wav):
     _run(args)
 
 
-def mux_final(src, speech_wav, subtitles_srt, out_mp4):
+# ISO 639-1 → ISO 639-2 codes for MP4 track tags (players show "Unknown" for "und"). ADR 0022.
+ISO639_2 = {"ta": "tam", "en": "eng", "hi": "hin", "te": "tel", "kn": "kan", "ml": "mal", "bn": "ben", "mr": "mar",
+            "gu": "guj", "pa": "pan", "ur": "urd", "or": "ori", "as": "asm", "es": "spa", "fr": "fra", "de": "deu"}
+
+
+def language_tag(code):
+    return ISO639_2.get((code or "").split("-")[0].lower(), "und")
+
+
+def mux_final(src, speech_wav, subtitles_srt, out_mp4, *, target_language="", source_language=""):
     """Full localized video: original picture, original audio ducked under the speech track (if any),
-    and a soft subtitle track."""
+    and a soft subtitle track. Tracks are tagged with their language (dubbed audio = target language,
+    original audio = source language, subtitles = target language)."""
     args = [ffmpeg(), "-y", "-v", "error", "-i", str(src)]
     if speech_wav:
         args += ["-i", str(speech_wav)]
@@ -171,6 +181,9 @@ def mux_final(src, speech_wav, subtitles_srt, out_mp4):
                  "-map", "0:v:0", "-map", "[a]"]
     else:
         args += ["-map", "0:v:0", "-map", "0:a:0"]
+    audio_language = target_language if speech_wav else source_language
+    args += ["-metadata:s:a:0", f"language={language_tag(audio_language)}",
+             "-metadata:s:s:0", f"language={language_tag(target_language)}"]
     args += ["-map", f"{sub_index}:0", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p",
              "-c:a", "aac", "-b:a", "128k", "-c:s", "mov_text", "-movflags", "+faststart", str(out_mp4)]
     _run(args, timeout=1800)

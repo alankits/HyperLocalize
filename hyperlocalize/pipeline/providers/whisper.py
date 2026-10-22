@@ -22,13 +22,17 @@ def model_dir():
     return os.path.expanduser(os.environ.get("HL_MODEL_DIR", "~/.local/hl-dev/models"))
 
 
-def transcribe_in_child(wav_path, language):
-    """Executed in the inference subprocess."""
+def transcribe_in_child(wav_path, language, *, vad_filter=True):
+    """Executed in the inference subprocess. vad_filter=False for the intelligibility proxy (ADR 0022),
+    where the audio is known to be speech."""
     from faster_whisper import WhisperModel
+
+    from . import mms_tts
 
     name = model_name()
     if name not in _MODEL:
         _MODEL.clear()  # one model at a time (laptop RAM, ADR 0005)
+        mms_tts._MODEL.clear()
         _MODEL[name] = WhisperModel(name, device="cpu", compute_type="int8", download_root=model_dir())
     # Our own 16 kHz mono PCM WAV is passed as an array, which also avoids an incompatibility between
     # faster-whisper 1.2.1's file decoder and PyAV 19.
@@ -40,7 +44,7 @@ def transcribe_in_child(wav_path, language):
         if w.getframerate() != 16000 or w.getnchannels() != 1 or w.getsampwidth() != 2:
             raise ValueError("expected 16 kHz mono 16-bit WAV")
         audio = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768.0
-    segments, info = _MODEL[name].transcribe(audio, language=language or None, vad_filter=True, beam_size=5)
+    segments, info = _MODEL[name].transcribe(audio, language=language or None, vad_filter=vad_filter, beam_size=5)
     out = []
     for s in segments:
         text = s.text.strip()

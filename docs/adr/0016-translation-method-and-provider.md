@@ -1,5 +1,7 @@
 # ADR 0016: Context-aware translation method and providers (English → Tamil)
 
+> **Amended by ADR 0022 (2026-10-22):** prompt `loc-v3` (speech length budget); one localization call per clip and one batched meaning check. ADR 0022 takes precedence where they differ.
+
 > **Amended by ADR 0021 (2026-10-22):** prompt `loc-v2` requires `speech_text` to be fully speakable target script (numbers as words, names transliterated). ADR 0021 takes precedence where they differ.
 
 **Status:** Pending spike results (provisional decision recorded 2026-10-05; revised the same day for zero budget). Not approved.

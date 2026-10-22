@@ -35,12 +35,16 @@ def scene_review(request, scene_id):
     loc = Localization.objects.get(project=project)
     segments = list(scene.segments.select_related("speaker_track").order_by("index"))
     latest = loc_services.latest_translations(loc, segments)
+    from hyperlocalize.rendering.models import SynthesisedSegment
+
     rows = []
     for seg in segments:
         t = latest.get(seg.pk)
         history = list(seg.translations.filter(localization=loc).order_by("-version")[:5])
+        speech = (SynthesisedSegment.objects.filter(translation=t, status="ACTIVE").order_by("-version").first()
+                  if t else None)
         rows.append({"segment": seg, "t": t, "checks": list(t.checks.order_by("kind", "check_type")) if t else [],
-                     "history": history})
+                     "history": history, "speech": speech})
     render_ = rendering.latest_render(scene, loc)
     roles = roles_for(request.user, project)
     siblings = list(Scene.objects.filter(video=scene.video).order_by("index").values_list("pk", flat=True))

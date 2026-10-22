@@ -68,6 +68,10 @@
     {% if row.t %}
       <div class="tgt">{{ row.t.subtitle_text }}</div>
       {% if row.t.speech_text != row.t.subtitle_text %}<div class="muted">Speech script: {{ row.t.speech_text }}</div>{% endif %}
+      {% if row.speech and not row.speech.is_mock %}<div class="muted">Tamil speech: {{ row.speech.duration_ms|floatformat:0 }} ms at {{ row.speech.tempo }}× · <code>{{ row.speech.adapter }}</code>
+        {% if row.speech.intelligibility.cer is not None %} · intelligibility proxy CER {{ row.speech.intelligibility.cer }} <span class="badge info" title="{{ row.speech.intelligibility.label }}">proxy, not a listening test</span>
+          <details><summary>What Whisper heard</summary>{{ row.speech.intelligibility.heard }}</details>
+        {% elif row.speech.intelligibility.error %} · intelligibility proxy {{ row.speech.intelligibility.error }}{% endif %}</div>{% endif %}
       {% if row.t.rationale %}<div class="muted">Stated reason (the model's own explanation, not verified): {{ row.t.rationale }}</div>{% endif %}
       {% if row.t.context_inputs %}<div class="muted">Context used: {{ row.t.context_inputs|join:", " }}</div>{% elif row.t.origin == "AI" %}<div class="muted">No context was used (context-free fallback).</div>{% endif %}
       <div>

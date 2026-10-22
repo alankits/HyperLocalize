@@ -27,8 +27,14 @@ class NumberCheckTests(SimpleTestCase):
     def test_tamil_digits_and_indian_grouping(self):
         self.assertEqual(self.check("1,00,000 people", "௧,௦௦,௦௦௦ மக்கள்"), c.PASS)
 
-    def test_tamil_number_word_is_unverifiable_fail_safe(self):
-        self.assertEqual(self.check("Give 2 sachets", "இரண்டு பொட்டலங்கள்"), c.UNVERIFIABLE)
+    def test_tamil_number_words(self):
+        # ADR 0022: words 0–100 are parsed, so a correct word passes and a wrong one fails.
+        self.assertEqual(self.check("Give 2 sachets", "இரண்டு பொட்டலங்கள்"), c.PASS)
+        self.assertEqual(self.check("Give 20 sachets", "இரண்டு பொட்டலங்கள்"), c.FAIL)
+
+    def test_unparsed_or_ambiguous_number_words_stay_unverifiable_fail_safe(self):
+        self.assertEqual(self.check("Give 200 ml", "இருநூறு மி.லி. கொடுங்கள்"), c.UNVERIFIABLE)  # beyond 0–100
+        self.assertEqual(self.check("Give it a day", "ஒரு நாள் கொடுங்கள்"), c.UNVERIFIABLE)  # ஒரு: "a" or "one"
 
     def test_unknown_language_pair_is_never_a_silent_pass(self):
         self.assertEqual(c.check_numbers("Give 2", "Donnez 2", "en", "fr")[0], c.UNVERIFIABLE)

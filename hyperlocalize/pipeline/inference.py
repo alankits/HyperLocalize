@@ -95,7 +95,8 @@ def _child_main():
             if req.get("op") == "transcribe":
                 from hyperlocalize.pipeline.providers.whisper import transcribe_in_child
 
-                sys.stdout.write(json.dumps(transcribe_in_child(req["wav_path"], req.get("language"))) + "\n")
+                sys.stdout.write(json.dumps(transcribe_in_child(req["wav_path"], req.get("language"),
+                                                                vad_filter=req.get("vad_filter", True))) + "\n")
                 sys.stdout.flush()
                 continue
             adapter = get_adapter(req["adapter"])

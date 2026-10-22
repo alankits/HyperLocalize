@@ -3,6 +3,7 @@ import json
 import urllib.error
 from unittest import mock
 
+from django.conf import settings
 from django.test import TestCase, override_settings
 
 from hyperlocalize.pipeline import jobs
@@ -90,7 +91,8 @@ class ChainTests(TestCase):
         self.assertFalse(outcome.is_fallback)
 
     def test_data_use_rule_skips_hosted_llm(self):
-        with override_settings(HL_GEMINI_API_KEY="test-key"):
+        with override_settings(HL_GEMINI_API_KEY="test-key"), \
+                mock.patch.object(gemini._GeminiBase, "available", lambda self: bool(settings.HL_GEMINI_API_KEY)):
             outcome = base.run_chain("localization", lambda a: a.localize(request()),
                                      accept=lambda a: "data-use rule" if getattr(a, "requires_hosted_llm_permission", False) else None)
         self.assertEqual(outcome.adapter.name, "mock_localization")

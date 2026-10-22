@@ -1,5 +1,7 @@
 # ADR 0008: Critical-information verification: rule-based hard checks + AI flags
 
+> **Amended by ADR 0022 (2026-10-22):** Tamil number words 0–100 are parsed (a wrong number word FAILS); ambiguous words and larger numbers stay UNVERIFIABLE. ADR 0022 takes precedence where they differ.
+
 **Status:** Accepted (approved by the user 2026-10-05). History: proposed 2026-10-04; revised 2026-10-05: English → Tamil, ADR review, independent review, which scaled down the number parser.
 **Source:** `docs/PHASE0_DISCOVERY.md` §4.3, §9
 
