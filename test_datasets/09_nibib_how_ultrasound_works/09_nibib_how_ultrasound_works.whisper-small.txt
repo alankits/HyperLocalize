@@ -1,0 +1,20 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   0.00 -   21.45] The heart of most ultrasound systems is a device called a transducer, which uses an
+[  21.45 -   23.45] array of piezoelectric crystals.
+[  23.45 -   28.51] A piezoelectric crystal vibrates when an electric signal is applied, producing high frequency
+[  28.51 -   32.33] sound pressure waves, which we call ultrasound.
+[  32.33 -   36.07] More importantly, this type of crystal can also work in reverse.
+[  36.07 -   40.97] It can produce electrical signals when it detects high frequency sound pressure waves.
+[  40.97 -   44.77] When a transducer directs ultrasound waves into the body, they pass right through the
+[  44.77 -   47.49] skin and into the internal anatomy.
+[  47.49 -   51.53] As the waves encounter tissues with different characteristics and densities, they produce
+[  51.53 -   54.69] echoes that reflect back to the piezoelectric crystal.
+[  54.69 -   57.17] This happens more than a thousand times a second.
+[  57.17 -   61.13] Returning echoes are converted to electric signals, which a computer converts into points
+[  61.13 -   65.13] of brightness on the image, corresponding to the anatomic position and the strength
+[  65.13 -   66.77] of the reflecting echoes.
+[  66.77 -   70.67] A medical transducer contains a large array of crystals, which allow it to make a series
+[  70.67 -   75.83] of image lines that, together, form a complete image frame called a sonogram.
+[  75.83 -   80.21] In addition, all the crystals are repeatedly activated many times in such a way that a
+[  80.21 -   84.99] complete image frame is formed around 20 times per second so that real-time motion is
+[  84.99 -   86.79] displayed in the ultrasound image.

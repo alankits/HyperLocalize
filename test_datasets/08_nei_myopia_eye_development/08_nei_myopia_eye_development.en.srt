@@ -1,0 +1,115 @@
+1
+00:00:00,400 --> 00:00:02,535
+Myopia and eye development.
+
+2
+00:00:02,535 --> 00:00:05,538
+When babies are born,
+their eyes are hyperopic,
+
+3
+00:00:05,672 --> 00:00:10,010
+or farsighted, meaning that their
+eyes are too short front-to-back.
+
+4
+00:00:10,110 --> 00:00:13,513
+This means light focuses
+behind the retina, making
+
+5
+00:00:13,513 --> 00:00:15,181
+close up images blurry. 
+
+6
+00:00:15,181 --> 00:00:17,584
+By age 4, most children's eyes
+
+7
+00:00:17,584 --> 00:00:21,554
+naturally start to elongate,
+correcting the hyperopia.
+
+8
+00:00:21,654 --> 00:00:25,458
+However, in some children, this eye
+growth either doesn't stop,
+
+9
+00:00:25,558 --> 00:00:28,561
+or it restarts, leading to myopia.
+
+10
+00:00:28,928 --> 00:00:32,532
+Myopia development usually begins
+when children are school-age.
+
+11
+00:00:32,532 --> 00:00:36,369
+Rather than growing proportionally,
+the developing eye starts
+
+12
+00:00:36,369 --> 00:00:38,071
+to grow too long.
+
+13
+00:00:38,071 --> 00:00:41,674
+This usually progresses until
+the eye reaches its adult size.
+
+14
+00:00:42,008 --> 00:00:45,445
+In a myopic eye, light
+focuses in front of the retina,
+
+15
+00:00:45,445 --> 00:00:47,414
+making faraway images blurry.
+
+16
+00:00:47,414 --> 00:00:50,950
+Blurry distance
+vision can be corrected with lenses
+
+17
+00:00:51,117 --> 00:00:53,119
+which refract light entering the eye
+
+18
+00:00:53,119 --> 00:00:55,789
+to refocus it properly
+on the central retina.
+
+19
+00:00:56,122 --> 00:01:00,093
+However, regular glasses
+do not slow myopia development.
+
+20
+00:01:00,593 --> 00:01:03,229
+High myopia can lead to blinding
+conditions
+
+21
+00:01:03,229 --> 00:01:06,232
+like retinal detachment in later
+life.
+
+22
+00:01:06,332 --> 00:01:09,969
+Researchers are exploring ways
+to slow myopia progression
+
+23
+00:01:09,969 --> 00:01:10,904
+in children.
+
+24
+00:01:11,137 --> 00:01:12,872
+National Eye Institute.
+
+25
+00:01:12,872 --> 00:01:17,577
+Learn more about
+myopia at nei.nih.gov/myopia.

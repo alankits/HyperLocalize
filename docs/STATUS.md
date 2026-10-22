@@ -67,6 +67,16 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 - CP0 / CP3 (external ASR, Kaggle upload) have no code path yet, because no remote provider is integrated. The `external_transcription` consent use is therefore **not enforced by any gate** today.
 - Independent code review of the consent and audit code: 1 blocker and 6 majors, **all fixed** (`docs/CODE_REVIEW.md`).
 
+## Test material (2026-10-22)
+
+- `test_datasets/`: 12 public English health-information videos (58–180 s; 22.4 min and 199 MB in total) from Wikimedia
+  Commons, for drag-and-drop testing through the UI. Every file's SHA-1 matches Commons, all 12 pass
+  `media_tools.validate_source`, and faster-whisper `small` found English speech in each. Five have human English
+  subtitles (`.en.srt`) to use as reference transcripts. Details and attribution: `test_datasets/README.md`.
+- **Not yet run through the app** (analysis → translation → render → export). Translation quality on them: [NOT MEASURED].
+- The speakers have not consented to HyperLocalize: use `SUBTITLES_ONLY` / `STOCK_VOICE` only, never `CLONED_VOICE` (ADR 0006).
+- They do not replace the scripted, consented spike clip (`SPIKE_PLAN.md` §2).
+
 ## Design documents
 
 | Document | State |

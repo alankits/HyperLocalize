@@ -1,0 +1,11 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   0.11 -    5.51] Try to avoid sneezing into your hand because you just contaminate them and then spread those germs everywhere.
+[   5.51 -   10.51] Focus on sneezing into your elbow, like this, and then you don't contaminate your hands.
+[  10.51 -   15.31] Turn on the water, wet your hands, apply a good amount of soap and lather up,
+[  15.31 -   21.01] and then focus on washing your hands for about 20 seconds, about the time it takes to sing Happy Birthday twice.
+[  21.01 -   26.41] Focus on washing the front of your hands, the back in between the fingers, around the nails and so on.
+[  26.41 -   33.01] And then rinse everything off. Use something to wipe your hands after that, perfectly something disposable like a paper towel.
+[  33.01 -   39.61] And then use that to turn off the tap as well. If you get a chance, use that to also open the door to the bathroom as you're reading.
+[  39.61 -   45.21] The best way to wash your hands is using running water and soap, but sometimes we don't have that available.
+[  45.21 -   51.21] So think about carrying with you a hand sanitizer. That should have at least 60% alcohol content.
+[  51.21 -   59.21] For more information, visit www.cdc.gov or call 1-800-CDC-INFO.

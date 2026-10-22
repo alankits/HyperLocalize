@@ -1,0 +1,20 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   4.46 -   14.46] Today, the CDC and FDA announced that they are calling a pause on the administration of the J&J vaccine for COVID-19
+[  14.46 -   17.46] due to a small number of adverse events.
+[  17.46 -   24.46] It was seen in six out of the 6.85 million people who've been vaccinated and out of an abundance of caution.
+[  24.46 -   27.46] They've called a pause on the administration.
+[  27.46 -   32.38] There are a couple of reasons to do that.
+[  32.38 -   36.38] The first is to investigate this a bit further.
+[  36.38 -   42.38] And the second is to alert the clinicians out there, when someone comes in with these types of symptoms,
+[  42.38 -   46.38] to ask them if they have a history of a recent vaccination.
+[  46.38 -   56.22] The people who've already gotten the vaccine should not be worried because, as I mentioned, this is a very rare event.
+[  56.22 -   59.22] One in more than a million individuals.
+[  59.22 -   64.22] The J&J vaccine has been shown in clinical trials to be highly efficacious.
+[  64.22 -   69.22] What we're talking about now has nothing to do with the efficacy of the vaccine.
+[  69.22 -   81.51] The federal government is working with the distributors of this vaccine to see if we can expedite getting appointments
+[  81.51 -   87.51] to get an alternative vaccine, namely either the Pfizer or the Moderna vaccine.
+[  87.51 -   97.04] Over 120 million people have received at least one dose of the vaccines.
+[  97.04 -  107.04] Out of that 120 million, only a small proportion, 6.85 million or J&J, all the rest are either Moderna and Pfizer.
+[ 107.04 -  114.04] There have been no signals that there's any concern about adverse events among those tens of millions of people.
+[ 114.04 -  118.32] Absolutely you should get vaccinated.
+[ 118.32 -  128.32] The danger of COVID-19 as a disease clearly overwhelmingly outstrips any risk of an adverse event from a vaccine.

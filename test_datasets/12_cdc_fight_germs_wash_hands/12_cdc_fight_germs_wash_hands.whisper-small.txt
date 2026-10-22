@@ -1,0 +1,26 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   5.65 -   17.58] Hand washing is one of the most important ways you can keep from getting sick and spreading germs to others.
+[  17.58 -   19.58] Dirty hands spread disease.
+[  19.58 -   28.58] This hand washing demonstration will show you how hand washing can get rid of germs and chemicals that get on our hands every day.
+[  28.58 -   37.58] This gel is like the germs and chemicals that we get from things we touch throughout the day, like our toys and pets.
+[  37.58 -   46.58] If we then rub our eyes, nose or mouth or pick up something to eat, the germs or chemicals can get into our bodies and make us sick.
+[  46.58 -   55.58] Studies have shown that people touch their eyes, nose and mouth about 25 times every hour without even realizing it.
+[  55.58 -   63.58] To get rid of these germs and chemicals, CDC recommends you follow these easy steps every time you wash your hands.
+[  63.58 -   70.58] Wet, Lather, Scrub, Rinse and Dry.
+[  70.58 -   74.58] We're going to show you the right way to do each step.
+[  74.58 -   80.58] First, wet your hands with clean running water. Turn off the tap and apply soap.
+[  80.58 -   85.58] Then, lather your hands by rubbing them together with the soap.
+[  85.58 -   92.58] Be sure to lather the backs of your hands between your fingers and under your nails.
+[  92.58 -   95.58] Scrub your hands for at least 20 seconds.
+[  95.58 -  102.58] If you don't have a clock nearby, keep scrubbing until you've sung the Happy Birthday Song twice.
+[ 102.58 -  105.58] Rinse your hands well under clean running water.
+[ 105.58 -  110.58] Dry your hands using a clean towel, electric hand dryer or air dryer.
+[ 110.58 -  118.58] Washing your hands using the steps we just demonstrated is very important to get hands completely clean.
+[ 118.58 -  122.58] Let's see how well we got rid of the germs and chemicals.
+[ 122.58 -  125.58] Great! No more germs and chemicals.
+[ 125.58 -  127.58] Why is this so important?
+[ 127.58 -  137.58] Germs and chemicals from unwashed hands can get into our foods and drinks when they're being prepared or when we're eating or drinking them, which can make us sick.
+[ 137.58 -  148.58] Also, germs and chemicals from unwashed hands can be transferred to other objects like cell phones, tabletops or toys and then transferred to other people's hands.
+[ 148.58 -  153.58] That's why it's so important to wash your hands following these steps.
+[ 153.58 -  162.58] Wet, lather, scrub, rinse and dry so you can stay healthy and help keep those around you healthy.
+[ 162.58 -  167.58] For more information, visit cdc.gov.com.

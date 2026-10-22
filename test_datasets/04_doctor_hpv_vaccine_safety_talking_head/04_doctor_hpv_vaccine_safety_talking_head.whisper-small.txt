@@ -1,0 +1,32 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   8.53 -   12.77] When parents raise questions about vaccine safety,
+[  12.77 -   15.93] I ask them specifically what they've heard,
+[  15.93 -   20.13] because often they've heard or read one thing
+[  20.13 -   22.05] that I can address directly.
+[  22.05 -   25.09] And I explain to them where there are
+[  25.09 -   27.29] mistaken bits of information
+[  27.29 -   29.45] and how sometimes people draw conclusions
+[  29.45 -   31.29] that one thing caused another
+[  31.29 -   34.05] when they really didn't have anything to do with each other.
+[  34.05 -   36.45] The other thing is I do like to talk about
+[  36.45 -   39.45] how vaccines are determined to be safe.
+[  39.45 -   43.13] And I think it's important for us as physicians
+[  43.13 -   46.25] and healthcare providers to understand
+[  46.25 -   48.49] how vaccines are vetted for safety
+[  48.49 -   52.81] before they're even licensed or approved by the FDA
+[  52.81 -   55.93] so that we can literally address those concerns
+[  55.93 -   60.17] with families and parents from a standpoint of knowledge
+[  60.17 -   63.05] and understanding the science in the system.
+[  63.05 -   65.97] Sometimes I even talk about the rotavirus vaccine,
+[  65.97 -   69.25] which post-marketing revealed that there were issues
+[  69.25 -   71.73] and that vaccine was withdrawn from the market
+[  71.73 -   73.29] in less than a year.
+[  73.29 -   76.37] With the HPV vaccine in particular,
+[  76.37 -   80.45] we've given over 150 million doses.
+[  80.45 -   84.37] And truthfully, except for perhaps an allergic reaction,
+[  84.37 -   87.25] the most serious side effect that's been identified
+[  87.25 -   89.81] is that some teenagers, Valsalva,
+[  89.81 -   92.81] hold their breath in faint after they have a vaccine.
+[  92.81 -   95.45] When you put it into perspective for families
+[  95.45 -   97.33] and explain the facts,
+[  97.33 -  100.09] many times you can dispel those safety concerns.

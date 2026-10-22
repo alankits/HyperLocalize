@@ -49,3 +49,6 @@ Thumbs.db
 
 # Spike working files (recordings, transcripts, model outputs); never commit
 spike/work/
+
+# Test datasets: video files stay out of git (test_datasets/README.md)
+test_datasets/**/*.webm

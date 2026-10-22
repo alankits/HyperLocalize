@@ -1,6 +1,6 @@
 # Next Steps
 
-**Updated:** 2026-10-12 · **Phase:** 1 (MVP build, authorized 2026-10-06) · **Branch:** `phase0/spike-scripts`. **Do not merge to `master` yet** (user instruction, 2026-10-05). **Do not run the spike on real data and do not record yet** (user instruction, 2026-10-05).
+**Updated:** 2026-10-22 · **Phase:** 1 (MVP build, authorized 2026-10-06) · **Branch:** `phase0/spike-scripts`. **Do not merge to `master` yet** (user instruction, 2026-10-05). **Do not run the spike on real data and do not record yet** (user instruction, 2026-10-05).
 
 ## Done
 - Phase 0 report (rev 4), ADRs 0001–0019, spike plan, third-party terms, ADR self-review and independent review.
@@ -74,6 +74,14 @@ The form may now be signed only **after** the test script is frozen and every Ap
 - Transcription and speech usage is not metered.
 - The Kaggle GPU-hours quota (ADR 0019) has no adapter yet.
 - Two Gemini adapters that share one account are counted separately.
+
+## Session 2026-10-22
+- Added `test_datasets/`: 12 short English health videos with speech (public domain / CC BY 3.0), each checksum-verified,
+  checked with the app's upload validation, and transcribed with faster-whisper `small` to confirm speech. Video files are
+  git-ignored. See `test_datasets/README.md`.
+- Two first candidates were rejected (a silent audio track; music only) and replaced.
+- **Next with this material:** upload 11 (ORS / cholera) and 04 (single talking head) through the UI in `SUBTITLES_ONLY`
+  mode, run the full workflow to export, and record what breaks. 08 (AV1) is the rendering risk.
 
 ## Exact next action
 **User actions and decisions (blocking the real-data spike and real providers):** unchanged from 2026-10-06.

@@ -1,0 +1,24 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   6.96 -   11.92] A lot of us have an idea in our heads about what a person addicted to drugs looks like,
+[  11.92 -   16.92] but the truth is, anyone can become addicted to drugs.
+[  16.92 -   20.80] Addiction is when you feel a strong urge to keep taking a drug, even if it is causing
+[  20.80 -   21.80] harm.
+[  21.80 -   25.06] To stop, ask for help.
+[  25.06 -   31.44] Drug addiction doesn't depend on your income, your job, your age, race or color.
+[  31.44 -   35.00] Addiction is a disease of the brain, and it can happen to anyone.
+[  35.00 -   41.76] You probably already know that you can become addicted to tobacco, alcohol and illegal drugs.
+[  41.76 -   45.60] But even prescription drugs can be addictive when not taken as directed or when you take
+[  45.60 -   49.46] medication not prescribed for you.
+[  49.46 -   52.70] There are scientists who study drug abuse.
+[  52.70 -   56.10] Their research has taught us a lot about what makes you more likely to become addicted
+[  56.10 -   58.30] to drugs.
+[  58.30 -   62.18] Things like having family members who have had a drug problem, starting drugs at a
+[  62.18 -   68.70] young age, having mental health problems like depression, or hanging around other people
+[  68.70 -   76.37] who use drugs all put you at risk.
+[  76.37 -   81.01] But you do not become addicted if you don't take drugs.
+[  81.01 -   85.65] If you or someone you love has a problem, get help.
+[  85.65 -   93.54] And if you do become addicted, you can be treated and you can recover.
+[  93.54 -   95.26] Find drug treatment near you.
+[  95.26 -   99.22] Call 1-800-662-HELP.
+[  99.22 -  100.62] Want to learn more?
+[ 100.62 -  107.22] Find easy to read drug facts at www.easyread.drugabuse.gov.

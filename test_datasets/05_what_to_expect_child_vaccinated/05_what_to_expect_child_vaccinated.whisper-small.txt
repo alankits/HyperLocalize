@@ -1,0 +1,18 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   0.00 -    3.16] Jack's mom and dad just brought him home from a checkup.
+[   3.16 -    7.00] Jack has some pain, redness, and swelling where he got his shots.
+[   7.00 -   10.00] All common reactions that will soon go away.
+[  10.00 -   13.50] His mom is using a cool, wet cloth to make him feel better.
+[  13.50 -   17.00] The doctor gave them some more tips for keeping Jack comfortable,
+[  17.00 -   20.66] like reducing any fever by giving a non-aspirin pain reliever.
+[  20.66 -   23.50] She also recommended giving Jack lots of liquid,
+[  23.50 -   28.70] as Jack may eat less than usual for the first 24 hours after vaccination.
+[  28.70 -   32.20] Jack's dad is reading over some information the doctors gave him,
+[  32.20 -   37.00] which explains other mild side effects Jack could experience over the next few days.
+[  37.00 -   40.20] Serious reactions to vaccines are very rare,
+[  40.20 -   44.50] but Jack's parents will call his doctor if they notice anything that concerns them.
+[  44.50 -   49.80] Sure, his parents become a little upset that Jack is uncomfortable after he gets the shots,
+[  49.80 -   56.00] but when they think about the risk of Jack becoming sick from any of the 14 vaccine-preventable diseases,
+[  56.00 -   59.20] they know it's worth it to protect him in the long run.
+[  59.20 -   61.90] Learn more about childhood immunizations.
+[  61.90 -   67.70] Visit cdc.gov.vaxine.parons or talk with your child's doctor.

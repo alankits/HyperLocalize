@@ -1,0 +1,79 @@
+1
+00:00:17,280 --> 00:00:20,678
+The heart of most ultrasound systems is a device called a transducer,
+
+2
+00:00:20,774 --> 00:00:24,990
+which uses an array of piezoelectric crystals. A piezoelectric crystal
+
+3
+00:00:25,030 --> 00:00:28,814
+vibrates when an electric signal is applied, producing high frequency sound
+
+4
+00:00:28,862 --> 00:00:33,058
+pressure waves, which we call ultrasound. More importantly,
+
+5
+00:00:33,154 --> 00:00:36,578
+this type of crystal can also work in reverse. It can produce
+
+6
+00:00:36,634 --> 00:00:40,230
+electrical signals when it detects high frequency sound pressure waves.
+
+7
+00:00:40,650 --> 00:00:43,618
+When a transducer directs ultrasound waves into the body,
+
+8
+00:00:43,754 --> 00:00:47,026
+they pass right through the skin and into the internal anatomy.
+
+9
+00:00:47,218 --> 00:00:50,762
+As the waves encounter tissues with different characteristics and densities,
+
+10
+00:00:50,906 --> 00:00:54,338
+they produce echoes that reflect back to the piezoelectric crystal.
+
+11
+00:00:54,474 --> 00:00:57,906
+This happens more than a thousand times a second. Returning echoes
+
+12
+00:00:57,938 --> 00:01:01,202
+are converted to electric signals, which a computer converts into points of
+
+13
+00:01:01,226 --> 00:01:04,498
+brightness on the image corresponding to the anatomic position and
+
+14
+00:01:04,514 --> 00:01:07,834
+the strength of the reflecting echoes. A medical transducer
+
+15
+00:01:07,882 --> 00:01:11,090
+contains a large array of crystals, which allow it to make a series of image
+
+16
+00:01:11,130 --> 00:01:14,738
+lines that together form a complete image frame called a
+
+17
+00:01:14,754 --> 00:01:18,466
+sonogram. In addition, all the crystals are repeatedly activated
+
+18
+00:01:18,538 --> 00:01:22,474
+many times in such a way that a complete image frame is formed around 20
+
+19
+00:01:22,522 --> 00:01:25,778
+times per second so that real-time motion is displayed in the
+
+20
+00:01:25,794 --> 00:01:26,910
+ultrasound image.

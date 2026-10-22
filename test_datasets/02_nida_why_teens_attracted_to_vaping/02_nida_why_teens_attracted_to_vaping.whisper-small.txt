@@ -1,0 +1,27 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   0.00 -   12.21] The APing becomes a very appealing for teenagers because to start with this new technology,
+[  12.21 -   13.21] it's a gadget.
+[  13.21 -   17.73] And some of these gadgets are actually very sleek and cool-looking.
+[  17.73 -   21.13] So it's basically you get conditioned to the gadget.
+[  21.13 -   27.61] On top of these, these devices are delivering whether it's nicotine or THC flavors.
+[  27.61 -   32.71] And flavors are a very powerful way to condition you to other stimuli.
+[  32.71 -   38.41] So anything that's ultimately very basic into the way that we get conditioned to food,
+[  38.41 -   40.61] through flavors and smells.
+[  40.61 -   45.35] And so here you have a device that has a new technology, the appeal of being it cool.
+[  45.35 -   50.67] And then on top of that, it has these very tasty flavors that then become appealing
+[  50.67 -   52.07] on themselves.
+[  52.07 -   57.31] And then you put in nicotine, which is going to make everything more reinforcing, because
+[  57.31 -   60.91] nicotine is a drug that activates dopamine neurons.
+[  60.91 -   68.59] Dopamine neurons are there in your brain to assign something as salient, as worthwhile,
+[  68.59 -   71.03] as motivating.
+[  71.03 -   72.91] And then the flavor is good.
+[  72.91 -   75.19] And then you have nicotine, which enhances that.
+[  75.19 -   77.47] It makes it even more salient.
+[  77.47 -   84.31] And that is really a terrible combination for accelerating the addictiveness of a product.
+[  84.31 -   88.71] The other appealing component for a teenager and of great concern is that you can
+[  88.71 -   95.23] use the vaping devices to deliver a 90-HC, which is the active ingredient of marijuana,
+[  95.23 -   98.03] the reason why people get high on it.
+[  98.03 -  101.71] But you can put it in a concentrate that's almost 100 percent.
+[ 101.71 -  108.27] That vaping is now the way by which teenagers are getting cannabinoids into their system
+[ 108.27 -  113.35] in a way that's actually going to have a higher purity and therefore may be associated
+[ 113.35 -  116.07] with even more worse adverse effects.

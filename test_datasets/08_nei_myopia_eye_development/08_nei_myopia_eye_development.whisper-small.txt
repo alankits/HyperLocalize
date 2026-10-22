@@ -1,0 +1,18 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   0.14 -    2.54] Myopia and eye development.
+[   2.54 -    7.00] When babies are born, their eyes are hyperopic or farsighted,
+[   7.00 -   10.08] meaning that their eyes are too short front to back.
+[  10.08 -   15.14] This means light focuses behind the retina, making close-up images blurry.
+[  15.14 -   21.54] By age four, most children's eyes naturally start to elongate, correcting the hyperopia.
+[  21.54 -   28.84] However, in some children, this eye growth either doesn't stop or it restarts, leading to myopia.
+[  28.84 -   32.84] Myopia development usually begins when children are school age.
+[  32.84 -   37.84] Rather than growing proportionally, the developing eye starts to grow too long.
+[  37.84 -   41.84] This usually progresses until the eye reaches its adult size.
+[  41.84 -   47.84] In a myopic eye, light focuses in front of the retina, making faraway images blurry.
+[  47.84 -   50.84] Blurry distance vision can be corrected with lenses,
+[  50.84 -   55.84] which refract light entering the eye to refocus it properly on the central retina.
+[  55.84 -   59.84] However, regular glasses do not slow myopia development.
+[  59.84 -   65.84] High myopia can lead to blinding conditions like retinal detachment in later life.
+[  65.84 -   70.84] Researchers are exploring ways to slow myopia progression in children.
+[  70.84 -   72.84] National Eye Institute.
+[  72.84 -   76.84] Learn more about myopia at nei.nih.gov.

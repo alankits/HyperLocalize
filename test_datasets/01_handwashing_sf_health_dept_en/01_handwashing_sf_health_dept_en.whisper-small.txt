@@ -1,0 +1,12 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   0.11 -    2.11] Welcome to the hand washing video.
+[   2.11 -    8.11] The most important thing you can do to keep your family from getting sick is washing your hands correctly.
+[   8.11 -    9.11] Here is how.
+[   9.11 -   13.11] Step 1. Wash your hands with running water and soap.
+[  13.11 -   18.11] Step 2. Rub your hands for at least 20 seconds.
+[  18.11 -   27.11] Remember to wash the back of your hands in between your fingers, your fingertips, and under your nails, as well as your wrists and thumbs.
+[  27.11 -   33.11] Step 3. Rinse your hands and dry them with paper towels or an air dryer.
+[  33.11 -   39.11] If you have concerns with the cleanliness of your surroundings, you can use the paper towel to help with the door.
+[  39.11 -   43.11] If you are at home, it is safe to use a towel to dry your hands.
+[  43.11 -   53.11] If you don't have soap and water available, you can use alcohol-based hand sanitizer that contains at least 60% alcohol to clean your hands.
+[  53.11 -   58.11] For more information, please visit sfdph.org.

@@ -1,0 +1,21 @@
+# MACHINE TRANSCRIPT (faster-whisper small, CPU int8, VAD on). Draft only, NOT ground truth.
+[   7.34 -   13.84] Traumatic brain injury, or TBI, is an injury that disrupts the brain and its activity.
+[  13.84 -   20.84] TBI can result from a blow to the head, a jolt of the brain, or an object that goes through the skull.
+[  20.84 -   27.84] In the United States each year, 1.7 million people sustain a traumatic brain injury.
+[  27.84 -   31.84] Each of these heads represents 20,000 people.
+[  31.84 -   41.94] Of the 1.7 million injured, 50,000 people die and more than 250,000 are hospitalized.
+[  41.94 -   44.94] TBI can be mild to severe.
+[  44.94 -   50.94] Severe TBI can lead to permanent disability and even death.
+[  50.94 -   56.94] 75% of brain injuries are mild, meaning they are not life-threatening.
+[  56.94 -   63.44] In the U.S., most brain injuries in children, 55%, are caused by falls.
+[  63.44 -   68.44] 24% are caused by being hit in the head with an object like a soccer ball.
+[  68.44 -   75.44] Among children older than 5, car accidents are the number one cause of TBI-related death.
+[  75.44 -   80.94] Assault is the number one cause of TBI-related death in those younger than 5.
+[  81.44 -   87.44] But even mild brain injury, like a concussion, can seriously affect daily activities.
+[  87.44 -   97.44] Mild TBI can cause problems with the child's speaking or understanding, movement, thinking or memory, and personality or mood.
+[  97.44 -  101.44] We can all help reduce the risk of TBI in children.
+[ 101.44 -  105.44] Use a safety seat and or a seat belt when the child is in a motor vehicle.
+[ 105.94 -  112.94] Make sure the child wears a helmet when riding a bicycle, skateboarding and playing sports like hockey and football.
+[ 112.94 -  116.44] Install window guards and stair safety gates at home.
+[ 116.44 -  119.94] Avoid shaking or jolting a baby.
+[ 119.94 -  126.94] To learn more, visit nychd.nih.gov.
