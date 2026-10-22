@@ -98,6 +98,18 @@ The form may now be signed only **after** the test script is frozen and every Ap
 - **Exact next action:** after the quota reset, click **Retry translation and meaning checks now** on project 5 (Manager or Media Operator). When the previews finish, **the user reviews and approves in the browser**.
 - Open: a Whisper baseline for the CER proxy; the number check compares counts, not positions; HF access for IndicTrans2 (user); stop the test suite from leaking quota → done.
 
+## Session 2026-10-22/23: college report and presentation
+- **Done:** `docs/submission/`: the report (54 pages, .docx + .pdf with a filled-in TOC) and a 21-slide deck with speaker notes (.pptx + .pdf). UML rendered from `docs/uml/`; a new core ER diagram (`source/er_core.mmd`); a clip 01 timing chart from the trial's measured ratios.
+- **Tested for it:** the full suite re-ran with 210 pass and 2 skipped; `blackbox_testing/` gave 11 pass (pytest). The deck passes `validate.py`. Every page and slide was rendered and checked visually.
+- **User actions:** fill in the `[PLACEHOLDERS]` (name, register number, guide, college and so on); check the AI-assistance statement in the declaration against your college's rules; accept "update fields" in Word.
+- **Stale docs found (not changed in this session):**
+  - `docs/PRODUCT.md` §4 and §7 still say "nothing is implemented" and "application code: none exists";
+  - `docs/ARCHITECTURE.md` §5 says Gemini was never run live and Whisper only on non-speech;
+  - `README.md` and `docs/TESTING.md` give 139 tests.
+  - `docs/STATUS.md`'s header names branch `phase0/spike-scripts`, but git shows `main`.
+  - Suggest a wording-only refresh.
+- `blackbox_testing/` and `whitebox_testing/` are untracked and were **not** committed. They are the user's. The `whitebox_testing/grade.py` toy example is not part of HyperLocalize.
+
 ## Exact next action
 **User actions and decisions (blocking the real-data spike and real providers):** unchanged from 2026-10-06.
 1. GitHub: give the URL of an empty private repo; the assistant adds the remote and pushes. **Nothing is backed up off this laptop yet.**

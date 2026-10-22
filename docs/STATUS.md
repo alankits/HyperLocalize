@@ -38,6 +38,8 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 
 **MEASURED (2026-10-22, ADR 0022 and its review fixes):** 210 tests pass, 2 optional real-model tests skipped (`python manage.py test --noinput hyperlocalize`; test mode is now forced by the runner, and **no test reaches real Gemini**. Before this, test runs since 2026-10-12 had been sending real requests with the `.env` key). 161 s, previously about 500 s.
 
+**Re-run for the submission report (MEASURED 2026-10-22, late):** `python manage.py test --noinput hyperlocalize`: 210 pass, 2 skipped, 125 s. The black-box suite in `blackbox_testing/test_hyperlocalize_blackbox.py` (untracked; equivalence partitioning and boundary values on `localization/checks.py`): **11 pass** with pytest.
+
 **Earlier, MEASURED (2026-10-22, after ADR 0021 and its review fixes):** 180 tests pass, 2 optional real-model tests skipped (`HYPERLOCALIZE_MODE=test python manage.py test --noinput hyperlocalize`). The MMS-TTS real-model test passes with `HL_TEST_MMS=1`.
 
 **Earlier: MEASURED (2026-10-12):** 150 tests pass, 1 optional skipped (earlier counts: 102, 114, 126, 139) on PostgreSQL 17 (`HYPERLOCALIZE_MODE=test python manage.py test hyperlocalize`). Spike tooling: 75 pass, 1 skipped (separate suite in `spike/`).
@@ -119,6 +121,7 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
 | Interim rule (ADR 0012 note, SPIKE_PLAN §6) | **[CONFIRMED 2026-10-06]** No demo-reset snapshot or golden project may contain a real speaker's voice until ADR 0020 is approved. |
 | `spike/` tooling | M1 scorer, M2 tally (blind MQM and pairwise sheets, agreement, chrF, rule 3), ADR 0008 hard checks, freeze, M3 seeded evaluation, M5 timing fit, M6 timing harness, rule 6. **75 unit tests pass and 1 is skipped (the optional sacreBLEU cross-check, which passes when sacreBLEU is installed); synthetic inputs only, 2026-10-05. Not run on real data.** Tamil lexicons are empty until R1/R2 fill them in. |
 | `docs/EVALUATION.md` | Not created yet (created when the spike runs) |
+| `docs/submission/` | **College report (54 pages, .docx + .pdf) and a 21-slide deck (.pptx + .pdf)**, built 2026-10-22/23 from this file, ARCHITECTURE, EVALUATION, TESTING and the ADRs. The student, guide and college details are `[PLACEHOLDERS]` for the user to fill in. Generators are in `docs/submission/source/` |
 
 ## Spike readiness (2026-10-05)
 
