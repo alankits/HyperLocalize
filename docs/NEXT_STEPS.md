@@ -91,6 +91,13 @@ The form may now be signed only **after** the test script is frozen and every Ap
   (2) cut Gemini calls (batch meaning checks per scene; retry 503); (3) tag export tracks as Tamil; (4) policy on exporting when a
   meaning check was MOCK. User will request Hugging Face access for IndicTrans2 later.
 
+## Session 2026-10-22 (continued): governance + ADR 0022
+- **User rule:** the assistant never accepts, overrides, approves or exports via user accounts (CLAUDE.md §11 c2). The project 4 export was withdrawn.
+- **ADR 0022** implemented, reviewed (all 12 findings applied) and tested (210 pass). Commit `deeaab9`.
+- **Clip 01 re-run (project 5)** is waiting on Gemini's daily quota: "translation pending", no MOCK text.
+- **Exact next action:** after the quota reset, click **Retry translation and meaning checks now** on project 5 (Manager or Media Operator). When the previews finish, **the user reviews and approves in the browser**.
+- Open: a Whisper baseline for the CER proxy; the number check compares counts, not positions; HF access for IndicTrans2 (user); stop the test suite from leaking quota → done.
+
 ## Exact next action
 **User actions and decisions (blocking the real-data spike and real providers):** unchanged from 2026-10-06.
 1. GitHub: give the URL of an empty private repo; the assistant adds the remote and pushes. **Nothing is backed up off this laptop yet.**

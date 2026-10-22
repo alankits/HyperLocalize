@@ -94,6 +94,14 @@ Mocks are registered only in `dev` / `test` mode; every output carries `is_mock`
   per day per model); no retry on 503; export tracks tagged `und`; 3 approved lines carry a MOCK meaning check (now visible in
   `quality_report.json`).
 
+## ADR 0022 re-run of clip 01 (2026-10-22, project 5): stopped at "translation pending"
+
+- The governance rule (CLAUDE.md §11 c2) applies: the assistant created the project, uploaded the clip and ran the pipeline only. **Review and approval are the user's.**
+- Whisper transcribed 14 segments in 2 scenes. **Gemini's free-tier daily quota was already used up** (HTTP 429 "daily quota used up"): about 18 successful app requests in 24 h, plus failed calls and the leaked test-suite calls the ledger doesn't count. The localize job retried 3 times and then FAILED as `TranslationPending`.
+- **0 translations and 0 MOCK fallbacks.** Both scenes are `PENDING`, and the project page shows the "Translation pending … Nothing was machine-translated by a MOCK" banner with a Retry button.
+- Next: after the quota resets (believed to be midnight US Pacific, about 12:30 IST on 2026-10-23 [UNVERIFIED]), a Manager or Media Operator clicks Retry. Translation (1 call), the meaning check (1 call), MMS-TTS and the intelligibility proxy then run, and the project stops at Human Review.
+- Earlier the same day: project 4 (the ADR 0021 run) was withdrawn as NOT human-reviewed (`AGENT_REVIEW_WITHDRAWN`).
+
 ## Design documents
 
 | Document | State |
