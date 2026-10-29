@@ -110,6 +110,13 @@ The form may now be signed only **after** the test script is frozen and every Ap
   - Suggest a wording-only refresh.
 - `blackbox_testing/` and `whitebox_testing/` are untracked and were **not** committed. They are the user's. The `whitebox_testing/grade.py` toy example is not part of HyperLocalize.
 
+## Session 2026-10-30: report in the college's 5-chapter micro-project format
+- **Done:** `docs/submission/REPORT_CONTENT_5CHAPTER.md` — full report text following the college TOC (Cover → Abstract → TOC → List of Figures/Tables → Ch. 1 Introduction; Ch. 2 Literature Survey; Ch. 3 Methodology and System Design; Ch. 4 Implementation and Results; Ch. 5 Conclusion and Future Enhancement → References).
+- **Also done:** `docs/submission/HyperLocalize_Report_5Chapter.docx` generated from that Markdown by `docs/submission/source/report_from_md.js`; A4, Times New Roman 12, justified, heading styles for the Word TOC, 20 tables, and the seven 2026-10-12 screenshots embedded at their figure captions.
+- **Verified:** the .docx opens as a valid zip; 968 non-empty paragraphs, 54 headings (Chapter 1–5 and subsections as expected), 20 tables, 7 embedded images in figure order, TOC field present, no editorial notes leaked into the document. Text volume is comparable to the earlier 54-page report. **Not visually rendered** (no LibreOffice on the laptop), so pagination and figure placement are unchecked.
+- **Not done:** UML figures are not embedded (Mermaid sources still need rendering); no PDF of this version; placeholders not filled.
+- **Facts used:** 210 pass / 2 skipped full suite (2026-10-22), 75 pass / 1 skip focused run (2026-10-29), 11 black-box passes, 15/15 e2e (2026-10-06), clip 01 trial (CER 0.16, 2/14 timing, 11.95 chars/s), and the project-5 state of 2026-10-29 (14/14 segments, real previews, 6 open checks, no approval).
+
 ## Exact next action
 **User actions and decisions (blocking the real-data spike and real providers):** unchanged from 2026-10-06.
 1. GitHub: give the URL of an empty private repo; the assistant adds the remote and pushes. **Nothing is backed up off this laptop yet.**
